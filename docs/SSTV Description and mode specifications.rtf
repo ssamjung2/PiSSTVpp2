@@ -1,0 +1,528 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2867
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fswiss\fcharset0 ArialMT;\f2\ftech\fcharset77 Symbol;
+}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\margl1440\margr1440\vieww34360\viewh18420\viewkind0
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f0\fs36 \cf2 Proposal for SSTV Mode Specifications\
+
+\fs24 JL Barber (N7CXI), Silicon Pixels\
+Presented at the Dayton SSTV forum, 20 May 2000\
+Forward\
+
+\f1 When I first began investigating the requirements for designing an SSTV system,\
+one of the first obstacles I ran into was the lack of 
+\f0 accurate
+\f1  information on the\
+exact format and timings of the many SSTV modes in use. All the information I\
+found was either generalized, or based on the results of reverse engineering\
+existing systems. As so often noted, this has resulted in many compatibility\
+problems over the years. This paper is a beginning at changing that. The\
+reason I call it a 
+\f0 beginning
+\f1  is that other developers may not agree that the\
+specifications presented here should become standards. Even so, every venture\
+must start somewhere. If the developer\'92s community at large can agree on\
+reasonable standards, we\'92ll be happy to adopt them. In the meantime, we\
+present these proposed specifications for use or publication by anyone who finds\
+them useful.\
+
+\f0 Data sources\
+
+\f1 The specifications presented in this paper include only those that we have \'93hard\'94\
+data for. In the case of Scottie, Martin, Robot, and Wrasse modes, our source is\
+the firmware for the Robot 1200C. For other modes:\
+Pasokon \'93P\'94 modes John Langner (author)\
+\'93PD\'94 modes Don Rotier (author)\
+FAX480 Dr. Ralph Taggart (author)\
+
+\f0\fs16\fsmilli8040 Note: Those familiar with our ChromaPIX and W95SSTV systems will note the absence of specifications for the AVT\
+modes. Since we have no solid data on AVT from the author, we have not included them here.\
+
+\fs24 Numeric precision\
+
+\f1 The timings specified here are generally given in milliseconds, (ms) except where\
+other units work better for examples. Scan times have been rounded to .001ms,\
+which is adequate precision for any known application. Total transmission times\
+are not calculated precisely, since the exact lengths aren\'92t relevant for\
+development purposes. In the case of the Robot firmware, we can provide the\
+8031 clock frequency and \'93counts\'94, if absolute precision is desired.\
+
+\f0 Disclaimer\
+
+\f1 While every attempt has been made to ensure the accuracy of this information,\
+we can\'92t absolutely guarantee it to be completely without error.\
+
+\f0 Layout\
+
+\f1 Rather than present mode timings with pictures, we\'92ve chosen to \'93step through\'94\
+each mode, in sequence. We believe this method will be more useful to\
+developers, as it reveals the sequence of events more readily than an image.
+\f0 \cf0 \page \cf2 VIS Code and Robot calibration header\
+
+\f1 All standard SSTV modes utilize a unique digital code that identifies the mode to\
+a receiving system. The code is called the VIS, or Vertical Interval Signal code.\
+Although the entire calibration header is often referred to as the \'93VIS code\'94, the\
+code itself is only a part of it. The seven-bit code is transmitted least-significant-\
+bit (LSB) first, and uses \'93even\'94 parity.\
+
+\f0 Calibration header with VIS code\
+TIME(ms) FREQUENCY(hz) IDENTITY\
+
+\f1 300 1900 Leader tone\
+10 1200 break\
+300 1900 Leader tone\
+
+\f0 30 1200 VIS start bit\
+30 bit 0 1100hz = \'931\'94, 1300hz = \'930\'94\
+30 bit 1 \'93\'94\
+30 bit 2 \'93\'94\
+30 bit 3 \'93\'94\
+30 bit 4 \'93\'94\
+30 bit 5 \'93\'94\
+30 bit 6 \'93\'94\
+30 PARITY Even=1300hz, Odd=1100hz\
+30 1200 VIS stop bit\
+Note that all mode specifications begin immediately after the VIS stop bit.\cf0 \page \cf2 SCOTTIE MODES\
+
+\f1 \'93Scottie\'94 modes, although the most commonly used modes in the US, are\
+unusual for two reasons. The combination of the two has caused considerable\
+confusion over the years:\
+
+\f2\fs19\fsmilli9960 \'a5
+\f1  The first scan line (only) begins with an out-of-sequence 9.0ms \'93starting\'94 sync pulse, at\
+1200hz.\
+
+\f2 \'a5
+\f1  The \'93regular\'94 sync pulse is positioned between the Blue and Red scans, rather than at the\
+line break, as with other modes.\
+
+\f0\fs24 VIS CODES\
+
+\f1 Scottie 1 60d (decimal)\
+Scottie 2 56d\
+Scottie DX 76d\
+
+\f0 COLOR MODE 
+\f1 RGB (1500-2300hz luminance range)\
+
+\f0 SCAN SEQUENCE 
+\f1 Green, Blue, Red\
+
+\f0 NUMBER OF LINES 
+\f1 256\
+
+\f0 NORMAL DISPLAY RES 
+\f1 320x256 (including 16-line header)\
+
+\f0 TRANSMISSION TIME\
+
+\f1 Scottie 1 109.6 seconds (not including cal. header/VIS)\
+Scottie 2 71.1 seconds\
+Scottie DX 268.9 seconds\
+
+\f0 COLOR SCAN TIME\
+
+\f1 Scottie 1 138.240ms (.4320ms/pixel @ 320 pixels/line)\
+Scottie 2 88.064ms (.2752ms/pixel @ 320 pixels/line)\
+Scottie DX 345.6ms (1.0800ms/pixel @ 320 pixels/line)\
+
+\f0 TIMING SEQUENCE\
+
+\f1 (1) \'93Starting\'94 sync pulse (first line only!) 9.0ms 1200hz\
+(2) Separator pulse 1.5ms 1500hz\
+(3) Green scan\
+(4) Separator pulse 1.5ms 1500hz\
+(5) Blue scan\
+(6) Sync pulse 9.0ms 1200hz\
+(7) Sync porch 1.5ms 1500hz\
+(8) Red scan\
+
+\f0 After
+\f1  the first line, repeat steps 2 \'96 8 for all following lines.
+\f0 \cf0 \page \cf2 MARTIN MODES\
+
+\f1 Martin modes are straightforward, with the sync pulse occurring at line breaks.\
+
+\f0 VIS CODES\
+
+\f1 Martin 1 44d (decimal)\
+Martin 2 40d\
+
+\f0 COLOR MODE 
+\f1 RGB (1500-2300hz luminance range)\
+
+\f0 SCAN SEQUENCE 
+\f1 Green, Blue, Red\
+
+\f0 NUMBER OF LINES 
+\f1 256\
+
+\f0 NORMAL DISPLAY RES 
+\f1 320x256 (including 16-line header)\
+
+\f0 TRANSMISSION TIME\
+
+\f1 Martin 1 114.3 seconds (not including cal. header/VIS)\
+Martin 2 58.06 seconds\
+
+\f0 COLOR SCAN TIME\
+
+\f1 Martin 1 146.432ms (.4576ms/pixel @ 320 pixels/line)\
+Martin 2 73.216ms (.2288ms/pixel @ 320 pixels/line)\
+
+\f0 TIMING SEQUENCE\
+
+\f1 (1) Sync pulse 4.862ms 1200hz\
+(2) Sync porch 0.572ms 1500hz\
+(3) Green scan\
+(4) Separator pulse 0.572ms 1500hz\
+(5) Blue scan\
+(6) Separator pulse 0.572ms 1500hz\
+(7) Red scan\
+(8) Separator pulse 0.572ms 1500hz\
+Repeat the above sequence for 256 lines.
+\f0 \cf0 \page \cf2 ROBOT 36 COLOR\
+
+\f1 Robot 36 is probably the most complex of all SSTV modes:\
+
+\f2\fs19\fsmilli9960 \'a5
+\f1  It uses Y, R-Y, B-Y color encoding\
+
+\f2 \'a5
+\f1  The R-Y color information is averaged for two lines, and transmitted on even lines.\
+
+\f2 \'a5
+\f1  The B-Y color information is averaged for two lines, and transmitted on odd lines.\
+
+\f2 \'a5
+\f1  The R-Y and B-Y scans have only \'bd the period (44ms) of the Y scan. (88ms)\
+
+\f2 \'a5
+\f1  Even lines use a 1500hz \'93separator\'94 pulse, while odd lines use 2300hz.\
+
+\f0\fs24 VIS CODE 
+\f1 8d (decimal)\
+
+\f0 COLOR MODE SCAN SEQUENCE NUMBER OF LINES 
+\f1 240\
+Y, R-Y, B-Y (see Appendix B)\
+Y, R-Y (even lines) Y, B-Y (odd lines)\
+
+\f0 TRANSMISSION TIME 
+\f1 36 seconds (not including cal. header/VIS)\
+
+\f0 Note: For clarity, 2 complete lines are shown below\
+TIMING SEQUENCE\
+
+\f1 (1) Sync pulse 9.0ms 1200hz\
+(2) Sync porch 3.0ms 1500hz\
+(3) Y scan 88.0ms\
+(4) \'93Even\'94 separator pulse 4.5ms 1500hz\
+(5) Porch 1.5ms 1900hz\
+(6) R-Y scan 44ms\
+(7) Sync pulse 9.0ms 1200hz\
+(8) Sync porch 3.0ms 1500hz\
+(9) Y scan 88.0ms\
+(10) \'93Odd\'94 separator pulse 4.5ms 2300hz\
+(11) Porch 1.5ms 1900hz\
+(12) B-Y scan 44ms\
+Repeat the sequence above for 240 lines.
+\f0 \cf0 \page \cf2 ROBOT 72 COLOR\
+
+\f1 Robot 72 is somewhat simpler than Robot 36, but still suffers from different scan\
+periods for the Y versus the R-Y and B-Y scans.\
+
+\f0 VIS CODE 
+\f1 12d (decimal)\
+
+\f0 COLOR MODE 
+\f1 Y, R-Y, B-Y (see Appendix B)\
+
+\f0 SCAN SEQUENCE 
+\f1 Y, R-Y, B-Y\
+
+\f0 NUMBER OF LINES 
+\f1 240\
+
+\f0 TRANSMISSION TIME 
+\f1 72 seconds (not including cal. header/VIS)\
+
+\f0 TIMING SEQUENCE 
+\f1 (one line shown)\
+(1) Sync pulse 9.0ms 1200hz\
+(2) Sync porch 3.0ms 1500hz\
+(3) Y scan 138ms\
+(4) Separator pulse 4.5ms 1500hz\
+(5) Porch 1.5ms 1900hz\
+(6) R-Y scan 69ms\
+(7) Separator pulse 4.5ms 2300hz\
+(8) Porch 1.5ms 1500hz\
+(9) B-Y scan 69ms\
+Repeat the above sequence for 240 lines.
+\f0 \cf0 \page \cf2 WRASSE SC2-180\
+
+\f1 SC2-180 is probably the simplest RGB SSTV mode.\
+
+\f0 VIS CODE 
+\f1 55d (decimal)\
+
+\f0 COLOR MODE 
+\f1 RGB (1500-2300hz luminance range)\
+
+\f0 SCAN SEQUENCE 
+\f1 Red, Green, Blue\
+
+\f0 NUMBER OF LINES 
+\f1 256\
+
+\f0 TRANSMISSION TIME 
+\f1 182 seconds (not including cal. header/VIS)\
+
+\f0 COLOR SCAN TIME 
+\f1 235.000ms (.7344ms/pixel @ 320 pixels/line)\
+
+\f0 TIMING SEQUENCE 
+\f1 (one line shown)\
+(1) Sync pulse 5.5225ms 1200hz\
+(2) Porch 0.500ms 1500hz\
+(3) Red scan\
+(4) Green scan\
+(5) Blue scan\
+Repeat the above sequence for 256 lines.
+\f0 \cf0 \page \cf2 PASOKON \'93P\'94 modes\
+
+\f1 The \'93P\'94 modes are all designed to display at 640x496, including a 16-line header.\
+They differ somewhat from other \'93families\'94 of modes, in that the sync pulse and\
+porch periods vary with the sub-mode. When John Langner originally authored\
+them, his intent was that the pixel clock, sync, and porch periods all be evenly\
+divisible into a standard RS232 clock rate.\
+
+\f0 VIS CODES:\
+
+\f1 P3 113d (decimal)\
+P5 114d\
+P7 115d\
+
+\f0 COLOR MODE 
+\f1 RGB (1500-2300hz luminance range)\
+
+\f0 SCAN SEQUENCE 
+\f1 Red, Green, Blue\
+
+\f0 NUMBER OF LINES 
+\f1 496\
+
+\f0 TRANSMISSION TIMES\
+
+\f1 P3 203 seconds (not including cal. header/VIS)\
+P5 304.6 seconds\
+P7 406.1 seconds\
+
+\f0 COLOR SCAN TIMES:\
+
+\f1 P3 P5 P7 133.333ms (.2083ms/pixel @ 640 pixels/line)\
+200.000ms (.3125ms/pixel @ 640 pixels/line)\
+266.666ms (.4167ms/pixel @ 640 pixels/line)\
+
+\f0 SYNC PERIODS\
+
+\f1 P3 5.208ms 1200hz\
+P5 7.813ms 1200hz\
+P7 10.417ms 1200hz\
+
+\f0 PORCH PERIODS\
+
+\f1 P3 1.042ms 1500hz\
+P5 1.563ms 1500hz\
+P7 2.083ms 1500hz\
+
+\f0 TIMING SEQUENCE 
+\f1 (one line shown)\
+(1) Sync pulse\
+(2) Porch\
+(3) Red scan\
+(4) Porch\
+(5) Green scan\
+(6) Porch\
+(7) Blue scan\
+(8) Porch\
+Repeat the above sequence for 496 lines.
+\f0 \cf0 \page \cf2 PD Modes\
+
+\f1 The PD modes were developed jointly by Don Rotier and Paul Turner. Although\
+they\'92re a little complicated, they represent a fair trade-off between color accuracy\
+and transmission time.\
+
+\f0 VIS CODES\
+
+\f1 PD50 93d (decimal)\
+PD90 99d\
+PD120 95d\
+PD160 98d\
+PD180 96d\
+PD240 97d\
+PD290 94d\
+
+\f0 COLOR MODE 
+\f1 Y, R-Y, B-Y (See Appendix B)\
+
+\f0 SCAN SEQUENCE 
+\f1 Y, R-Y, B-Y\
+
+\f0 NORMAL DISPLAY RESOLUTION\
+
+\f1 PD50 320x256 (all include 16-line header)\
+PD90 320x256\
+PD120 640x496\
+PD160 512x400\
+PD180 640x496\
+PD240 640x496\
+PD290 800x616\
+
+\f0 TRANSMISSION TIMES\
+
+\f1 PD50 49.7 seconds\
+PD90 90.0 seconds\
+PD120 126.1 seconds\
+PD160 160.9 seconds\
+PD180 187.1 seconds\
+PD240 248.0 seconds\
+PD290 288.7 seconds\
+
+\f0 COLOR SCAN TIMES (Y, R-Y, B-Y)\
+
+\f1 PD50 91.520ms\
+PD90 170.240ms\
+PD120 121.600ms\
+PD160 195.584ms\
+PD180 183.040ms\
+PD240 244.480ms\
+PD290 228.800ms
+\f0 \cf0 \page \cf2 TIMING SEQUENCE\
+Note: two complete lines are shown.\
+
+\f1 (1) Sync pulse 20.000 1200hz\
+(2) Porch 2.080ms 1500hz\
+(3) Y scan (from odd line)\
+(4) R-Y scan averaged for two lines\
+(5) B-Y averaged for two lines\
+(6) Y scan (from even line)\
+Repeat until correct number of lines are transmitted for sub-mode.
+\f0 \cf0 \page \cf2 FAX480 mode\
+
+\f1 FAX480 is a monochrome FAX, rather than a \'93true\'94 SSTV mode. It uses a 5-\
+second FAX tone \'93header\'94 followed by a phasing area, instead of a Robot\
+calibration header and VIS code. It was developed by Dr. Ralph Taggart,\
+WB8DQT\
+We\'92ve included it here because it\'92s useful for monochrome image transmission,\
+and is often included with SSTV software. (ChromaPIX included)\
+
+\f0 COLOR MODE NORMAL DISPLAY RES 
+\f1 512x480\
+
+\f0 NUMBER OF LINES 
+\f1 480\
+
+\f0 SCAN TIME 
+\f1 Monochrome (1500-2300hz luminance range)\
+.512ms x 512 pixels = 262.144ms\
+
+\f0 HEADER (start tone)\
+
+\f1 (1) 2.05ms 2300hz\
+(2) 2.05ms 1500hz\
+Repeat this sequence 1220 times, for a total of 5.002 seconds.\
+
+\f0 PHASING INTERVAL 
+\f1 (20 lines)\
+(1) Sync 5.12ms 1200hz\
+(2) White .512ms x 512 pixels = 262.144ms\
+Repeat this sequence 20 times, for a total of 20 lines.\
+
+\f0 TIMING SEQUENCE\
+
+\f1 (1) Header\
+(2) Phasing interval\
+(3) Sync 5.12ms 1200hz\
+(4) Scan line\
+Repeat 3-4 until 480 lines have been transmitted.\
+
+\f0\fs19\fsmilli9960 Note: Some systems (ChromaPIX included) use the 20-line phasing area for video.)
+\fs24 \cf0 \page \cf2 Appendix A RGB Color Encoding\
+
+\f1 Of the two encoding methods used in SSTV, RGB is by far the simplest. The\
+calculations below are intended for use with non-linear 24-bit RGB color, which is\
+standard for modern computer-based systems.\
+24-bit RGB is straightforward. 8-bit (0-255) Red, Green, and Blue values are\
+\'93packed\'94 into a single 24-bit identity. Red values occupy the lowest 8 bits,\
+followed by Green, then Blue. This allows for a maximum of 16,777,216 unique\
+combinations of colors, which is generally adequate for any but the highest-end\
+imaging systems.\
+To extract individual 8-bit R,G,B values from a 24-bit RGB encoded pixel :\
+
+\f0 RedByte = colorval AND 255\
+GreenByte = (colorval AND 65280) / 256\
+BlueByte = (colorval AND 16711680) / 65536\
+
+\f1 If your programming language and platform supports it, shifting and masking the\
+24-bit value may be slightly faster than using the \'93generic\'94 method above, since it\
+would avoid the division.\
+SSTV systems use the frequency range of 1500-2300hz to represent the range\
+of brightness values from pure black to pure white. Because of this, we must\
+convert our 8-bit R,G,B values into the appropriate frequency:\
+
+\f0 Frequency = 1500 + (ColorByte * 3.1372549)\
+
+\f1 Conversely, to derive the 8-bit R,G, or B value from a frequency:\
+
+\f0 ColorByte = (Frequency \'96 1500 ) / 3.1372549\
+
+\f1 Obviously, look-up tables could be calculated in advance, avoiding the necessity\
+of performing floating-point multiplies and divisions for encoding and decoding\
+every pixel in every scan.
+\f0 \cf0 \page 
+\f1 \cf2 For receiving purposes, the easiest way to recombine the individual R,G, and B\
+values back into a 24-bit RGB identity is to use the RGB(n,n,n) macro provided\
+with most modern compilers. If that isn\'92t possible :\
+
+\f0 RedVal = ColorByte 
+\f1 (directly, no conversion required)\
+
+\f0 GreenVal = ColorByte * 256\
+BlueVal = ColorByte * 65536\
+
+\f1 Once the R, G, and B values have been scaled correctly, they can be simply\
+added together to form the 24-bit identity:\
+
+\f0 ColorVal = Red + Green + Blue\cf0 \page \cf2 Appendix B Y, R-Y, B-Y Color Encoding\
+
+\f1 (Y, R-Y, B-Y) encoding is used in Robot and PD modes, as well as the seldom-\
+used Wrasse SC2-120 mode. This method of encoding is also referred to as\
+(Y/C), (Y\'92U\'92V\'92), (Y\'92CBCR), and other names. Although all these refer to the same\
+overall method of encoding, the exact scalings used vary somewhat by\
+implementation and developer.\
+The encoding used in ChromaPIX and W95SSTV is compliant with\
+ITU BT. Rec. 601. (the 1953 NTSC standard) Because there has been no\
+clearly-defined standard, the scalings described below may vary slightly from\
+those used by other developers.\
+To convert non-linear RGB to [Y, R-Y, B-Y] (scaled 0-255) :\
+
+\f0\fs19\fsmilli9960 Y = 16.0 + (.003906 * ((65.738 * R) + (129.057 * G) + (25.064 * B)))\
+RY = 128.0 + (.003906 * ((112.439 * R) + (-94.154 * G) + (-18.285 * B)))\
+BY = 128.0 + (.003906 * ((-37.945 * R) + (-74.494 * G) + (112.439 * B)))\
+
+\f1\fs24 Again, as with RGB encoding, these values can be converted to frequency, for\
+SSTV transmission :\
+
+\f0\fs19\fsmilli9960 Frequency = 1500 + (v * 3.1372549)\
+
+\f1\fs24 (where \'91v\'92 is the Y, R-Y, or B-Y value)\
+Conversely, Y, R-Y, B-Y values scaled 0-255 may be converted back to non-\
+linear RGB:\
+
+\f0\fs19\fsmilli9960 R = 0.003906 * ((298.082 * (Y \'96 16.0)) + (408.583 * (RY \'96 128.0)))\
+G = 0.003906 * ((298.082 * (Y \'96 16.0)) + (-100.291 * (BY \'96 128.0)) + (-208.12 * (RY \'96 128.0)))\
+B = 0.003906 * ((298.082 * (Y \'96 16.0)) + (516.411 * (BY \'96 128.0)))}
