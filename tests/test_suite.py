@@ -49,7 +49,7 @@ class TestSuite:
         """Find all test images in the images directory"""
         image_extensions = ['.jpg', '.jpeg', '.png', '.bmp', '.gif', '.tiff']
         images = {}
-        images_dir = Path("../images")
+        images_dir = Path("images")
         
         # Create images directory if it doesn't exist
         if not images_dir.exists():
@@ -132,13 +132,16 @@ class TestSuite:
                 if info['channels'] != 1:
                     info['errors'].append(f"Expected 1 channel, got {info['channels']}")
                     return False, info
-                if info['sample_rate'] not in [8000, 11025, 22050, 44100, 48000]:
+                if info['sample_rate'] not in [8000, 11025, 22050, 32000, 44100, 48000]:
                     info['errors'].append(f"Unexpected sample rate: {info['sample_rate']}")
         except wave.Error:
             # Try AIFF format
             if self._validate_aiff(output_file, info):
                 return len(info['errors']) == 0, info
-            info['errors'].append("File is not valid WAV or AIFF")
+            # Try OGG format
+            if self._validate_ogg(output_file, info):
+                return len(info['errors']) == 0, info
+            info['errors'].append("File is not valid WAV, AIFF, or OGG")
             return False, info
         except Exception as e:
             info['errors'].append(f"Error reading file: {str(e)}")
@@ -160,6 +163,26 @@ class TestSuite:
                     return False
                 
                 info['format'] = 'AIFF'
+                info['errors'] = []
+                return True
+        except:
+            return False
+
+    def _validate_ogg(self, filename, info):
+        """Validate OGG Vorbis file format (basic header check)"""
+        try:
+            with open(filename, 'rb') as f:
+                header = f.read(4)
+                if header != b'OggS':
+                    return False
+
+                # Look for Vorbis identification header within first 64KB
+                f.seek(0)
+                data = f.read(65536)
+                if b'vorbis' not in data:
+                    return False
+
+                info['format'] = 'OGG'
                 info['errors'] = []
                 return True
         except:
@@ -277,7 +300,7 @@ class TestSuite:
                 "-i", test_img,
                 "-p", proto_code,
                 "-o", str(output_file),
-                "-a", "fit",
+                "-a", "center",
                 "-v"                
             ])
             
@@ -297,26 +320,34 @@ class TestSuite:
                 )
     
     def test_audio_formats(self):
-        """Test WAV and AIFF output formats"""
+        """Test WAV, AIFF, and OGG output formats"""
         print("\n" + "="*70)
         print("TEST GROUP: Audio Output Formats")
         print("="*70)
         
         test_img = list(self.test_images.keys())[0]
         
-        for fmt in ['wav', 'aiff']:
+        for fmt in ['wav', 'aiff', 'ogg']:
             output_file = self.test_dir / f"test_format_{fmt}.{fmt}"
             
             ret, stdout, stderr = self._run_command([
                 "-i", test_img,
                 "-f", fmt,
                 "-o", str(output_file),
-                "-a", "fit",
+                "-a", "center",
                 "-v"
             ])
             
-            if not self._assert_success(f"Output format {fmt.upper()}", ret, stderr):
-                continue
+            if ret != 0:
+                if fmt == 'ogg' and "not compiled" in stderr.lower():
+                    self._log_test(
+                        f"Output format {fmt.upper()}",
+                        "SKIPPED",
+                        "OGG support not compiled in"
+                    )
+                    continue
+                if not self._assert_success(f"Output format {fmt.upper()}", ret, stderr):
+                    continue
             
             is_valid, info = self._assert_output(
                 f"Output format {fmt.upper()}", 
@@ -346,7 +377,7 @@ class TestSuite:
                 "-i", test_img,
                 "-r", str(rate),
                 "-o", str(output_file),
-                "-a", "fit",
+                "-a", "center",
                 "-v"
             ])
             
@@ -388,7 +419,7 @@ class TestSuite:
                 "-i", test_img,
                 "-r", str(rate),
                 "-o", str(output_file),
-                "-a", "fit",
+                "-a", "center",
                 "-v"
             ])
             
@@ -411,7 +442,7 @@ class TestSuite:
         print("TEST GROUP: Aspect Ratio Modes")
         print("="*70)
         
-        aspect_modes = ['4:3', 'fit', 'stretch']
+        aspect_modes = ['center', 'pad', 'stretch']
         test_img = list(self.test_images.keys())[0]
         
         for mode in aspect_modes:
@@ -543,7 +574,7 @@ class TestSuite:
                 "-i", test_img,
                 "-C", "TEST",
                 "-W", str(wpm),
-                "-a", "fit",
+                "-a", "center",
                 "-v"
             ])
             if ret != 0:
@@ -557,7 +588,7 @@ class TestSuite:
                 "-i", test_img,
                 "-C", "TEST",
                 "-T", str(tone),
-                "-a", "fit",
+                "-a", "center",
                 "-v"
             ])
             if ret != 0:
@@ -638,8 +669,8 @@ class TestSuite:
                 'args': ['-p', 'm2', '-f', 'aiff', '-a', 'stretch', '-r', '48000']
             },
             {
-                'name': 'Scottie DX with fit mode and verbose',
-                'args': ['-p', 'sdx', '-a', 'fit', '-v']
+                'name': 'Scottie DX with center mode and verbose',
+                'args': ['-p', 'sdx', '-a', 'center', '-v']
             },
         ]
         
@@ -672,7 +703,7 @@ class TestSuite:
         
         # Limit to first 3 images to save time
         for idx, img_name in enumerate(list(self.test_images.keys())[:3]):
-            output_file = self.test_dir / f"test_img_{idx}_{img_name.split('.')[0]}.wav"
+            output_file = self.test_dir / f"test_img_{idx}_{Path(img_name).stem}.wav"
             
             ret, stdout, stderr = self._run_command([
                 "-i", img_name,
@@ -802,7 +833,6 @@ class TestSuite:
         if self.failed > 0:
             sys.exit(1)
 
-./bin
 if __name__ == "__main__":
     import argparse
     

@@ -16,6 +16,15 @@ CFLAGS_COMMON = -O3 -ffast-math -funroll-loops -Wall -Wextra -Wpedantic -std=c11
 CFLAGS_PKG   = $(shell $(PKG_CONFIG) --cflags vips glib-2.0 gobject-2.0)
 LDFLAGS_PKG  = $(shell $(PKG_CONFIG) --libs vips glib-2.0 gobject-2.0)
 
+# Optional codec support (OGG Vorbis)
+HAVE_OGG_SUPPORT  = $(shell $(PKG_CONFIG) --exists vorbis vorbisenc ogg && echo 1 || echo 0)
+
+ifeq ($(HAVE_OGG_SUPPORT),1)
+    CFLAGS_COMMON += -DHAVE_OGG_SUPPORT
+    CFLAGS_PKG    += $(shell $(PKG_CONFIG) --cflags vorbis vorbisenc ogg)
+    LDFLAGS_PKG   += $(shell $(PKG_CONFIG) --libs vorbis vorbisenc ogg)
+endif
+
 # Raspberry Pi/ARM optimizations
 ifeq ($(UNAME_M),armv7l)
     CFLAGS_PI = -march=armv7-a -mfpu=neon -mfloat-abi=hard
@@ -34,28 +43,36 @@ ifeq ($(UNAME_S),Darwin)
     LDFLAGS_PKG += -L/opt/homebrew/lib
 endif
 
-
-# Final flags (user can override CFLAGS/LDFLAGS if needed)
-CFLAGS ?= $(CFLAGS_COMMON) $(CFLAGS_PKG) $(CFLAGS_PI)
-LDFLAGS ?= $(LDFLAGS_PKG) -lm
-
 # Directory structure
 SRC_DIR = src
+INC_DIR = src/include
 BIN_DIR = bin
 TEST_DIR = tests
 UTIL_DIR = util
+
+# Final flags (user can override CFLAGS/LDFLAGS if needed)
+CFLAGS ?= $(CFLAGS_COMMON) $(CFLAGS_PKG) $(CFLAGS_PI) -I$(SRC_DIR) -I$(INC_DIR)
+LDFLAGS ?= $(LDFLAGS_PKG) -lm
 
 # Target configuration
 TARGET = $(BIN_DIR)/pisstvpp2
 TARGET_LIBGD = $(BIN_DIR)/pisstvpp2_libgd
 TARGET_SAN = $(BIN_DIR)/pisstvpp2_san
 TARGET_VIPS_TEST = $(BIN_DIR)/vips_test
-SRC_FILES = $(SRC_DIR)/pisstvpp2.c
+SRC_FILES = $(SRC_DIR)/pisstvpp2.c $(SRC_DIR)/pisstvpp2_image.c $(SRC_DIR)/pisstvpp2_sstv.c \
+            $(SRC_DIR)/pisstvpp2_audio_encoder.c $(SRC_DIR)/audio_encoder_wav.c \
+            $(SRC_DIR)/audio_encoder_aiff.c $(SRC_DIR)/audio_encoder_ogg.c
+OBJ_FILES = $(BIN_DIR)/pisstvpp2.o $(BIN_DIR)/pisstvpp2_image.o $(BIN_DIR)/pisstvpp2_sstv.o \
+            $(BIN_DIR)/pisstvpp2_audio_encoder.o $(BIN_DIR)/audio_encoder_wav.o \
+            $(BIN_DIR)/audio_encoder_aiff.o $(BIN_DIR)/audio_encoder_ogg.o
 
 all: $(TARGET)
 
-$(TARGET): $(SRC_FILES)
-	$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS)
+$(BIN_DIR)/%.o: $(SRC_DIR)/%.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(TARGET): $(OBJ_FILES)
+	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
 debug: CFLAGS += -g -O0
 debug: clean $(TARGET)
