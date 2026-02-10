@@ -393,6 +393,7 @@ See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for more solutions.
 - ✅ Complete modular architecture refactor (7 source files)
 - ✅ Migrated from libgd to libvips for better image handling
 - ✅ Added Robot 72 mode (7 modes total vs 6 in v1)
+- ✅ **Fixed Robot 36/72 YUV encoding** - Proper 4:2:0/4:2:2 chroma subsampling with per-line encoding
 - ✅ Added aspect ratio correction (center/pad/stretch modes)
 - ✅ Added CW identification system with speed/tone control
 - ✅ Added OGG Vorbis audio format support

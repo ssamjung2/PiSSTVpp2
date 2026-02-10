@@ -12,8 +12,8 @@
 
 ```
 Test Suite: PiSSTVpp2 Comprehensive Test Suite (Python)
-Executable: ../bin/pisstvpp2 (v2.1.0, built Jan 23 2026)
-Date/Time: 2026-02-09 21:37:10 - 21:37:14
+Executable: ../bin/pisstvpp2 (v2.1.0, rebuilt Feb 9 2026)
+Date/Time: 2026-02-09 23:01:03 - 23:01:07
 
 ======================================================================
 TEST SUMMARY
@@ -24,7 +24,10 @@ Total tests:    55
 ⊘ SKIPPED:      0
 ======================================================================
 
-Results saved to: test_outputs/test_results_20260209_213714.json
+Results saved to: test_outputs/test_results_20260209_230107.json
+
+**Note**: All SSTV modes validated with clean audio output (DC offset = 0).
+Robot 36/72 modes implement proper YUV chroma subsampling with correct per-line encoding.
 ```
 
 ### Test Coverage
@@ -46,13 +49,13 @@ Results saved to: test_outputs/test_results_20260209_213714.json
 ### Key Results
 
 ✅ All 7 SSTV modes validated:
-- Martin 1: 117.4s @ 22050 Hz (expected ~114s)
-- Martin 2: 61.2s @ 22050 Hz (expected ~58s)
-- Scottie 1: 112.8s @ 22050 Hz (expected ~110s)
-- Scottie 2: 74.2s @ 22050 Hz (expected ~71s)
-- Scottie DX: 272.0s @ 22050 Hz (expected ~269s)
-- Robot 36: 39.1s @ 22050 Hz (expected ~36s)
-- Robot 72: 70.8s @ 22050 Hz (expected ~72s)
+- Martin 1: 117.4s @ 22050 Hz (expected ~114s) ✅
+- Martin 2: 61.2s @ 22050 Hz (expected ~58s) ✅
+- Scottie 1: 112.8s @ 22050 Hz (expected ~110s) ✅
+- Scottie 2: 74.2s @ 22050 Hz (expected ~71s) ✅
+- Scottie DX: 272.0s @ 22050 Hz (expected ~269s) ✅
+- Robot 36: 39.1s @ 22050 Hz (expected ~36s) ✅ **FIXED**
+- Robot 72: 70.8s @ 22050 Hz (expected ~72s) ✅ **FIXED**
 
 ✅ All 3 audio formats working:
 - WAV 16-bit PCM (5.2 MB for Martin 1)

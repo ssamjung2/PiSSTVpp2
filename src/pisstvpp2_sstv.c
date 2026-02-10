@@ -59,6 +59,9 @@ static SstvState g_sstv = {
    HELPER FUNCTIONS: TONE SYNTHESIS
    ============================================================================ */
 
+/* Forward declaration */
+static int sstv_init_buffer(void);
+
 /**
  * @brief Map 8-bit RGB brightness value to SSTV audio tone frequency.
  * @param colorval Brightness value (0=black, 255=white)
@@ -95,7 +98,7 @@ static uint16_t toneval_yuv(uint8_t colorval) {
  */
 static void playtone(uint16_t tonefreq, double tonedur) {
     uint32_t tonesamples, i;
-    uint16_t voltage;
+    int16_t voltage;
     double deltatheta;
     
     tonedur += g_sstv.fudge;
@@ -103,17 +106,17 @@ static void playtone(uint16_t tonefreq, double tonedur) {
     deltatheta = g_sstv.twopioverrate * tonefreq;
     
     for (i = 1; i <= tonesamples; i++) {
+        g_sstv.samples++;
         if (g_sstv.samples >= g_sstv.max_samples) {
             fprintf(stderr, "[WARNING] Audio buffer overflow at sample %u\n", g_sstv.samples);
             return;
         }
-        g_sstv.samples++;
         
         if (tonefreq == 0) { 
-            g_sstv.audio[g_sstv.samples] = 32768;
+            g_sstv.audio[g_sstv.samples] = 0; /* Silence: DC midpoint */
         } else {
-            voltage = (uint16_t)(32768.0 + sin(g_sstv.theta) * g_sstv.scale);
-            g_sstv.audio[g_sstv.samples] = voltage;
+            voltage = (int16_t)(sin(g_sstv.theta) * g_sstv.scale);
+            g_sstv.audio[g_sstv.samples] = (uint16_t)voltage; /* Store as uint16_t, interpret as signed */
             g_sstv.theta += deltatheta;
         }
     }
@@ -143,11 +146,10 @@ static void playtone(uint16_t tonefreq, double tonedur) {
  */
 static void playtone_envelope(uint16_t tonefreq, double tonedur) {
     uint32_t tonesamples, i;
-    uint16_t voltage;
+    int16_t voltage;
     double deltatheta;
     uint32_t envelope_samples;
     double envelope_time_us;
-    double cw_amplitude;
     
     tonedur += g_sstv.fudge;
     tonesamples = (uint32_t)((tonedur / g_sstv.uspersample) + 0.5);
@@ -162,29 +164,23 @@ static void playtone_envelope(uint16_t tonefreq, double tonedur) {
         return;
     }
     
-    /* Adaptive envelope duration based on tone length:
-       25% of duration, bounded between 5ms and 40ms. */
+    /* Adaptive envelope duration: 20% of duration, bounded 3-20ms for clean tone breaks */
     double tonedur_ms = (tonedur / 1000.0);
-    envelope_time_us = tonedur_ms * 0.25 * 1000.0;
-    if (envelope_time_us < 5000.0)   envelope_time_us = 5000.0;
-    if (envelope_time_us > 40000.0)  envelope_time_us = 40000.0;
+    envelope_time_us = tonedur_ms * 0.20 * 1000.0;
+    if (envelope_time_us < 3000.0)   envelope_time_us = 3000.0;
+    if (envelope_time_us > 20000.0)  envelope_time_us = 20000.0;
     
     envelope_samples = (uint32_t)(envelope_time_us / g_sstv.uspersample);
     if (envelope_samples == 0) envelope_samples = 1;
     
     deltatheta = g_sstv.twopioverrate * tonefreq;
     
-    /* CW amplitude: Use full amplitude (1.0).
-       The envelope itself controls the volume ramping. */
-    cw_amplitude = 1.0;
-    
-    /* If tone too short for any envelope, use full amplitude throughout */
+    /* If tone too short for envelope, use without it */
     if (tonesamples < 2 * envelope_samples) {
-        /* Generate tone without envelope for very short tones */
         for (i = 1; i <= tonesamples; i++) {
             if (g_sstv.samples >= g_sstv.max_samples) return;
-            voltage = (uint16_t)(32768.0 + sin(g_sstv.theta) * g_sstv.scale * cw_amplitude);
-            g_sstv.audio[g_sstv.samples] = voltage;
+            voltage = (int16_t)(sin(g_sstv.theta) * g_sstv.scale);
+            g_sstv.audio[g_sstv.samples] = (uint16_t)voltage;
             g_sstv.samples++;
             g_sstv.theta += deltatheta;
         }
@@ -192,14 +188,13 @@ static void playtone_envelope(uint16_t tonefreq, double tonedur) {
         return;
     }
     
-    /* Fade-in: Tukey window cosine taper */
+    /* Fade-in: Tukey window cosine ramp */
     for (i = 0; i < envelope_samples && i < tonesamples; i++) {
         if (g_sstv.samples >= g_sstv.max_samples) return;
         double t = (double)i / (double)envelope_samples;
         double envelope = 0.5 * (1.0 - cos(M_PI * t));
-        double modulated_amplitude = cw_amplitude * envelope;
-        voltage = (uint16_t)(32768.0 + sin(g_sstv.theta) * g_sstv.scale * modulated_amplitude);
-        g_sstv.audio[g_sstv.samples] = voltage;
+        voltage = (int16_t)(sin(g_sstv.theta) * g_sstv.scale * envelope);
+        g_sstv.audio[g_sstv.samples] = (uint16_t)voltage;
         g_sstv.samples++;
         g_sstv.theta += deltatheta;
     }
@@ -207,20 +202,19 @@ static void playtone_envelope(uint16_t tonefreq, double tonedur) {
     /* Full amplitude middle section */
     for (; i < tonesamples - envelope_samples; i++) {
         if (g_sstv.samples >= g_sstv.max_samples) return;
-        voltage = (uint16_t)(32768.0 + sin(g_sstv.theta) * g_sstv.scale * cw_amplitude);
-        g_sstv.audio[g_sstv.samples] = voltage;
+        voltage = (int16_t)(sin(g_sstv.theta) * g_sstv.scale);
+        g_sstv.audio[g_sstv.samples] = (uint16_t)voltage;
         g_sstv.samples++;
         g_sstv.theta += deltatheta;
     }
     
-    /* Fade-out: Tukey window mirrored */
+    /* Fade-out: Tukey window decay ramp */
     for (uint32_t j = 0; i < tonesamples; i++, j++) {
         if (g_sstv.samples >= g_sstv.max_samples) return;
         double t = (double)j / (double)envelope_samples;
         double envelope = 0.5 * (1.0 + cos(M_PI * t));
-        double modulated_amplitude = cw_amplitude * envelope;
-        voltage = (uint16_t)(32768.0 + sin(g_sstv.theta) * g_sstv.scale * modulated_amplitude);
-        g_sstv.audio[g_sstv.samples] = voltage;
+        voltage = (int16_t)(sin(g_sstv.theta) * g_sstv.scale * envelope);
+        g_sstv.audio[g_sstv.samples] = (uint16_t)voltage;
         g_sstv.samples++;
         g_sstv.theta += deltatheta;
     }
@@ -462,6 +456,8 @@ static void buildaudio_s(double pixeltime, int verbose, int timestamp_logging) {
 
 /**
  * @brief Build audio samples for Robot 36 (R36) mode.
+ * Robot 36 uses YUV 4:2:0 encoding with vertical chroma subsampling.
+ * Transmits 320 chroma samples (same as Y) but averaged from two lines.
  */
 static void buildaudio_r36(int verbose, int timestamp_logging) {
     const double SYNC_PULSE_US = 9000.0;
@@ -474,12 +470,13 @@ static void buildaudio_r36(int verbose, int timestamp_logging) {
     const double SEP_ODD_FREQ = 2300.0;
     const double CHROMA_PORCH_US = 1500.0;
     const double CHROMA_PORCH_FREQ = 1900.0;
-    const double Y_PIXEL_US = 275.0;
-    const double CHROMA_PIXEL_US = 137.5;
+    const double Y_PIXEL_US = 275.0;       // Per Y pixel (320 pixels)
+    const double CHROMA_PIXEL_US = 137.5;  // Per chroma pixel (320 pixels at 137.5us each)
     const int LINES = 240;
     
     uint16_t x, y, k;
-    uint8_t r1, g1, b1, r2, g2, b2, avgr, avgg, avgb;
+    uint8_t r1, g1, b1, r2, g2, b2;
+    uint8_t avgr, avgg, avgb;
     uint8_t y1[320], y2[320], ry[320], by[320];
     
     for (y = 0; y < LINES; y += 2) {
@@ -488,119 +485,138 @@ static void buildaudio_r36(int verbose, int timestamp_logging) {
             log_verbose(verbose, timestamp_logging, "   --> Encoding row pair %d/%d (%d%%)\n", y, LINES, progress);
         }
         
+        // Process pixels and perform YUV conversion with 4:2:0 chroma subsampling
         for (x = 0; x < 320; x++) {
+            // Get pixels from both lines at position x
             get_pixel_rgb(x, y, &r1, &g1, &b1);
             get_pixel_rgb(x, y + 1, &r2, &g2, &b2);
             
+            // Y values at full resolution for both lines
+            y1[x] = 16.0 + (0.003906 * ((65.738 * (float)r1) + (129.057 * (float)g1) + (25.064 * (float)b1)));
+            y2[x] = 16.0 + (0.003906 * ((65.738 * (float)r2) + (129.057 * (float)g2) + (25.064 * (float)b2)));
+            
+            // Chroma: average the two lines vertically for 4:2:0 subsampling
             avgr = (uint8_t)(((uint16_t)r1 + (uint16_t)r2) / 2);
             avgg = (uint8_t)(((uint16_t)g1 + (uint16_t)g2) / 2);
             avgb = (uint8_t)(((uint16_t)b1 + (uint16_t)b2) / 2);
             
-            y1[x] = 16.0 + (0.003906 * ((65.738 * (float)r1) + (129.057 * (float)g1) + (25.064 * (float)b1)));
-            y2[x] = 16.0 + (0.003906 * ((65.738 * (float)r2) + (129.057 * (float)g2) + (25.064 * (float)b2)));
+            // Subsampled chroma (320 values transmitted at 137.5us each)
             ry[x] = 128.0 + (0.003906 * ((112.439 * (float)avgr) + (-94.154 * (float)avgg) + (-18.285 * (float)avgb)));
             by[x] = 128.0 + (0.003906 * ((-37.945 * (float)avgr) + (-74.494 * (float)avgg) + (112.439 * (float)avgb)));
         }
         
+        // Transmit line 1: Sync + Porch + Y (320 pixels) + Separator + Chroma Porch + Ry (320 pixels)
         playtone(SYNC_FREQ, SYNC_PULSE_US);
         playtone(PORCH_FREQ, PORCH_US);
         for (k = 0; k < 320; k++)
             playtone(toneval_yuv(y1[k]), Y_PIXEL_US);
         playtone(SEP_EVEN_FREQ, SEP_EVEN_US);
         playtone(CHROMA_PORCH_FREQ, CHROMA_PORCH_US);
-        for (k = 0; k < 320; k++)
+        for (k = 0; k < 320; k++)  // 320 chroma pixels (vertically averaged)
             playtone(toneval_yuv(ry[k]), CHROMA_PIXEL_US);
         
+        // Transmit line 2: Sync + Porch + Y (320 pixels) + Separator + Chroma Porch + By (320 pixels)
         playtone(SYNC_FREQ, SYNC_PULSE_US);
         playtone(PORCH_FREQ, PORCH_US);
         for (k = 0; k < 320; k++)
             playtone(toneval_yuv(y2[k]), Y_PIXEL_US);
         playtone(SEP_ODD_FREQ, SEP_ODD_US);
         playtone(CHROMA_PORCH_FREQ, CHROMA_PORCH_US);
-        for (k = 0; k < 320; k++)
+        for (k = 0; k < 320; k++)  // 320 chroma pixels (vertically averaged)
             playtone(toneval_yuv(by[k]), CHROMA_PIXEL_US);
     }
 }
 
 /**
  * @brief Build audio samples for Robot 72 (R72) mode.
+ * Robot 72 transmits Y + R-Y + B-Y for each line (not alternating).
+ * Per official spec: each line is Y(138ms) + R-Y(69ms) + B-Y(69ms) = 300.5ms total.
  */
 static void buildaudio_r72(int verbose, int timestamp_logging) {
     const double SYNC_PULSE_US = 9000.0;
     const double SYNC_FREQ = 1200.0;
     const double PORCH_US = 3000.0;
     const double PORCH_FREQ = 1500.0;
-    const double SEP_EVEN_US = 4500.0;
-    const double SEP_EVEN_FREQ = 1500.0;
-    const double SEP_ODD_US = 4500.0;
-    const double SEP_ODD_FREQ = 2300.0;
+    const double SEP_RY_US = 4500.0;
+    const double SEP_RY_FREQ = 1500.0;
+    const double SEP_BY_US = 4500.0;
+    const double SEP_BY_FREQ = 2300.0;
     const double CHROMA_PORCH_US = 1500.0;
     const double CHROMA_PORCH_FREQ = 1900.0;
-    const double Y_PIXEL_US = 550.0;
-    const double CHROMA_PIXEL_US = 275.0;
+    const double Y_PIXEL_US = 431.25;          // Y scan: 138ms / 320 pixels
+    const double CHROMA_PIXEL_US = 215.625;    // R-Y/B-Y scan: 69ms / 320 pixels
     const int LINES = 240;
     
     uint16_t x, y, k;
-    uint8_t r1, g1, b1, r2, g2, b2, avgr, avgg, avgb;
-    uint8_t y1[320], y2[320], ry[320], by[320];
+    uint8_t r, g, b;
+    uint8_t yval[320], ry[320], by[320];
     
-    for (y = 0; y < LINES; y += 2) {
+    for (y = 0; y < LINES; y++) {
         if (verbose && y > 0 && y % 60 == 0) {
             int progress = (y * 100) / LINES;
-            log_verbose(verbose, timestamp_logging, "   --> Encoding line pair %d/%d (%d%%) [R72]\n", y, LINES, progress);
+            log_verbose(verbose, timestamp_logging, "   --> Encoding line %d/%d (%d%%) [R72]\n", y, LINES, progress);
         }
         
+        // Process pixels for this line
         for (x = 0; x < 320; x++) {
-            get_pixel_rgb(x, y, &r1, &g1, &b1);
-            get_pixel_rgb(x, y + 1, &r2, &g2, &b2);
+            get_pixel_rgb(x, y, &r, &g, &b);
             
-            avgr = (uint8_t)(((uint16_t)r1 + (uint16_t)r2) / 2);
-            avgg = (uint8_t)(((uint16_t)g1 + (uint16_t)g2) / 2);
-            avgb = (uint8_t)(((uint16_t)b1 + (uint16_t)b2) / 2);
+            // Y value
+            yval[x] = 16.0 + (0.003906 * ((65.738 * (float)r) + (129.057 * (float)g) + (25.064 * (float)b)));
             
-            y1[x] = 16.0 + (0.003906 * ((65.738 * (float)r1) + (129.057 * (float)g1) + (25.064 * (float)b1)));
-            y2[x] = 16.0 + (0.003906 * ((65.738 * (float)r2) + (129.057 * (float)g2) + (25.064 * (float)b2)));
-            ry[x] = 128.0 + (0.003906 * ((112.439 * (float)avgr) + (-94.154 * (float)avgg) + (-18.285 * (float)avgb)));
-            by[x] = 128.0 + (0.003906 * ((-37.945 * (float)avgr) + (-74.494 * (float)avgg) + (112.439 * (float)avgb)));
+            // R-Y and B-Y chroma values
+            ry[x] = 128.0 + (0.003906 * ((112.439 * (float)r) + (-94.154 * (float)g) + (-18.285 * (float)b)));
+            by[x] = 128.0 + (0.003906 * ((-37.945 * (float)r) + (-74.494 * (float)g) + (112.439 * (float)b)));
         }
         
-        playtone(SYNC_FREQ, SYNC_PULSE_US);
-        playtone(PORCH_FREQ, PORCH_US);
-        for (k = 0; k < 320; k++)
-            playtone(toneval_yuv(y1[k]), Y_PIXEL_US);
-        playtone(SEP_EVEN_FREQ, SEP_EVEN_US);
-        playtone(CHROMA_PORCH_FREQ, CHROMA_PORCH_US);
-        for (k = 0; k < 320; k++)
+        // Transmit complete line: Sync + Porch + Y + Sep + Porch + R-Y + Sep + Porch + B-Y
+        playtone(SYNC_FREQ, SYNC_PULSE_US);           // (1) Sync
+        playtone(PORCH_FREQ, PORCH_US);               // (2) Porch
+        for (k = 0; k < 320; k++)                     // (3) Y scan
+            playtone(toneval_yuv(yval[k]), Y_PIXEL_US);
+        playtone(SEP_RY_FREQ, SEP_RY_US);            // (4) Separator
+        playtone(CHROMA_PORCH_FREQ, CHROMA_PORCH_US); // (5) Porch
+        for (k = 0; k < 320; k++)                     // (6) R-Y scan
             playtone(toneval_yuv(ry[k]), CHROMA_PIXEL_US);
-        
-        playtone(SYNC_FREQ, SYNC_PULSE_US);
-        playtone(PORCH_FREQ, PORCH_US);
-        for (k = 0; k < 320; k++)
-            playtone(toneval_yuv(y2[k]), Y_PIXEL_US);
-        playtone(SEP_ODD_FREQ, SEP_ODD_US);
-        playtone(CHROMA_PORCH_FREQ, CHROMA_PORCH_US);
-        for (k = 0; k < 320; k++)
+        playtone(SEP_BY_FREQ, SEP_BY_US);            // (7) Separator
+        playtone(PORCH_FREQ, CHROMA_PORCH_US);        // (8) Porch (1500hz per spec)
+        for (k = 0; k < 320; k++)                     // (9) B-Y scan
             playtone(toneval_yuv(by[k]), CHROMA_PIXEL_US);
     }
 }
 
 /* ============================================================================
-   PUBLIC API IMPLEMENTATION
+   MODULE INITIALIZATION & BUFFER MANAGEMENT
    ============================================================================ */
 
+/**
+ * @brief Initialize SSTV audio subsystem
+ */
 int sstv_init(uint16_t sample_rate, int verbose, int timestamp_logging) {
-    (void)verbose;              // Unused parameter
-    (void)timestamp_logging;    // Unused parameter
+    log_verbose(verbose, timestamp_logging, "Initializing SSTV audio with sample rate %d Hz\n", sample_rate);
     
-    if (sample_rate < 8000 || sample_rate > SSTV_MAX_RATE) {
-        fprintf(stderr, "[ERROR] Sample rate must be between 8000 and %d Hz\n", SSTV_MAX_RATE);
+    if (sample_rate < 8000 || sample_rate > 48000) {
+        fprintf(stderr, "[ERROR] Invalid sample rate %d (must be 8000-48000)\n", sample_rate);
         return -1;
     }
     
     g_sstv.rate = sample_rate;
-    g_sstv.max_samples = SSTV_MAX_SAMPLES;
+    g_sstv.max_samples = (uint32_t)(sample_rate * 300);  // 5 minutes max
     
-    /* Allocate or reallocate audio buffer */
+    return sstv_init_buffer();
+}
+
+/**
+ * @brief Initialize or reinitialize SSTV audio buffer
+ */
+static int sstv_init_buffer(void) {
+    // Free existing buffer if present
+    if (g_sstv.audio) {
+        free(g_sstv.audio);
+        g_sstv.audio = NULL;
+    }
+    
+    // Allocate new buffer
     if (!g_sstv.audio) {
         g_sstv.audio = (uint16_t *)malloc(g_sstv.max_samples * sizeof(uint16_t));
         if (!g_sstv.audio) {
