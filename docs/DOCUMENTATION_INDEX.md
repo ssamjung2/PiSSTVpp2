@@ -43,9 +43,11 @@ PiSSTVpp2 documentation is organized into several categories:
 - [Extension Points](ARCHITECTURE.md#extension-points) - Adding features
 
 **Testing & Quality**
-- [Test Suite Guide](TEST_SUITE_README.md) - Test framework
-- [Test Quick Start](TEST_QUICK_START.md) - Running tests
-- [Practical Testing Guide](TEST_PRACTICAL_GUIDE.md) - Writing tests
+- [Testing Plan](TESTING_PLAN.md) - Comprehensive testing strategy (55+ tests)
+- [Test Cases Reference](TEST_CASES.md) - Detailed test case specifications
+- [Test Suite Guide](TEST_SUITE_README.md) - Test framework overview
+- [Test Quick Start](TEST_QUICK_START.md) - Running tests quickly
+- [Practical Testing Guide](TEST_PRACTICAL_GUIDE.md) - Writing and debugging tests
 - [Sample Test Output](SAMPLE_TEST_OUTPUT.md) - Expected results
 
 ### Advanced Topics
@@ -96,7 +98,8 @@ PiSSTVpp2 documentation is organized into several categories:
 
 **Run tests**
 1. Quick: [Test Quick Start](TEST_QUICK_START.md)
-2. Detailed: [Test Suite Guide](TEST_SUITE_README.md)
+2. Complete: [Testing Plan](TESTING_PLAN.md)
+3. Detailed specs: [Test Cases Reference](TEST_CASES.md)
 
 ---
 
@@ -105,12 +108,12 @@ PiSSTVpp2 documentation is organized into several categories:
 ### SSTV Modes
 
 **Current Modes (v2.0):**
-- [Mode Reference](MODE_REFERENCE.md) - 7 modes detailed
+- [Mode Reference](MODE_REFERENCE.md) - 7 modes: Martin 1/2, Scottie 1/2/DX, Robot 36/72
 - [User Guide - SSTV Modes](USER_GUIDE.md#sstv-modes) - Mode selection guide
 
-**Future Modes (v2.1):**
-- [MMSSTV Mode Reference](MMSSTV_MODE_REFERENCE.md) - 43 modes planned
-- [MMSSTV Integration](MMSSTV_INTEGRATION.md) - Integration plan
+**Future Modes (v2.1+):**
+- [MMSSTV Mode Reference](MMSSTV_MODE_REFERENCE.md) - 43 modes planned for future releases
+- [MMSSTV Integration](MMSSTV_INTEGRATION.md) - Integration plan for extended modes
 
 ### Audio Encoding
 
@@ -167,6 +170,8 @@ PiSSTVpp2 documentation is organized into several categories:
 | Document | Description | Audience |
 |----------|-------------|----------|
 | [Architecture](ARCHITECTURE.md) | System design | Developers |
+| [Testing Plan](TESTING_PLAN.md) | Complete testing strategy | Developers/QA |
+| [Test Cases](TEST_CASES.md) | Detailed test specifications | QA Engineers |
 | [Test Suite](TEST_SUITE_README.md) | Testing framework | Developers/Contributors |
 | [Test Quick Start](TEST_QUICK_START.md) | Quick testing | Developers |
 | [Test Practical Guide](TEST_PRACTICAL_GUIDE.md) | Writing tests | Contributors |

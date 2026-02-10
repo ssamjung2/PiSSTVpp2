@@ -1,16 +1,18 @@
 # MMSSTV Mode Reference
 
-**Quick reference for all SSTV modes supported in PiSSTVpp2 v2.0**
+**Extended SSTV modes planned for PiSSTVpp2 v2.1 with MMSSTV library integration**
+
+> **Note**: This document describes features planned for v2.1. PiSSTVpp2 v2.0 supports only the 7 legacy modes (Martin 1/2, Scottie 1/2/DX, Robot 36/72). See [MODE_REFERENCE.md](MODE_REFERENCE.md) for v2.0 modes.
 
 ---
 
 ## Legend
 
-- **Protocol**: CLI argument for `-p` option
+- **Protocol**: CLI argument for `-p` option (planned)
 - **VIS**: Vertical Interval Signal code (transmitted in header)
 - **Resolution**: Image dimensions in pixels
 - **Duration**: Approximate transmission time
-- **Backend**: L = Legacy, M = MMSSTV library
+- **Backend**: L = Legacy, M = MMSSTV library (planned for v2.1)
 
 ---
 

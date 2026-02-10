@@ -1,0 +1,84 @@
+# Makefile for Original PiSSTVpp (v1.0)
+# Legacy binary build for v1 vs v2 comparison
+# Original compile command: gcc -lgd -lmagic -o sstvX sstvX.c
+
+PKG_CONFIG ?= pkg-config
+CC ?= gcc
+
+# Platform detection
+UNAME_S := $(shell uname -s)
+
+# Original code flags - minimal optimization to match original build style
+CFLAGS_COMMON = -O2 -Wall -std=c99
+
+# Try pkg-config first, fall back to Homebrew paths
+CFLAGS_PKG_TMP = $(shell $(PKG_CONFIG) --cflags gdlib 2>/dev/null)
+LDFLAGS_PKG_TMP = $(shell $(PKG_CONFIG) --libs gdlib 2>/dev/null)
+
+ifeq ($(CFLAGS_PKG_TMP),)
+    # pkg-config failed, use Homebrew paths
+    CFLAGS_PKG = -I/opt/homebrew/opt/gd/include -I/opt/homebrew/opt/libmagic/include
+    LDFLAGS_PKG = -L/opt/homebrew/opt/gd/lib -L/opt/homebrew/opt/libmagic/lib -lgd -lmagic
+else
+    # pkg-config succeeded
+    CFLAGS_PKG = $(CFLAGS_PKG_TMP) -I/opt/homebrew/opt/libmagic/include
+    LDFLAGS_PKG = $(LDFLAGS_PKG_TMP) -L/opt/homebrew/opt/libmagic/lib -lmagic
+endif
+
+# macOS Homebrew adjustments (always add for good measure)
+ifeq ($(UNAME_S),Darwin)
+    CFLAGS_PKG += -I/opt/homebrew/include
+    LDFLAGS_PKG += -L/opt/homebrew/lib
+endif
+
+# Directory structure
+SRC_DIR = src
+BIN_DIR = bin
+ORIG_BIN = $(BIN_DIR)/pisstvpp
+
+# Final flags
+CFLAGS = $(CFLAGS_COMMON) $(CFLAGS_PKG) -I$(SRC_DIR)
+LDFLAGS = $(LDFLAGS_PKG) -lm
+
+.PHONY: all clean check-deps
+
+all: check-deps $(ORIG_BIN)
+
+# Check for required dependencies
+check-deps:
+	@echo "Checking dependencies for original pisstvpp..."
+	@test -d /opt/homebrew/opt/gd/lib || (echo "ERROR: libgd not found"; exit 1)
+	@test -d /opt/homebrew/opt/libmagic/lib || (echo "ERROR: libmagic not found"; exit 1)
+	@echo "✓ All dependencies found at /opt/homebrew/opt/"
+
+$(BIN_DIR):
+	mkdir -p $(BIN_DIR)
+
+$(ORIG_BIN): $(BIN_DIR) $(SRC_DIR)/pisstvpp.c
+	@echo "Compiling original PiSSTVpp v1..."
+	$(CC) $(CFLAGS) $(SRC_DIR)/pisstvpp.c -o $(ORIG_BIN) $(LDFLAGS)
+	@echo "✓ Original binary compiled: $(ORIG_BIN)"
+	@ls -lh $(ORIG_BIN)
+
+clean:
+	rm -f $(ORIG_BIN)
+
+.PHONY: help
+help:
+	@echo "Original PiSSTVpp Makefile"
+	@echo ""
+	@echo "Usage: make [target]"
+	@echo ""
+	@echo "Targets:"
+	@echo "  all          - Build original pisstvpp binary (default)"
+	@echo "  check-deps   - Verify required dependencies are installed"
+	@echo "  clean        - Remove compiled binary"
+	@echo "  help         - Show this help message"
+	@echo ""
+	@echo "Required dependencies:"
+	@echo "  - libgd (graphics generation)"
+	@echo "  - libmagic (file type detection)"
+	@echo ""
+	@echo "Install dependencies:"
+	@echo "  macOS:  brew install libgd libmagic"
+	@echo "  Linux:  sudo apt-get install libgd-dev libmagic-dev"
