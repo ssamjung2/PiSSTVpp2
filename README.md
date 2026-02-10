@@ -94,13 +94,20 @@ make clean && make all
 
 🔧 **Technical Documentation**
 - [Architecture](docs/ARCHITECTURE.md) - Code structure and design
-- [Testing Guide](docs/TEST_SUITE_README.md) - Running tests
+- [Mode Reference](docs/MODE_REFERENCE.md) - SSTV mode specifications
+- [CLI Comparison](docs/CLI_COMPARISON.md) - v1 vs v2.0 feature comparison
+
+🧪 **Testing Documentation**
+- [Test Suite Guide](docs/TEST_SUITE_README.md) - Running tests
+- [Testing Plan](docs/TESTING_PLAN.md) - Comprehensive test strategy
+- [Test Cases](docs/TEST_CASES.md) - Detailed test specifications
+- [Test Results](docs/TEST_RESULTS.md) - Latest test execution results
+- [Test Execution Summary](docs/TEST_EXECUTION_SUMMARY.md) - Quick test overview
 
 🚀 **Advanced Topics**
 - [MMSSTV Integration](docs/MMSSTV_INTEGRATION.md) - Extended modes (v2.1)
+- [MMSSTV Mode Reference](docs/MMSSTV_MODE_REFERENCE.md) - 43+ future modes
 - [Contributing](CONTRIBUTING.md) - How to contribute
-- [Performance Tuning](docs/PERFORMANCE.md) - Optimization tips
-- [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues
 
 ---
 
@@ -235,13 +242,17 @@ make test-quick
 cat tests/test_outputs/test_results_*.json
 ```
 
-**Test Coverage:**
-- ✅ All 7 SSTV protocols
-- ✅ All 3 audio formats (WAV, AIFF, OGG)
-- ✅ 6 sample rates (8000-48000 Hz)
-- ✅ 3 aspect modes
-- ✅ CW signature generation
-- ✅ Error handling and edge cases
+**Test Coverage (55 Tests, 100% Pass Rate):**
+- ✅ All 7 SSTV protocols (m1, m2, s1, s2, sdx, r36, r72)
+- ✅ All 3 audio formats (WAV, AIFF, OGG Vorbis)
+- ✅ 6 sample rates (8000, 11025, 22050, 32000, 44100, 48000 Hz)
+- ✅ 3 aspect ratio modes (center-crop, pad, stretch)
+- ✅ CW signature generation with speed/tone control
+- ✅ Comprehensive error handling and validation
+- ✅ Multi-image processing and output file naming
+- ✅ Callsign validation (including portable/maritime formats)
+
+**Latest Test Results:** See [TEST_EXECUTION_SUMMARY.md](docs/TEST_EXECUTION_SUMMARY.md) for detailed results.
 
 ---
 
@@ -377,14 +388,21 @@ See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for more solutions.
 ## Version History
 
 ### v2.0.0 (January 2026) - Current
-- ✅ Refactored codebase with modular architecture
+**Developer:** Andrew Blessing (KW9D)
+
+- ✅ Complete modular architecture refactor (7 source files)
 - ✅ Migrated from libgd to libvips for better image handling
+- ✅ Added Robot 72 mode (7 modes total vs 6 in v1)
 - ✅ Added aspect ratio correction (center/pad/stretch modes)
+- ✅ Added CW identification system with speed/tone control
+- ✅ Added OGG Vorbis audio format support
+- ✅ Configurable sample rates (8000-48000 Hz)
 - ✅ Increased audio buffer capacity (600s @ 48kHz)
 - ✅ Fixed integer overflow in tone generation
 - ✅ Comprehensive test suite (55 tests, 100% pass rate)
-- ✅ Improved error handling and logging
-- ✅ Full documentation suite
+- ✅ Improved error handling and graceful validation
+- ✅ Complete documentation suite (21 markdown files)
+- ✅ CLI comparison documentation (v1 vs v2.0)
 
 ### v1.x (Legacy)
 - Original implementation with 6 modes
@@ -447,23 +465,31 @@ PiSSTVpp2/
 │   ├── pifm_sstv.c                    # Legacy PiFM code
 │   └── pisstvpp.c                     # Legacy code
 │
-├── docs/                 # Documentation
+├── docs/                 # Documentation (21 markdown files)
+│   ├── DOCUMENTATION_INDEX.md         # Complete doc navigation
+│   │
 │   ├── QUICK_START.md                 # 5-minute intro
-│   ├── USER_GUIDE.md                  # Complete guide
+│   ├── USER_GUIDE.md                  # Complete usage guide
 │   ├── BUILD.md                       # Build instructions
 │   ├── ARCHITECTURE.md                # System design
-│   ├── DOCUMENTATION_INDEX.md         # Doc map
+│   ├── MODE_REFERENCE.md              # v2.0 SSTV modes
+│   ├── CLI_COMPARISON.md              # v1 vs v2.0 comparison
 │   │
-│   ├── TEST_SUITE_README.md          # Testing guide
-│   ├── TEST_QUICK_START.md           # Quick tests
-│   ├── TEST_PRACTICAL_GUIDE.md       # Test writing
+│   ├── TESTING_PLAN.md                # Test strategy
+│   ├── TEST_CASES.md                  # Test specifications
+│   ├── TEST_RESULTS.md                # Detailed results
+│   ├── TEST_EXECUTION_SUMMARY.md      # Quick overview
+│   ├── TEST_SUITE_README.md           # Testing guide
+│   ├── TEST_QUICK_START.md            # Quick tests
+│   ├── TEST_PRACTICAL_GUIDE.md        # Test writing
 │   │
-│   ├── MMSSTV_INTEGRATION.md         # v2.1 plan
-│   ├── MMSSTV_MODE_REFERENCE.md      # Future modes
-│   ├── PISSTVPP2_v2_0_MASTER_PLAN.md # Roadmap
+│   ├── MMSSTV_INTEGRATION.md          # v2.1 plan
+│   ├── MMSSTV_MODE_REFERENCE.md       # 43+ future modes
+│   ├── PISSTVPP2_v2_0_MASTER_PLAN.md  # Complete roadmap
+│   ├── DOCUMENTATION_UPDATE_SUMMARY.md # Doc changes
 │   │
-│   ├── LICENSE.md                     # GPL-3.0
-│   └── *.pdf                          # SSTV specs
+│   ├── LICENSE.md                      # GPL-3.0 license
+│   └── *.pdf                           # SSTV specifications
 │
 ├── tests/                # Test suite
 │   ├── test_suite.sh                  # Bash runner
@@ -509,9 +535,10 @@ This project is licensed under the **GNU General Public License v3.0** - see [LI
 
 ### Credits
 
-**PiSSTVpp2 v2.0** - Modern refactoring and enhancements
+**PiSSTVpp2 v2.0 (2026)**
+- **KW9D** (Andrew Blessing) - Complete v2.0 refactoring, architecture redesign, comprehensive testing suite, and documentation
 
-**Original PiSSTVpp** Contributors:
+**Original PiSSTVpp (2013-2014)**
 - **KI4MCW** (Robert Marshall) - Original SSTV implementation
 - **PA3BYA** (Gerrit Polder, AgriVision) - VIS header fixes and enhancements
 - **KM4EQR** (Don Gi Min) - Additional protocols and option handling
@@ -540,6 +567,6 @@ This project stands on the shoulders of giants in the amateur radio community. S
 
 ---
 
-**73 de PiSSTVpp2** 📡✨
+**73 de KW9D** 📡✨
 
 *Happy SSTV transmissions!*
