@@ -10,6 +10,7 @@
  */
 
 #include "pisstvpp2_audio_encoder.h"
+#include "error.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -45,20 +46,24 @@ typedef struct {
 static int write_ogg_page(OggEncoderState *state, ogg_page *page)
 {
     if (!state || !state->fp || !page) {
-        return -1;
+        return PISSTVPP2_ERR_AUDIO_OGG;
     }
 
     size_t wrote = fwrite(page->header, 1, page->header_len, state->fp);
     if (wrote != (size_t)page->header_len) {
-        return -1;
+        error_log(PISSTVPP2_ERR_AUDIO_OGG, "OGG page header write", 
+                 "Failed to write OGG page header (%zu/%u bytes)", wrote, page->header_len);
+        return PISSTVPP2_ERR_AUDIO_OGG;
     }
 
     wrote = fwrite(page->body, 1, page->body_len, state->fp);
     if (wrote != (size_t)page->body_len) {
-        return -1;
+        error_log(PISSTVPP2_ERR_AUDIO_OGG, "OGG page body write",
+                 "Failed to write OGG page body (%zu/%u bytes)", wrote, page->body_len);
+        return PISSTVPP2_ERR_AUDIO_OGG;
     }
 
-    return 0;
+    return PISSTVPP2_OK;
 }
 
 /**
@@ -73,7 +78,7 @@ static int ogg_encoder_init(AudioEncoderState *self, uint16_t sample_rate,
     OggEncoderState *state = (OggEncoderState *)self;
 
     if (!state || !filename) {
-        return -1;
+        return PISSTVPP2_ERR_ARG_VALUE_INVALID;
     }
 
     state->sample_rate = sample_rate;
@@ -84,9 +89,8 @@ static int ogg_encoder_init(AudioEncoderState *self, uint16_t sample_rate,
     // Open output file for writing
     state->fp = fopen(filename, "wb");
     if (!state->fp) {
-        fprintf(stderr, "[ERROR] Failed to open output file '%s': %s\n",
-                filename, strerror(errno));
-        return -1;
+        error_log(PISSTVPP2_ERR_FILE_WRITE, "Failed to open OGG output file: %s", filename);
+        return PISSTVPP2_ERR_FILE_WRITE;
     }
 
     // Initialize Vorbis structures
@@ -96,11 +100,11 @@ static int ogg_encoder_init(AudioEncoderState *self, uint16_t sample_rate,
     // Quality 0.6 provides good compression (~160 kbps equivalent) suitable for SSTV
     int vorbis_ret = vorbis_encode_init_vbr(&state->vi, (long)channels, (long)sample_rate, 0.6f);
     if (vorbis_ret != 0) {
-        fprintf(stderr, "[ERROR] Failed to initialize Vorbis encoder (error code: %d)\n", vorbis_ret);
+        error_log(PISSTVPP2_ERR_AUDIO_OGG, "Failed to initialize Vorbis encoder (error code: %d)", vorbis_ret);
         fclose(state->fp);
         state->fp = NULL;
         vorbis_info_clear(&state->vi);
-        return -1;
+        return PISSTVPP2_ERR_AUDIO_OGG;
     }
 
     // Initialize comment structure
@@ -110,38 +114,38 @@ static int ogg_encoder_init(AudioEncoderState *self, uint16_t sample_rate,
 
     // Initialize DSP state
     if (vorbis_analysis_init(&state->vd, &state->vi) != 0) {
-        fprintf(stderr, "[ERROR] Failed to initialize Vorbis DSP state\n");
+        error_log(PISSTVPP2_ERR_AUDIO_OGG, "Failed to initialize Vorbis DSP state");
         fclose(state->fp);
         state->fp = NULL;
         vorbis_comment_clear(&state->vc);
         vorbis_info_clear(&state->vi);
-        return -1;
+        return PISSTVPP2_ERR_AUDIO_OGG;
     }
 
     // Initialize block
     if (vorbis_block_init(&state->vd, &state->vb) != 0) {
-        fprintf(stderr, "[ERROR] Failed to initialize Vorbis block\n");
+        error_log(PISSTVPP2_ERR_AUDIO_OGG, "Failed to initialize Vorbis block");
         fclose(state->fp);
         state->fp = NULL;
         vorbis_block_clear(&state->vb);
         vorbis_dsp_clear(&state->vd);
         vorbis_comment_clear(&state->vc);
         vorbis_info_clear(&state->vi);
-        return -1;
+        return PISSTVPP2_ERR_AUDIO_OGG;
     }
 
     // Initialize OGG stream state with random serial number
     srand((unsigned int)time(NULL));
     int serial = rand();
     if (ogg_stream_init(&state->os, serial) != 0) {
-        fprintf(stderr, "[ERROR] Failed to initialize OGG stream\n");
+        error_log(PISSTVPP2_ERR_AUDIO_OGG, "Failed to initialize OGG stream");
         fclose(state->fp);
         state->fp = NULL;
         vorbis_block_clear(&state->vb);
         vorbis_dsp_clear(&state->vd);
         vorbis_comment_clear(&state->vc);
         vorbis_info_clear(&state->vi);
-        return -1;
+        return PISSTVPP2_ERR_AUDIO_OGG;
     }
 
     // Write Vorbis headers
@@ -152,8 +156,8 @@ static int ogg_encoder_init(AudioEncoderState *self, uint16_t sample_rate,
 
     if (vorbis_analysis_headerout(&state->vd, &state->vc, &header,
                                   &header_comm, &header_code) != 0) {
-        fprintf(stderr, "[ERROR] Failed to generate Vorbis headers\n");
-        return -1;
+        error_log(PISSTVPP2_ERR_AUDIO_OGG, "Failed to generate Vorbis headers");
+        return PISSTVPP2_ERR_AUDIO_OGG;
     }
 
     // Put headers in OGG stream
@@ -164,12 +168,12 @@ static int ogg_encoder_init(AudioEncoderState *self, uint16_t sample_rate,
     // Flush header pages
     while (ogg_stream_flush(&state->os, &page) != 0) {
         if (write_ogg_page(state, &page) != 0) {
-            fprintf(stderr, "[ERROR] Failed to write OGG header page\n");
-            return -1;
+            error_log(PISSTVPP2_ERR_AUDIO_OGG, "Failed to write OGG header page");
+            return PISSTVPP2_ERR_AUDIO_OGG;
         }
     }
 
-    return 0;
+    return PISSTVPP2_OK;
 }
 
 /**
@@ -184,11 +188,11 @@ static int ogg_encoder_encode(AudioEncoderState *self, const uint16_t *samples,
     OggEncoderState *state = (OggEncoderState *)self;
 
     if (!state || !state->fp || !samples) {
-        return -1;
+        return PISSTVPP2_ERR_ARG_VALUE_INVALID;
     }
 
     if (sample_count == 0) {
-        return 0;
+        return PISSTVPP2_OK;
     }
 
     // Process samples in chunks to avoid stack overflow
@@ -203,8 +207,8 @@ static int ogg_encoder_encode(AudioEncoderState *self, const uint16_t *samples,
         // Get buffer for writing samples
         float **buffer = vorbis_analysis_buffer(&state->vd, chunk_samples);
         if (!buffer) {
-            fprintf(stderr, "[ERROR] Failed to get Vorbis analysis buffer\n");
-            return -1;
+            error_log(PISSTVPP2_ERR_AUDIO_OGG, "Failed to get Vorbis analysis buffer");
+            return PISSTVPP2_ERR_AUDIO_OGG;
         }
 
         // Convert int16 samples to float for Vorbis
@@ -229,8 +233,8 @@ static int ogg_encoder_encode(AudioEncoderState *self, const uint16_t *samples,
 
                 while (ogg_stream_pageout(&state->os, &page) != 0) {
                     if (write_ogg_page(state, &page) != 0) {
-                        fprintf(stderr, "[ERROR] Failed to write OGG page\n");
-                        return -1;
+                        error_log(PISSTVPP2_ERR_AUDIO_OGG, "Failed to write OGG page");
+                        return PISSTVPP2_ERR_AUDIO_OGG;
                     }
 
                     if (ogg_page_eos(&page)) {
@@ -243,7 +247,7 @@ static int ogg_encoder_encode(AudioEncoderState *self, const uint16_t *samples,
         offset += chunk_samples;
     }
 
-    return 0;
+    return PISSTVPP2_OK;
 }
 
 /**
@@ -256,7 +260,7 @@ static int ogg_encoder_finish(AudioEncoderState *self)
     OggEncoderState *state = (OggEncoderState *)self;
 
     if (!state || !state->fp) {
-        return -1;
+        return PISSTVPP2_ERR_FILE_WRITE;
     }
 
     // Tell Vorbis that we're done adding samples
@@ -275,8 +279,8 @@ static int ogg_encoder_finish(AudioEncoderState *self)
 
             while (ogg_stream_pageout(&state->os, &page) != 0) {
                 if (write_ogg_page(state, &page) != 0) {
-                    fprintf(stderr, "[ERROR] Failed to write final OGG page\n");
-                    return -1;
+                    error_log(PISSTVPP2_ERR_AUDIO_OGG, "Failed to write final OGG page");
+                    return PISSTVPP2_ERR_AUDIO_OGG;
                 }
             }
         }
@@ -285,26 +289,26 @@ static int ogg_encoder_finish(AudioEncoderState *self)
     // Flush any remaining pages
     while (ogg_stream_flush(&state->os, &page) != 0) {
         if (write_ogg_page(state, &page) != 0) {
-            fprintf(stderr, "[ERROR] Failed to write final OGG pages\n");
-            return -1;
+            error_log(PISSTVPP2_ERR_AUDIO_OGG, "Failed to write final OGG pages");
+            return PISSTVPP2_ERR_AUDIO_OGG;
         }
     }
 
     // Flush and close file
     if (fflush(state->fp) != 0 || ferror(state->fp)) {
-        fprintf(stderr, "[ERROR] Failed to flush output file: %s\n", strerror(errno));
+        error_log(PISSTVPP2_ERR_FILE_WRITE, "Failed to flush OGG output file");
         fclose(state->fp);
         state->fp = NULL;
-        return -1;
+        return PISSTVPP2_ERR_FILE_WRITE;
     }
 
     if (fclose(state->fp) != 0) {
-        fprintf(stderr, "[ERROR] Failed to close output file: %s\n", strerror(errno));
-        return -1;
+        error_log(PISSTVPP2_ERR_FILE_WRITE, "Failed to close OGG output file");
+        return PISSTVPP2_ERR_FILE_WRITE;
     }
 
     state->fp = NULL;
-    return 0;
+    return PISSTVPP2_OK;
 }
 
 /**

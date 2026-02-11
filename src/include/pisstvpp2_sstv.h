@@ -24,6 +24,7 @@
  *
  * Dependencies:
  * - pisstvpp2_image.h: For image pixel data access
+ * - error.h: For unified error code system
  */
 
 #ifndef PISSTVPP2_SSTV_H
@@ -31,6 +32,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include "error.h"
 
 /* ============================================================================
    SSTV AUDIO CONSTANTS
@@ -86,7 +88,10 @@ enum {
  * @param verbose If non-zero, print initialization messages
  * @param timestamp_logging If non-zero, add millisecond-precision timestamps to verbose output
  *
- * @return 0 on success, -1 on failure
+ * @return Error code: PISSTVPP2_OK on success, or:
+ *   - PISSTVPP2_ERR_ARG_INVALID_SAMPLE_RATE: Sample rate out of valid range
+ *   - PISSTVPP2_ERR_MEMORY_ALLOC: Failed to allocate audio buffer
+ *   - PISSTVPP2_ERR_SSTV_INIT: Initialization failed
  *
  * Effects:
  * - Allocates audio buffer if needed
@@ -135,7 +140,11 @@ uint8_t sstv_get_protocol(void);
  * @param verbose If non-zero, print progress per scan line
  * @param timestamp_logging If non-zero, add millisecond-precision timestamps to verbose output
  *
- * @return 0 on success, -1 on error
+ * @return Error code: PISSTVPP2_OK on success, or:
+ *   - PISSTVPP2_ERR_SSTV_INIT: Module not initialized
+ *   - PISSTVPP2_ERR_SSTV_MODE_NOT_FOUND: SSTV mode not recognized
+ *   - PISSTVPP2_ERR_SSTV_ENCODE: Audio encoding failed
+ *   - PISSTVPP2_ERR_IMAGE_LOAD: No image loaded
  *
  * Effects:
  * - Appends audio samples to global buffer

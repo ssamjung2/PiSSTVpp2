@@ -134,7 +134,7 @@ const char* mmsstv_adapter_get_error(void) {
 int mmsstv_adapter_init(uint32_t sample_rate, bool verbose) {
     if (g_adapter_initialized) {
         set_error("Adapter already initialized");
-        return -1;
+        return PISSTVPP2_ERR_MMSSTV_INIT;
     }
     
     g_verbose = verbose;
@@ -146,7 +146,7 @@ int mmsstv_adapter_init(uint32_t sample_rate, bool verbose) {
 #ifdef HAVE_MMSSTV_SUPPORT
     if (mmsstv_init() != 0) {
         set_error("Failed to initialize MMSSTV library");
-        return -1;
+        return PISSTVPP2_ERR_MMSSTV_INIT;
     }
     
     if (g_verbose) {
@@ -159,7 +159,7 @@ int mmsstv_adapter_init(uint32_t sample_rate, bool verbose) {
 #endif
     
     g_adapter_initialized = true;
-    return 0;
+    return PISSTVPP2_OK;
 }
 
 void mmsstv_adapter_cleanup(void) {

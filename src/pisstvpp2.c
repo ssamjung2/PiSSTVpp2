@@ -97,7 +97,9 @@
 #include "pisstvpp2_image.h"
 #include "pisstvpp2_sstv.h"
 #include "pisstvpp2_audio_encoder.h"
+#include "pisstvpp2_config.h"
 #include "logging.h"
+#include "error.h"
 
 // ===========================================================================
 // TYPE DEFINITIONS
@@ -126,36 +128,33 @@ enum {
 
 /**
  * @defgroup ErrorHandling Error Handling Utilities
- * @brief Macros and patterns for consistent error management
+ * @brief Centralized error code system for consistent error management
  *
- * The VIPS_CALL macro provides centralized error handling for all libvips
- * operations. It reduces boilerplate and ensures consistent error cleanup.
+ * All error handling uses the unified error code system (error.h) with
+ * PISSTVPP2_OK for success and PISSTVPP2_ERR_* codes for failures.
  *
- * **Usage Pattern:**
+ * **Error Handling Pattern:**
  * @code
- * VIPS_CALL(vips_resize, image, &resized, scale, NULL);
- * // Automatically checks return value, logs errors, cleans up, and jumps to cleanup
+ * int result = some_operation();
+ * if (result != PISSTVPP2_OK) {
+ *     error_log(result, "Operation context", "Additional details");
+ *     return result;  // or set error_code = result; goto cleanup;
+ * }
  * @endcode
  *
- * **Error Handling Flow:**
- * 1. Execute libvips function with provided arguments
- * 2. If return value != 0 (error), print function name
- * 3. Clear libvips error buffer (prevents memory leaks)
- * 4. Set error_code = 2 (runtime error)
- * 5. Jump to cleanup: label for resource cleanup
+ * **Error Categories:**
+ * - Arguments (100-199): Command-line parsing, validation
+ * - Image (200-299): Image loading, processing, format issues  
+ * - SSTV (300-399): SSTV encoding, mode issues
+ * - Audio (400-499): Audio encoding, format issues
+ * - File I/O (500-599): File operations, permissions
+ * - System (600-699): Memory, resource limits
+ * - MMSSTV (700-799): Dynamic library integration
+ * - Text Overlay (800-899): Text overlay and color bars
  *
- * @note Requires 'cleanup' label and 'error_code' variable in calling function
+ * @see error.h For complete error code definitions
  * @{
  */
-#define VIPS_CALL(func, ...) do { \
-    if (func(__VA_ARGS__)) { \
-        fprintf(stderr, "[ERROR] %s failed\n", #func); \
-        vips_error_clear(); \
-        error_code = 2; \
-        goto cleanup; \
-    } \
-} while(0)
-/** @} */ // End of ErrorHandling group
 
 // ===========================================================================
 // FUNCTION PROTOTYPES
@@ -330,200 +329,70 @@ int main(int argc, char *argv[]) {
 
     // Initialize libvips
     if (VIPS_INIT(argv[0])) {
-        vips_error_exit(NULL);
+        error_log(PISSTVPP2_ERR_SSTV_INIT, "libvips initialization", 
+                 "Failed to initialize libvips: %s", vips_error_buffer());
+        vips_error_clear();
+        return PISSTVPP2_ERR_SSTV_INIT;
     }
 
     int error_code = 0;  // For centralized error cleanup
-    char inputfile[255] = {0};
-    char outputfile[255] = {0};
-    const char *protocol = "m1";
-    const char *format = "wav";
-    uint16_t rate = RATE;
-    int verbose = 0;
-    int cw_enable = 0;
-    char cw_callsign[16] = "";
-    int cw_wpm = 15;
-    uint16_t cw_tone = 800;
-    int option;
-    int w_flag = 0, t_flag = 0;  // Track if WPM/tone flags provided (require -C)
-    AspectMode aspect_mode = ASPECT_CENTER;
-    int keep_intermediate = 0;   // Keep intermediate processed image (-K flag)
-    int timestamp_logging = 0;   // Add timestamps to verbose output (-Z flag)
-    
+
+    // ======================================================================
+    // CONFIGURATION INITIALIZATION
+    // ======================================================================
+    // Initialize configuration structure with defaults, then parse command-line
+    // arguments. The config module handles all validation and error reporting.
+    PisstvppConfig config;
+    int config_result = pisstvpp_config_init(&config);
+    if (config_result != PISSTVPP2_OK) {
+        error_log(config_result, "Failed to initialize configuration");
+        return config_result;
+    }
+
     // ======================================================================
     // ARGUMENT PARSING
     // ======================================================================
-    // Parse command-line options using getopt. Each option validates input
-    // and sets configuration variables. Invalid values cause immediate exit
-    // with error message.
-    while ((option = getopt(argc, argv, "i:o:p:f:r:vC:W:T:a:KZh")) != -1) {
-        switch (option) {
-            // Aspect ratio correction mode
-            case 'a':
-                // Parse aspect correction: center-crop, black-pad, or stretch
-                if (strcmp(optarg, "center") == 0) {
-                    aspect_mode = ASPECT_CENTER;  // Center-crop to fill (default)
-                } else if (strcmp(optarg, "pad") == 0) {
-                    aspect_mode = ASPECT_PAD;  // Add black bars to preserve aspect
-                } else if (strcmp(optarg, "stretch") == 0) {
-                    aspect_mode = ASPECT_STRETCH;  // Distort to fit exact dimensions
-                } else {
-                    fprintf(stderr, "Error: Aspect mode must be 'center', 'pad', or 'stretch'\n");
-                    return 1;
-                }
-                break;
-            case 'i':
-                if (strlen(optarg) >= sizeof(inputfile)) {
-                    fprintf(stderr, "Error: Input filename too long (max 254 characters)\n");
-                    return 1;
-                }
-                strncpy(inputfile, optarg, sizeof(inputfile) - 1);
-                break;
-            case 'o':
-                if (strlen(optarg) >= sizeof(outputfile)) {
-                    fprintf(stderr, "Error: Output filename too long (max 254 characters)\n");
-                    return 1;
-                }
-                strncpy(outputfile, optarg, sizeof(outputfile) - 1);
-                break;
-            case 'p':
-                protocol = optarg;
-                break;
-            case 'f':
-                if (!audio_encoder_is_format_supported(optarg)) {
-                    fprintf(stderr, "Error: Format must be 'wav', 'aiff', or 'ogg'\n");
-                    return 1;
-                }
-                format = optarg;
-                break;
-            // Sample rate validation (robust string-to-integer conversion)
-            case 'r': {
-                char *endptr = NULL;
-                errno = 0;  // Clear errno before strtol (best practice)
-                long tmp = strtol(optarg, &endptr, 10);
-                
-                // Validate conversion: check for errors, empty string, trailing chars
-                if (errno != 0 || endptr == optarg || *endptr != '\0') {
-                    fprintf(stderr, "Error: Invalid sample rate '%s'\n", optarg);
-                    return 1;
-                }
-                
-                // Validate range: 8kHz minimum for clarity, 48kHz maximum for compatibility
-                if (tmp < 8000 || tmp > 48000) {
-                    fprintf(stderr, "Error: Sample rate must be between 8000 and 48000 Hz.\n");
-                    return 1;
-                }
-                rate = (uint16_t)tmp;
-                break;
-            }
-            case 'v':
-                verbose = 1;
-                break;
-            case 'C':
-                if (optarg && strlen(optarg) < sizeof(cw_callsign)) {
-                    strncpy(cw_callsign, optarg, sizeof(cw_callsign) - 1);
-                    cw_enable = 1;
-                } else {
-                    fprintf(stderr, "Error: Callsign too long (max 31 characters)\n");
-                    return 1;
-                }
-                break;
-            case 'W':
-                cw_wpm = atoi(optarg);
-                w_flag = 1;
-                if (cw_wpm <= 0 || cw_wpm > 50) {
-                    fprintf(stderr, "Error: Words per minute rate must be between 1 and 50.\n");
-                    return 1;
-                }
-                break;
-            case 'T':
-                cw_tone = (uint16_t)atoi(optarg);
-                t_flag = 1;
-                if (cw_tone <= 0 || cw_tone > 2000 || cw_tone < 400) {
-                    fprintf(stderr, "Error: CW tone must be between 400 Hz and 2000 Hz.\n");
-                    return 1;
-                }                
-                break;
-            case 'h':
-                show_help();
-                return 0;
-            // Keep intermediate processed image (useful for debugging)
-            case 'K':
-                keep_intermediate = 1;
-                break;
-            // Add timestamps to verbose output (for log file analysis)
-            // Note: Also auto-enables verbose mode for convenience
-            case 'Z':
-                timestamp_logging = 1;
-                verbose = 1;  // Auto-enable verbose when timestamps requested
-                break;
-            case '?':
-            default:
-                fprintf(stderr, "Error: Invalid option\n");
-                show_help();
-                return 1;
-        }
+    // Parse and validate all command-line arguments using configuration module.
+    // This replaces inline getopt logic with centralized, tested code.
+    config_result = pisstvpp_config_parse(&config, argc, argv);
+    if (config_result != PISSTVPP2_OK) {
+        // Error already logged by pisstvpp_config_parse()
+        return config_result;
     }
-
-    // ======================================================================
-    // PARAMETER VALIDATION: INTERDEPENDENCIES
-    // ======================================================================
-    // CW parameters require callsign: WPM/tone flags meaningless without it
-    if ((w_flag || t_flag) && strlen(cw_callsign) == 0) {
-        fprintf(stderr, "Error: -C <callsign> is required if -W or -T are provided.\n");
-        return 1;
-    }
-
-    // ======================================================================
-    // FEATURE INTERACTIONS
-    // ======================================================================
-    // When verbose mode is enabled (-v or -Z), automatically enable intermediate
-    // image output for debugging and timeline analysis purposes
-    if (verbose) {
-        keep_intermediate = 1;  // Auto-enable intermediate image in verbose mode
-    }
-
-    // Validate required input file
-    if (strlen(inputfile) == 0) {
-        fprintf(stderr, "Error: Input file (-i) is required\n\n");
-        show_help();
-        return 1;
-    }
-
-    // Store validated sample rate locally (passed to SSTV module)
 
     // ======================================================================
     // PROTOCOL MAPPING: STRING TO VIS CODE
     // ======================================================================
     // Map user-friendly protocol strings to SSTV VIS (Vertical Interval
     // Signaling) codes defined in SSTV specification. VIS codes tell the
-    // decoder which mode to use.
+    // decoder which mode to use. Config module stores protocol as string.
     uint8_t protocol_code = 44;  // Default: Martin 1
-    if (strcmp(protocol, "m1") == 0) {
+    if (strcmp(config.protocol, "m1") == 0) {
         protocol_code = 44; // Martin 1
     }
-    else if (strcmp(protocol, "m2") == 0) {
+    else if (strcmp(config.protocol, "m2") == 0) {
         protocol_code = 40; // Martin 2
     }
-    else if (strcmp(protocol, "s1") == 0) {
+    else if (strcmp(config.protocol, "s1") == 0) {
         protocol_code = 60; // Scottie 1
     }
-    else if (strcmp(protocol, "s2") == 0) {
+    else if (strcmp(config.protocol, "s2") == 0) {
         protocol_code = 56; // Scottie 2
     }
-    else if (strcmp(protocol, "sdx") == 0) {
+    else if (strcmp(config.protocol, "sdx") == 0) {
         protocol_code = 76; // Scottie DX
     }
-    else if (strcmp(protocol, "r36") == 0) {
+    else if (strcmp(config.protocol, "r36") == 0) {
         protocol_code = 8; // Robot 36
     }
-    else if (strcmp(protocol, "r72") == 0) {
+    else if (strcmp(config.protocol, "r72") == 0) {
         protocol_code = 12; // Robot 72
     }
     else {
-        fprintf(stderr, "Error: Unrecognized protocol '%s'\n", protocol);
+        error_log(PISSTVPP2_ERR_ARG_INVALID_PROTOCOL, "Unrecognized protocol: %s (must be m1, m2, s1, s2, sdx, r36, r72)", config.protocol);
         show_help();
-        return 1;
+        error_code = PISSTVPP2_ERR_ARG_INVALID_PROTOCOL;
+        goto cleanup;
     }
 
     // Note: SSTV module initialization is deferred to main encoding phase
@@ -533,82 +402,43 @@ int main(int argc, char *argv[]) {
     struct timeval start_tv, end_tv;
     gettimeofday(&start_tv, NULL);
 
-    // ======================================================================
-    // OUTPUT FILENAME GENERATION
-    // ======================================================================
-    // If no output file specified: derive from input filename + audio format
-    // Example: photo.jpg with -f wav → photo.jpg.wav
-    if (strlen(outputfile) == 0) {
-        // Copy input filename as base (safe: null-terminated)
-        strncpy(outputfile, inputfile, sizeof(outputfile) - 1);
-        outputfile[sizeof(outputfile) - 1] = '\0';
-
-        // Verify sufficient space for extension (buffer overflow protection)
-        size_t output_len = strlen(outputfile);
-        size_t ext_len = strlen(format) + 1; // +1 for the dot
-
-        if (output_len + ext_len >= sizeof(outputfile)) {
-            fprintf(stderr, "Error: Output filename too long after adding extension\n");
-            return 1;
-        }
-
-        // Append .{format} extension safely
-        strncat(outputfile, ".", sizeof(outputfile) - strlen(outputfile) - 1);
-        strncat(outputfile, format, sizeof(outputfile) - strlen(outputfile) - 1);
-    } else {
-        // If output file has no extension, append the selected format
-        const char *slash = strrchr(outputfile, '/');
-        const char *dot = strrchr(outputfile, '.');
-        if (!dot || (slash && dot < slash)) {
-            size_t output_len = strlen(outputfile);
-            size_t ext_len = strlen(format) + 1; // +1 for the dot
-
-            if (output_len + ext_len >= sizeof(outputfile)) {
-                fprintf(stderr, "Error: Output filename too long after adding extension\n");
-                return 1;
-            }
-
-            strncat(outputfile, ".", sizeof(outputfile) - strlen(outputfile) - 1);
-            strncat(outputfile, format, sizeof(outputfile) - strlen(outputfile) - 1);
-        }
-    }
-
     // Initialize SSTV encoding module
-    if (sstv_init(rate, verbose, timestamp_logging) != 0) {
-        fprintf(stderr, "[ERROR] Failed to initialize SSTV module\n");
-        error_code = 1;
+    int sstv_result = sstv_init(config.sample_rate, config.verbose, config.timestamp_logging);
+    if (sstv_result != PISSTVPP2_OK) {
+        // Error already logged by sstv_init()
+        error_code = sstv_result;
         goto cleanup;
     }
 
     // Print configuration summary (with or without timestamps based on mode)
-    if (verbose) {
-        verbose_print(verbose, timestamp_logging, "--------------------------------------------------------------\n");
-        verbose_print(verbose, timestamp_logging, "PiSSTVpp v2.1.0 - SSTV Audio Encoder\n");
-        verbose_print(verbose, timestamp_logging, "--------------------------------------------------------------\n");
-        verbose_print(verbose, timestamp_logging, "Configuration Summary:\n");
-        verbose_print(verbose, timestamp_logging, "  Input image:      %s\n", inputfile);
-        verbose_print(verbose, timestamp_logging, "  Output file:      %s\n", outputfile);
+    if (config.verbose) {
+        verbose_print(config.verbose, config.timestamp_logging, "--------------------------------------------------------------\n");
+        verbose_print(config.verbose, config.timestamp_logging, "PiSSTVpp v2.1.0 - SSTV Audio Encoder\n");
+        verbose_print(config.verbose, config.timestamp_logging, "--------------------------------------------------------------\n");
+        verbose_print(config.verbose, config.timestamp_logging, "Configuration Summary:\n");
+        verbose_print(config.verbose, config.timestamp_logging, "  Input image:      %s\n", config.input_file);
+        verbose_print(config.verbose, config.timestamp_logging, "  Output file:      %s\n", config.output_file);
         const char *format_display = "WAV";
-        if (strcmp(format, "aiff") == 0) format_display = "AIFF";
-        else if (strcmp(format, "ogg") == 0 || strcmp(format, "vorbis") == 0) format_display = "OGG Vorbis";
-        verbose_print(verbose, timestamp_logging, "  Audio format:     %s at %d Hz\n", format_display, rate);
-        verbose_print(verbose, timestamp_logging, "  SSTV protocol:    %s (VIS code %d)\n", protocol, protocol_code);
-        verbose_print(verbose, timestamp_logging, "  Image dimensions: 320x256 pixels\n");
-        verbose_print(verbose, timestamp_logging, "Mode Details:\n");
-        sstv_get_mode_details(protocol_code, verbose, timestamp_logging);
-        verbose_print(verbose, timestamp_logging, "--------------------------------------------------------------\n");
+        if (strcmp(config.format, "aiff") == 0) format_display = "AIFF";
+        else if (strcmp(config.format, "ogg") == 0 || strcmp(config.format, "vorbis") == 0) format_display = "OGG Vorbis";
+        verbose_print(config.verbose, config.timestamp_logging, "  Audio format:     %s at %d Hz\n", format_display, config.sample_rate);
+        verbose_print(config.verbose, config.timestamp_logging, "  SSTV protocol:    %s (VIS code %d)\n", config.protocol, protocol_code);
+        verbose_print(config.verbose, config.timestamp_logging, "  Image dimensions: 320x256 pixels\n");
+        verbose_print(config.verbose, config.timestamp_logging, "Mode Details:\n");
+        sstv_get_mode_details(protocol_code, config.verbose, config.timestamp_logging);
+        verbose_print(config.verbose, config.timestamp_logging, "--------------------------------------------------------------\n");
     } else {
         printf("--------------------------------------------------------------\n");
         printf("PiSSTVpp v2.1.0 - SSTV Audio Encoder\n");
         printf("--------------------------------------------------------------\n");
         printf("Configuration Summary:\n");
-        printf("  Input image:      %s\n", inputfile);
-        printf("  Output file:      %s\n", outputfile);
+        printf("  Input image:      %s\n", config.input_file);
+        printf("  Output file:      %s\n", config.output_file);
         const char *format_display = "WAV";
-        if (strcmp(format, "aiff") == 0) format_display = "AIFF";
-        else if (strcmp(format, "ogg") == 0 || strcmp(format, "vorbis") == 0) format_display = "OGG Vorbis";
-        printf("  Audio format:     %s at %d Hz\n", format_display, rate);
-        printf("  SSTV protocol:    %s (VIS code %d)\n", protocol, protocol_code);
+        if (strcmp(config.format, "aiff") == 0) format_display = "AIFF";
+        else if (strcmp(config.format, "ogg") == 0 || strcmp(config.format, "vorbis") == 0) format_display = "OGG Vorbis";
+        printf("  Audio format:     %s at %d Hz\n", format_display, config.sample_rate);
+        printf("  SSTV protocol:    %s (VIS code %d)\n", config.protocol, protocol_code);
         printf("  Image dimensions: 320x256 pixels\n");
         printf("Mode Details:\n");
         sstv_get_mode_details(protocol_code, 0, 0);
@@ -616,12 +446,11 @@ int main(int argc, char *argv[]) {
     }
 
     // Load image using new image module (auto-detects format)
-    verbose_print(verbose, timestamp_logging, "[1/4] Loading image...\n");
-    if (image_load_from_file(inputfile, verbose, timestamp_logging, NULL) != 0) {
-        fprintf(stderr, "\n[ERROR] Failed to load image '%s'\n", inputfile);
-        fprintf(stderr, "   Supported formats (common): PNG, JPEG, GIF, BMP, TIFF, WebP, etc.\n");
-        fprintf(stderr, "   Check file exists and is a valid image file\n");
-        error_code = 2;
+    verbose_print(config.verbose, config.timestamp_logging, "[1/4] Loading image...\n");
+    int image_result = image_load_from_file(config.input_file, config.verbose, config.timestamp_logging, NULL);
+    if (image_result != PISSTVPP2_OK) {
+        // Error already logged by image_load_from_file(), propagate error code
+        error_code = image_result;
         goto cleanup;
     }
 
@@ -646,10 +475,10 @@ int main(int argc, char *argv[]) {
     {
         // Extract directory component from output path
         char out_dir[1024] = {0};
-        const char *last_slash = strrchr(outputfile, '/');
+        const char *last_slash = strrchr(config.output_file, '/');
         if (last_slash) {
-            int dir_len = last_slash - outputfile;
-            strncpy(out_dir, outputfile, dir_len);
+            int dir_len = last_slash - config.output_file;
+            strncpy(out_dir, config.output_file, dir_len);
             out_dir[dir_len] = '\0';
         } else {
             strcpy(out_dir, ".");
@@ -657,7 +486,7 @@ int main(int argc, char *argv[]) {
         
         // Get base name without extension
         char out_base[256];
-        const char *base_start = last_slash ? last_slash + 1 : outputfile;
+        const char *base_start = last_slash ? last_slash + 1 : config.output_file;
         const char *dot = strrchr(base_start, '.');
         if (dot) {
             int base_len = dot - base_start;
@@ -675,36 +504,40 @@ int main(int argc, char *argv[]) {
                  out_dir, out_base, orig_ext);
     }
     
-    if (image_correct_aspect_and_resize(required_width, required_height, aspect_mode, verbose, timestamp_logging,
-                                        keep_intermediate ? intermediate_image : NULL) != 0) {
-        error_code = 2;
+    int aspect_result = image_correct_aspect_and_resize(required_width, required_height, config.aspect_mode, 
+                                                         config.verbose, config.timestamp_logging,
+                                                         config.keep_intermediate ? intermediate_image : NULL);
+    if (aspect_result != PISSTVPP2_OK) {
+        // Error already logged by image_correct_aspect_and_resize()
+        error_code = aspect_result;
         goto cleanup;
     }
     
-    verbose_print(verbose, timestamp_logging, "[2/4] Encoding image as SSTV audio...\n");
+    verbose_print(config.verbose, config.timestamp_logging, "[2/4] Encoding image as SSTV audio...\n");
 
     // Encode the image
-    verbose_print(verbose, timestamp_logging, "   --> Processing pixels...\n");
+    verbose_print(config.verbose, config.timestamp_logging, "   --> Processing pixels...\n");
     fflush(stdout);
     
-    if (sstv_encode_frame(verbose, timestamp_logging) != 0) {
-        fprintf(stderr, "\n[ERROR] Failed to encode SSTV frame\n");
-        error_code = 2;
+    int encode_result = sstv_encode_frame(config.verbose, config.timestamp_logging);
+    if (encode_result != PISSTVPP2_OK) {
+        // Error already logged by sstv_encode_frame()
+        error_code = encode_result;
         goto cleanup;
     }
 
-    verbose_print(verbose, timestamp_logging, "   [OK] Image encoded\n");
+    verbose_print(config.verbose, config.timestamp_logging, "   [OK] Image encoded\n");
 
-    if (cw_enable) {
-        verbose_print(verbose, timestamp_logging, "   --> Adding CW signature: '%s' (WPM: %d, Tone: %d Hz)\n", cw_callsign[0] ? cw_callsign : "NOCALL", cw_wpm, cw_tone);
-        sstv_add_cw_signature(cw_callsign[0] ? cw_callsign : "NOCALL", cw_wpm, cw_tone);
-        verbose_print(verbose, timestamp_logging, "   [OK] CW signature added\n");
+    if (config.cw_enabled) {
+        verbose_print(config.verbose, config.timestamp_logging, "   --> Adding CW signature: '%s' (WPM: %d, Tone: %d Hz)\n", config.cw_callsign[0] ? config.cw_callsign : "NOCALL", config.cw_wpm, config.cw_tone);
+        sstv_add_cw_signature(config.cw_callsign[0] ? config.cw_callsign : "NOCALL", config.cw_wpm, config.cw_tone);
+        verbose_print(config.verbose, config.timestamp_logging, "   [OK] CW signature added\n");
     }
 
-    verbose_print(verbose, timestamp_logging, "   [OK] adding VIS footer to audio\n");
-    verbose_print(verbose, timestamp_logging, "[3/4] Writing audio file...\n");
-    verbose_print(verbose, timestamp_logging, "   --> Format: %s\n", format);
-    verbose_print(verbose, timestamp_logging, "   --> Sample rate: %d Hz\n", rate);
+    verbose_print(config.verbose, config.timestamp_logging, "   [OK] adding VIS footer to audio\n");
+    verbose_print(config.verbose, config.timestamp_logging, "[3/4] Writing audio file...\n");
+    verbose_print(config.verbose, config.timestamp_logging, "   --> Format: %s\n", config.format);
+    verbose_print(config.verbose, config.timestamp_logging, "   --> Sample rate: %d Hz\n", config.sample_rate);
 
     // Get samples from SSTV module
     uint32_t sample_count = 0;
@@ -712,13 +545,13 @@ int main(int argc, char *argv[]) {
     
     // Basic safety checks before writing
     if (sample_count == 0) {
-        fprintf(stderr, "\n[ERROR] No audio samples generated\n");
-        error_code = 2;
+        error_log(PISSTVPP2_ERR_SSTV_ENCODE, "Audio synthesis", "No audio samples generated from SSTV encoding");
+        error_code = PISSTVPP2_ERR_SSTV_ENCODE;
         goto cleanup;
     }
     if ((uint64_t)sample_count >= (uint64_t)MAXSAMPLES) {
-        fprintf(stderr, "\n[ERROR] audio sample count at or beyond capacity (%u)\n", sample_count);
-        error_code = 2;
+        error_log(PISSTVPP2_ERR_SYSTEM_RESOURCE, "Audio buffer", "Audio sample count exceeds capacity: %u >= %llu", sample_count, (unsigned long long)MAXSAMPLES);
+        error_code = PISSTVPP2_ERR_SYSTEM_RESOURCE;
         goto cleanup;
     }
 
@@ -729,36 +562,42 @@ int main(int argc, char *argv[]) {
     // adding new formats (FLAC, Opus, etc.) without modifying main logic.
     // Encoders implement common interface: init → encode → finish → destroy
     
-    AudioEncoder *encoder = audio_encoder_create(format);
+    AudioEncoder *encoder = audio_encoder_create(config.format);
     if (!encoder) {
         // Factory returns NULL if format unsupported (should never happen
         // due to earlier validation, but defensive check)
-        fprintf(stderr, "\n[ERROR] Unsupported format: '%s'\n", format);
-        error_code = 2;
+        error_log(PISSTVPP2_ERR_ARG_INVALID_FORMAT, "Audio encoder factory", "Unsupported format: %s", config.format);
+        error_code = PISSTVPP2_ERR_ARG_INVALID_FORMAT;
         goto cleanup;
     }
 
     // Initialize encoder: opens file, writes headers
-    if (audio_encoder_init(encoder, rate, BITS, CHANS, outputfile) != 0) {
-        fprintf(stderr, "\n[ERROR] Failed to initialize %s encoder\n", format);
+    int encoder_init_result = audio_encoder_init(encoder, config.sample_rate, BITS, CHANS, config.output_file);
+    if (encoder_init_result != PISSTVPP2_OK) {
+        error_log(encoder_init_result, "Audio encoder initialization", 
+                 "Failed to initialize %s encoder for output file: %s", config.format, config.output_file);
         audio_encoder_destroy(encoder);
-        error_code = 2;
+        error_code = encoder_init_result;
         goto cleanup;
     }
 
     // Write audio samples (encoding happens here for OGG)
-    if (audio_encoder_encode(encoder, audio_samples, sample_count) != 0) {
-        fprintf(stderr, "\n[ERROR] Failed to encode audio\n");
+    int encoder_encode_result = audio_encoder_encode(encoder, audio_samples, sample_count);
+    if (encoder_encode_result != PISSTVPP2_OK) {
+        error_log(encoder_encode_result, "Audio sample encoding", 
+                 "Failed to encode %u audio samples to %s format", sample_count, config.format);
         audio_encoder_destroy(encoder);
-        error_code = 2;
+        error_code = encoder_encode_result;
         goto cleanup;
     }
 
     // Finalize file: update headers with final sizes, flush buffers, close
-    if (audio_encoder_finish(encoder) != 0) {
-        fprintf(stderr, "\n[ERROR] Failed to finalize encoding\n");
+    int encoder_finish_result = audio_encoder_finish(encoder);
+    if (encoder_finish_result != PISSTVPP2_OK) {
+        error_log(encoder_finish_result, "Audio file finalization", 
+                 "Failed to finalize %s audio file: %s", config.format, config.output_file);
         audio_encoder_destroy(encoder);
-        error_code = 2;
+        error_code = encoder_finish_result;
         goto cleanup;
     }
 
@@ -773,21 +612,21 @@ int main(int argc, char *argv[]) {
     gettimeofday(&end_tv, NULL);
     uint32_t elapsed_ms = (end_tv.tv_sec - start_tv.tv_sec) * 1000 + 
                           (end_tv.tv_usec - start_tv.tv_usec) / 1000;
-    verbose_print(verbose, timestamp_logging, "[4/4] File written! Done.\n");
+    verbose_print(config.verbose, config.timestamp_logging, "[4/4] File written! Done.\n");
     
-    if (verbose) {
-        verbose_print(verbose, timestamp_logging, "--------------------------------------------------------------\n");
-        verbose_print(verbose, timestamp_logging, "[COMPLETE] ENCODING COMPLETE\n");
-        verbose_print(verbose, timestamp_logging, "--------------------------------------------------------------\n");
-        verbose_print(verbose, timestamp_logging, "Output file: %s\n", outputfile);
-        verbose_print(verbose, timestamp_logging, "Audio samples: %u (%.2f seconds at %d Hz)\n", sample_count, sample_count / (double)rate, rate);
-        verbose_print(verbose, timestamp_logging, "Encoding time: %u millisecond%s\n", elapsed_ms, elapsed_ms == 1 ? "" : "s");
+    if (config.verbose) {
+        verbose_print(config.verbose, config.timestamp_logging, "--------------------------------------------------------------\n");
+        verbose_print(config.verbose, config.timestamp_logging, "[COMPLETE] ENCODING COMPLETE\n");
+        verbose_print(config.verbose, config.timestamp_logging, "--------------------------------------------------------------\n");
+        verbose_print(config.verbose, config.timestamp_logging, "Output file: %s\n", config.output_file);
+        verbose_print(config.verbose, config.timestamp_logging, "Audio samples: %u (%.2f seconds at %d Hz)\n", sample_count, sample_count / (double)config.sample_rate, config.sample_rate);
+        verbose_print(config.verbose, config.timestamp_logging, "Encoding time: %u millisecond%s\n", elapsed_ms, elapsed_ms == 1 ? "" : "s");
     } else {
         printf("--------------------------------------------------------------\n");
         printf("[COMPLETE] ENCODING COMPLETE\n");
         printf("--------------------------------------------------------------\n");
-        printf("Output file: %s\n", outputfile);
-        printf("Audio samples: %u (%.2f seconds at %d Hz)\n", sample_count, sample_count / (double)rate, rate);
+        printf("Output file: %s\n", config.output_file);
+        printf("Audio samples: %u (%.2f seconds at %d Hz)\n", sample_count, sample_count / (double)config.sample_rate, config.sample_rate);
         printf("Encoding time: %u millisecond%s\n", elapsed_ms, elapsed_ms == 1 ? "" : "s");
     }
     
@@ -801,9 +640,10 @@ cleanup:
     // proper cleanup regardless of where failure occurs. Each cleanup function
     // is safe to call multiple times (idempotent) and handles NULL/uninitialized
     // state gracefully.
-    image_free();       // Free libvips image resources
-    sstv_cleanup();     // Free SSTV audio buffer
-    vips_shutdown();    // Shutdown libvips (releases all resources)
+    image_free();                       // Free libvips image resources
+    sstv_cleanup();                     // Free SSTV audio buffer
+    pisstvpp_config_cleanup(&config);   // Free config resources
+    vips_shutdown();                    // Shutdown libvips (releases all resources)
     return error_code;  // Propagate error code to shell (0 = success, >0 = error)
 }
 

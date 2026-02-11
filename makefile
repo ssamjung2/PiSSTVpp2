@@ -46,12 +46,12 @@ endif
 # Directory structure
 SRC_DIR = src
 INC_DIR = src/include
+UTIL_DIR = $(SRC_DIR)/util
 BIN_DIR = bin
 TEST_DIR = tests
-UTIL_DIR = util
 
 # Final flags (user can override CFLAGS/LDFLAGS if needed)
-CFLAGS ?= $(CFLAGS_COMMON) $(CFLAGS_PKG) $(CFLAGS_PI) -I$(SRC_DIR) -I$(INC_DIR)
+CFLAGS ?= $(CFLAGS_COMMON) $(CFLAGS_PKG) $(CFLAGS_PI) -I$(SRC_DIR) -I$(INC_DIR) -I$(UTIL_DIR)
 LDFLAGS ?= $(LDFLAGS_PKG) -lm
 
 # Target configuration
@@ -61,14 +61,19 @@ TARGET_SAN = $(BIN_DIR)/pisstvpp2_san
 TARGET_VIPS_TEST = $(BIN_DIR)/vips_test
 SRC_FILES = $(SRC_DIR)/pisstvpp2.c $(SRC_DIR)/pisstvpp2_image.c $(SRC_DIR)/pisstvpp2_sstv.c \
             $(SRC_DIR)/pisstvpp2_audio_encoder.c $(SRC_DIR)/audio_encoder_wav.c \
-            $(SRC_DIR)/audio_encoder_aiff.c $(SRC_DIR)/audio_encoder_ogg.c
+            $(SRC_DIR)/audio_encoder_aiff.c $(SRC_DIR)/audio_encoder_ogg.c \
+            $(SRC_DIR)/pisstvpp2_config.c $(SRC_DIR)/pisstvpp2_context.c $(UTIL_DIR)/error.c
 OBJ_FILES = $(BIN_DIR)/pisstvpp2.o $(BIN_DIR)/pisstvpp2_image.o $(BIN_DIR)/pisstvpp2_sstv.o \
             $(BIN_DIR)/pisstvpp2_audio_encoder.o $(BIN_DIR)/audio_encoder_wav.o \
-            $(BIN_DIR)/audio_encoder_aiff.o $(BIN_DIR)/audio_encoder_ogg.o
+            $(BIN_DIR)/audio_encoder_aiff.o $(BIN_DIR)/audio_encoder_ogg.o \
+            $(BIN_DIR)/pisstvpp2_config.o $(BIN_DIR)/pisstvpp2_context.o $(BIN_DIR)/error.o
 
 all: $(TARGET)
 
 $(BIN_DIR)/%.o: $(SRC_DIR)/%.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BIN_DIR)/%.o: $(UTIL_DIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(TARGET): $(OBJ_FILES)

@@ -14,6 +14,7 @@
 #include <math.h>
 #include <tgmath.h>
 #include "logging.h"
+#include "error.h"
 #include "pisstvpp2_sstv.h"
 #include "pisstvpp2_image.h"
 
@@ -108,7 +109,8 @@ static void playtone(uint16_t tonefreq, double tonedur) {
     for (i = 1; i <= tonesamples; i++) {
         g_sstv.samples++;
         if (g_sstv.samples >= g_sstv.max_samples) {
-            fprintf(stderr, "[WARNING] Audio buffer overflow at sample %u\n", g_sstv.samples);
+            error_log(PISSTVPP2_ERR_SYSTEM_RESOURCE, "Audio buffer overflow",
+                     "Audio buffer overflow at sample %u (max capacity: %u)", g_sstv.samples, g_sstv.max_samples);
             return;
         }
         
@@ -596,8 +598,8 @@ int sstv_init(uint16_t sample_rate, int verbose, int timestamp_logging) {
     log_verbose(verbose, timestamp_logging, "Initializing SSTV audio with sample rate %d Hz\n", sample_rate);
     
     if (sample_rate < 8000 || sample_rate > 48000) {
-        fprintf(stderr, "[ERROR] Invalid sample rate %d (must be 8000-48000)\n", sample_rate);
-        return -1;
+        error_log(PISSTVPP2_ERR_ARG_INVALID_SAMPLE_RATE, "Sample rate %d out of range (8000-48000 Hz)", sample_rate);
+        return PISSTVPP2_ERR_ARG_INVALID_SAMPLE_RATE;
     }
     
     g_sstv.rate = sample_rate;
@@ -620,8 +622,8 @@ static int sstv_init_buffer(void) {
     if (!g_sstv.audio) {
         g_sstv.audio = (uint16_t *)malloc(g_sstv.max_samples * sizeof(uint16_t));
         if (!g_sstv.audio) {
-            fprintf(stderr, "[ERROR] Failed to allocate audio buffer\n");
-            return -1;
+            error_log(PISSTVPP2_ERR_MEMORY_ALLOC, "Failed to allocate %u sample audio buffer", g_sstv.max_samples);
+            return PISSTVPP2_ERR_MEMORY_ALLOC;
         }
     }
     
@@ -638,7 +640,7 @@ static int sstv_init_buffer(void) {
     g_sstv.samples = 0;
     g_sstv.initialized = 1;
     
-    return 0;
+    return PISSTVPP2_OK;
 }
 
 void sstv_set_protocol(uint8_t protocol) {
@@ -651,12 +653,12 @@ uint8_t sstv_get_protocol(void) {
 
 int sstv_encode_frame(int verbose, int timestamp_logging) {
     if (!g_sstv.initialized) {
-        fprintf(stderr, "[ERROR] SSTV module not initialized\n");
-        return -1;
+        error_log(PISSTVPP2_ERR_SSTV_INIT, "SSTV module not initialized");
+        return PISSTVPP2_ERR_SSTV_INIT;
     }
     
     if (g_sstv.samples > 0) {
-        fprintf(stderr, "[WARNING] Audio buffer not empty; consider calling sstv_reset_buffer()\n");
+        error_log(PISSTVPP2_ERR_SSTV_ENCODE, "Audio buffer not empty; consider calling sstv_reset_buffer()");
     }
     
     addvisheader(verbose, timestamp_logging);
@@ -684,17 +686,18 @@ int sstv_encode_frame(int verbose, int timestamp_logging) {
             buildaudio_r72(verbose, timestamp_logging);
             break;
         default:
-            fprintf(stderr, "[ERROR] Unknown SSTV protocol code: %d\n", g_sstv.protocol);
-            return -1;
+            error_log(PISSTVPP2_ERR_SSTV_MODE_NOT_FOUND, "Unknown SSTV protocol code: %d", g_sstv.protocol);
+            return PISSTVPP2_ERR_SSTV_MODE_NOT_FOUND;
     }
     
     addvistrailer();
-    return 0;
+    return PISSTVPP2_OK;
 }
 
 void sstv_add_cw_signature(const char *callsign, int wpm, uint16_t tone_freq) {
     if (!g_sstv.initialized) {
-        fprintf(stderr, "[ERROR] SSTV module not initialized\n");
+        error_log(PISSTVPP2_ERR_SSTV_INIT, "SSTV module not initialized",
+                 "Cannot add CW signature - SSTV module must be initialized first");
         return;
     }
     

@@ -18,6 +18,7 @@
 
 #include <stdint.h>
 #include <vips/vips.h>
+#include "error.h"
 
 /* Image buffer structure - stores decoded RGB pixel data */
 typedef struct {
@@ -48,7 +49,11 @@ typedef enum {
  * @param timestamp_logging If non-zero (and verbose is non-zero), add timestamps to output
  * @param debug_output_dir If non-NULL, save debug images to this directory
  * 
- * @return 0 on success, -1 on failure (error messages printed to stderr)
+ * @return Error code: PISSTVPP2_OK on success, or one of:
+ *   - PISSTVPP2_ERR_FILE_NOT_FOUND: File does not exist
+ *   - PISSTVPP2_ERR_IMAGE_LOAD: libvips failed to load the image
+ *   - PISSTVPP2_ERR_IMAGE_FORMAT_UNSUPPORTED: Format not recognized by libvips
+ *   - PISSTVPP2_ERR_MEMORY_ALLOC: Failed to allocate buffer for pixel data
  * 
  * Effects:
  * - Loads image from disk using libvips auto-detect format
@@ -67,7 +72,7 @@ int image_load_from_file(const char *filename, int verbose, int timestamp_loggin
  * @param width Output: pointer to receive width in pixels
  * @param height Output: pointer to receive height in pixels
  * 
- * @return 0 if image is loaded, -1 if no image loaded
+ * @return PISSTVPP2_OK if image is loaded, PISSTVPP2_ERR_IMAGE_LOAD if no image
  */
 int image_get_dimensions(int *width, int *height);
 
@@ -127,7 +132,11 @@ void image_free(void);
  * @param timestamp_logging If non-zero (and verbose is non-zero), add timestamps to output
  * @param debug_output_dir If non-NULL, save intermediate/final images to this directory
  * 
- * @return 0 on success, -1 on failure
+ * @return Error code: PISSTVPP2_OK on success, or one of:
+ *   - PISSTVPP2_ERR_IMAGE_LOAD: No image loaded
+ *   - PISSTVPP2_ERR_IMAGE_PROCESS: libvips transformation failed
+ *   - PISSTVPP2_ERR_IMAGE_ASPECT_CORRECTION: Aspect correction failed
+ *   - PISSTVPP2_ERR_MEMORY_ALLOC: Failed to allocate for transformed image
  * 
  * Algorithm:
  * 
@@ -160,9 +169,9 @@ void image_free(void);
  * - If debug_output_dir provided, saves corrected image before buffering
  * 
  * Error handling:
- * - Prints detailed error messages if vips operations fail
+ * - Uses error_log for detailed error reporting
  * - Cleans up intermediate images on failure
- * - Returns -1 with error message for all failure cases
+ * - Returns error code for all failure cases
  */
 int image_correct_aspect_and_resize(int target_width, int target_height, AspectMode mode, int verbose, int timestamp_logging, const char *debug_output_dir);
 
@@ -178,7 +187,9 @@ int image_correct_aspect_and_resize(int target_width, int target_height, AspectM
  * @param output_path Full path to output file (e.g., "/tmp/debug_001.png")
  * @param verbose If non-zero, print confirmation message
  * 
- * @return 0 on success, -1 on failure
+ * @return Error code: PISSTVPP2_OK on success, or:
+ *   - PISSTVPP2_ERR_FILE_WRITE: Failed to write output file
+ *   - PISSTVPP2_ERR_IMAGE_PROCESS: libvips save operation failed
  * 
  * Use cases:
  * - Save loaded image before transformation for comparison
@@ -190,7 +201,7 @@ int image_correct_aspect_and_resize(int target_width, int target_height, AspectM
  * - Writes PNG file to specified path
  * - Creates file with full precision (no quality loss)
  * - Overwrites existing file
- * - Prints status to stderr on failure
+ * - Logs errors on failure
  */
 int image_save_to_file(const char *output_path, int verbose);
 

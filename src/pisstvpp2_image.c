@@ -6,6 +6,7 @@
  */
 
 #include "pisstvpp2_image.h"
+#include "error.h"
 #include "logging.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -75,20 +76,20 @@ static void clear_image_state(void) {
 /**
  * buffer_vips_image
  * Convert a VipsImage to internal pixel buffer
- * Returns 0 on success, -1 on failure
+ * Returns PISSTVPP2_OK on success, error code on failure
  */
 static int buffer_vips_image(VipsImage *image, int verbose, int timestamp_logging) {
     if (!image) {
-        fprintf(stderr, "   [ERROR] buffer_vips_image: No image to buffer\n");
-        return -1;
+        error_log(PISSTVPP2_ERR_IMAGE_LOAD, "No image to buffer");
+        return PISSTVPP2_ERR_IMAGE_LOAD;
     }
 
     /* Ensure image is in RGB format */
     VipsImage *rgb_image = NULL;
     if (vips_colourspace(image, &rgb_image, VIPS_INTERPRETATION_sRGB, NULL)) {
-        fprintf(stderr, "   [ERROR] Colorspace conversion failed: %s\n", vips_error_buffer());
+        error_log(PISSTVPP2_ERR_IMAGE_PROCESS, "Colorspace conversion failed: %s", vips_error_buffer());
         vips_error_clear();
-        return -1;
+        return PISSTVPP2_ERR_IMAGE_PROCESS;
     }
 
     /* Replace with RGB version if conversion needed */
@@ -100,9 +101,9 @@ static int buffer_vips_image(VipsImage *image, int verbose, int timestamp_loggin
     /* Allocate buffer structure */
     ImageBuffer *buf = (ImageBuffer *)malloc(sizeof(ImageBuffer));
     if (!buf) {
-        fprintf(stderr, "   [ERROR] Memory allocation failed for ImageBuffer\n");
+        error_log(PISSTVPP2_ERR_MEMORY_ALLOC, "Failed to allocate ImageBuffer structure");
         g_object_unref(image);
-        return -1;
+        return PISSTVPP2_ERR_MEMORY_ALLOC;
     }
 
     /* Get metadata */
@@ -114,11 +115,11 @@ static int buffer_vips_image(VipsImage *image, int verbose, int timestamp_loggin
     int data_size = buf->height * buf->rowstride;
     buf->data = (uint8_t *)malloc(data_size);
     if (!buf->data) {
-        fprintf(stderr, "   [ERROR] Memory allocation failed: %d bytes for pixel data\n", data_size);
-        fprintf(stderr, "   Image: %dx%d (%d bytes/row)\n", buf->width, buf->height, buf->rowstride);
+        error_log(PISSTVPP2_ERR_MEMORY_ALLOC, "Failed to allocate %d bytes for pixel data (image %dx%d, %d bytes/row)", 
+                data_size, buf->width, buf->height, buf->rowstride);
         free(buf);
         g_object_unref(image);
-        return -1;
+        return PISSTVPP2_ERR_MEMORY_ALLOC;
     }
 
     log_verbose(verbose, timestamp_logging, "   --> Buffering %dx%d RGB image (%d bytes)...\n", buf->width, buf->height, data_size);
@@ -126,33 +127,33 @@ static int buffer_vips_image(VipsImage *image, int verbose, int timestamp_loggin
     /* Prepare image region and copy data */
     VipsRegion *region = vips_region_new(image);
     if (!region) {
-        fprintf(stderr, "   [ERROR] Failed to create image region\n");
+        error_log(PISSTVPP2_ERR_IMAGE_PROCESS, "Failed to create VipsRegion for image");
         free(buf->data);
         free(buf);
         g_object_unref(image);
-        return -1;
+        return PISSTVPP2_ERR_IMAGE_PROCESS;
     }
 
     VipsRect rect = { 0, 0, image->Xsize, image->Ysize };
     if (vips_region_prepare(region, &rect)) {
-        fprintf(stderr, "   [ERROR] Failed to prepare image region: %s\n", vips_error_buffer());
+        error_log(PISSTVPP2_ERR_IMAGE_PROCESS, "Failed to prepare image region: %s", vips_error_buffer());
         vips_error_clear();
         g_object_unref(region);
         free(buf->data);
         free(buf);
         g_object_unref(image);
-        return -1;
+        return PISSTVPP2_ERR_IMAGE_PROCESS;
     }
 
     /* Copy pixel data */
     const uint8_t *src = VIPS_REGION_ADDR(region, 0, 0);
     if (!src) {
-        fprintf(stderr, "   [ERROR] Failed to access pixel data from region\n");
+        error_log(PISSTVPP2_ERR_IMAGE_PROCESS, "Failed to access pixel data from VipsRegion");
         g_object_unref(region);
         free(buf->data);
         free(buf);
         g_object_unref(image);
-        return -1;
+        return PISSTVPP2_ERR_IMAGE_PROCESS;
     }
 
     memcpy(buf->data, src, data_size);
@@ -168,7 +169,7 @@ static int buffer_vips_image(VipsImage *image, int verbose, int timestamp_loggin
     g_img.buffer = buf;
     g_img.image = image;
 
-    return 0;
+    return PISSTVPP2_OK;
 }
 
 /* ============================================================================
@@ -177,8 +178,8 @@ static int buffer_vips_image(VipsImage *image, int verbose, int timestamp_loggin
 
 int image_load_from_file(const char *filename, int verbose, int timestamp_logging, const char *debug_output_dir) {
     if (!filename) {
-        fprintf(stderr, "[ERROR] image_load_from_file: filename is NULL\n");
-        return -1;
+        error_log(PISSTVPP2_ERR_ARG_FILENAME_INVALID, "Filename pointer is NULL");
+        return PISSTVPP2_ERR_ARG_FILENAME_INVALID;
     }
 
     log_verbose(verbose, timestamp_logging, "   Loading image from: %s\n", filename);
@@ -193,19 +194,19 @@ int image_load_from_file(const char *filename, int verbose, int timestamp_loggin
     /* Load image with libvips auto-detect */
     VipsImage *image = vips_image_new_from_file(filename, NULL);
     if (!image) {
-        fprintf(stderr, "   [ERROR] Failed to load '%s'\n", filename);
-        fprintf(stderr, "   Details: %s\n", vips_error_buffer());
+        error_log(PISSTVPP2_ERR_IMAGE_LOAD, "Failed to load image: %s (Details: %s)", filename, vips_error_buffer());
         vips_error_clear();
-        return -1;
+        return PISSTVPP2_ERR_IMAGE_LOAD;
     }
 
     log_verbose(verbose, timestamp_logging, "   --> Loaded: %dx%d, %d-band image\n", image->Xsize, image->Ysize, image->Bands);
 
     /* Buffer the image (includes RGB conversion) */
-    if (buffer_vips_image(image, verbose, timestamp_logging) != 0) {
-        fprintf(stderr, "   [ERROR] Failed to buffer image\n");
+    int buffer_result = buffer_vips_image(image, verbose, timestamp_logging);
+    if (buffer_result != PISSTVPP2_OK) {
+        error_log(buffer_result, "Failed to buffer image data");
         g_object_unref(image);
-        return -1;
+        return buffer_result;
     }
 
     log_verbose(verbose, timestamp_logging, "   [OK] Image loaded successfully\n");
@@ -214,21 +215,22 @@ int image_load_from_file(const char *filename, int verbose, int timestamp_loggin
     if (debug_output_dir) {
         char debug_path[1024];
         snprintf(debug_path, sizeof(debug_path), "%s/01_loaded.png", debug_output_dir);
-        if (image_save_to_file(debug_path, 0) == 0 && verbose) {
+        if (image_save_to_file(debug_path, 0) == PISSTVPP2_OK && verbose) {
             printf("[DEBUG] Saved loaded image to: %s\n", debug_path);
         }
     }
 
-    return 0;
+    return PISSTVPP2_OK;
 }
 
 int image_get_dimensions(int *width, int *height) {
     if (!g_img.buffer) {
-        return -1;
+        error_log(PISSTVPP2_ERR_IMAGE_LOAD, "No image loaded");
+        return PISSTVPP2_ERR_IMAGE_LOAD;
     }
     if (width) *width = g_img.buffer->width;
     if (height) *height = g_img.buffer->height;
-    return 0;
+    return PISSTVPP2_OK;
 }
 
 void image_get_pixel_rgb(int x, int y, uint8_t *r, uint8_t *g, uint8_t *b) {
@@ -295,9 +297,10 @@ static int apply_center_transformation(int target_width, int target_height,
 
     /* Crop from center to extract the requested region */
     if (vips_crop(g_img.image, &cropped, *crop_left, *crop_top, actual_crop_width, actual_crop_height, NULL)) {
-        fprintf(stderr, "   [ERROR] vips_crop failed: %s\n", vips_error_buffer());
+        error_log(PISSTVPP2_ERR_IMAGE_ASPECT_CORRECTION, "Image cropping",
+                 "vips_crop failed: %s", vips_error_buffer());
         vips_error_clear();
-        return -1;
+        return PISSTVPP2_ERR_IMAGE_ASPECT_CORRECTION;
     }
 
     /* Resize to exact target dimensions if needed */
@@ -306,10 +309,11 @@ static int apply_center_transformation(int target_width, int target_height,
         double scale_y = (double)target_height / cropped->Ysize;
 
         if (vips_resize(cropped, &resized, scale_x, "vscale", scale_y, NULL)) {
-            fprintf(stderr, "   [ERROR] vips_resize failed: %s\n", vips_error_buffer());
+            error_log(PISSTVPP2_ERR_IMAGE_ASPECT_CORRECTION, "Image resizing",
+                     "vips_resize failed: %s", vips_error_buffer());
             vips_error_clear();
             g_object_unref(cropped);
-            return -1;
+            return PISSTVPP2_ERR_IMAGE_ASPECT_CORRECTION;
         }
 
         g_object_unref(cropped);
@@ -324,7 +328,7 @@ static int apply_center_transformation(int target_width, int target_height,
         }
         *out_corrected = cropped;
     }
-    return 0;
+    return PISSTVPP2_OK;
 }
 
 /**
@@ -344,9 +348,10 @@ static int apply_pad_transformation(int target_width, int target_height,
     /* Pad with black bars to exact target dimensions */
     if (vips_embed(g_img.image, &padded, *pad_left, *pad_top, target_width, target_height, 
                    "extend", VIPS_EXTEND_BLACK, NULL)) {
-        fprintf(stderr, "   [ERROR] vips_embed failed: %s\n", vips_error_buffer());
+        error_log(PISSTVPP2_ERR_IMAGE_ASPECT_CORRECTION, "Image padding",
+                 "vips_embed failed: %s", vips_error_buffer());
         vips_error_clear();
-        return -1;
+        return PISSTVPP2_ERR_IMAGE_ASPECT_CORRECTION;
     }
 
     if (verbose) {
@@ -354,7 +359,7 @@ static int apply_pad_transformation(int target_width, int target_height,
     }
 
     *out_corrected = padded;
-    return 0;
+    return PISSTVPP2_OK;
 }
 
 /**
@@ -374,20 +379,21 @@ static int apply_stretch_transformation(int target_width, int target_height,
     log_verbose(verbose, timestamp_logging, "       Resize scales: x=%.4f y=%.4f\n", scale_x, scale_y);
 
     if (vips_resize(g_img.image, &resized, scale_x, "vscale", scale_y, NULL)) {
-        fprintf(stderr, "   [ERROR] vips_resize failed: %s\n", vips_error_buffer());
+        error_log(PISSTVPP2_ERR_IMAGE_ASPECT_CORRECTION, "Image stretching",
+                 "vips_resize failed: %s", vips_error_buffer());
         vips_error_clear();
-        return -1;
+        return PISSTVPP2_ERR_IMAGE_ASPECT_CORRECTION;
     }
 
     *out_corrected = resized;
-    return 0;
+    return PISSTVPP2_OK;
 }
 
 int image_correct_aspect_and_resize(int target_width, int target_height, AspectMode mode, 
                                     int verbose, int timestamp_logging, const char *debug_output_dir) {
     if (!g_img.buffer || !g_img.image) {
-        fprintf(stderr, "[ERROR] No image loaded\n");
-        return -1;
+        error_log(PISSTVPP2_ERR_IMAGE_LOAD, "No image loaded");
+        return PISSTVPP2_ERR_IMAGE_LOAD;
     }
 
     int img_width = g_img.buffer->width;
@@ -406,7 +412,7 @@ int image_correct_aspect_and_resize(int target_width, int target_height, AspectM
 
     if (!needs_size && !needs_aspect) {
         log_verbose(verbose, timestamp_logging, "   [OK] Image already correct size and aspect - no correction needed\n");
-        return 0;
+        return PISSTVPP2_OK;
     }
 
     VipsImage *corrected = NULL;
@@ -438,7 +444,7 @@ int image_correct_aspect_and_resize(int target_width, int target_height, AspectM
     pad_top = (target_height - img_height) / 2;
 
     /* Apply transformation based on mode */
-    int result = -1;
+    int result = PISSTVPP2_OK;
     switch (mode) {
         case ASPECT_CENTER:
             result = apply_center_transformation(target_width, target_height, 
@@ -454,14 +460,14 @@ int image_correct_aspect_and_resize(int target_width, int target_height, AspectM
             result = apply_stretch_transformation(target_width, target_height, &corrected, verbose, timestamp_logging);
             break;
         default:
-            fprintf(stderr, "   [ERROR] Unknown aspect mode: %d\n", mode);
-            return -1;
+            error_log(PISSTVPP2_ERR_IMAGE_ASPECT_CORRECTION, "Unknown aspect mode: %d", mode);
+            return PISSTVPP2_ERR_IMAGE_ASPECT_CORRECTION;
     }
 
-    if (result != 0) {
-        fprintf(stderr, "   [ERROR] Transformation failed\n");
+    if (result != PISSTVPP2_OK) {
+        error_log(result, "Image aspect correction transformation failed");
         if (corrected) g_object_unref(corrected);
-        return -1;
+        return result;
     }
 
     /* Debug: Save intermediate image */
@@ -479,24 +485,25 @@ int image_correct_aspect_and_resize(int target_width, int target_height, AspectM
     clear_image_state();
 
     /* Buffer the corrected image */
-    if (buffer_vips_image(corrected, verbose, timestamp_logging) != 0) {
-        fprintf(stderr, "   [ERROR] Failed to buffer corrected image\n");
+    int buffer_result = buffer_vips_image(corrected, verbose, timestamp_logging);
+    if (buffer_result != PISSTVPP2_OK) {
+        error_log(buffer_result, "Failed to buffer corrected image");
         g_object_unref(corrected);
-        return -1;
+        return buffer_result;
     }
 
     /* Verify result */
     if (g_img.buffer->width != target_width || g_img.buffer->height != target_height) {
-        fprintf(stderr, "   [ERROR] Correction failed: got %dx%d, expected %dx%d\n",
+        error_log(PISSTVPP2_ERR_IMAGE_PROCESS, "Correction failed: got %dx%d, expected %dx%d",
                 g_img.buffer->width, g_img.buffer->height, target_width, target_height);
-        return -1;
+        return PISSTVPP2_ERR_IMAGE_PROCESS;
     }
 
     if (verbose) {
         log_verbose(verbose, timestamp_logging, "   [OK] Image corrected to %dx%d\n", g_img.buffer->width, g_img.buffer->height);
     }
 
-    return 0;
+    return PISSTVPP2_OK;
 }
 
 /* ============================================================================
@@ -505,26 +512,26 @@ int image_correct_aspect_and_resize(int target_width, int target_height, AspectM
 
 int image_save_to_file(const char *output_path, int verbose) {
     if (!output_path) {
-        fprintf(stderr, "[ERROR] image_save_to_file: output_path is NULL\n");
-        return -1;
+        error_log(PISSTVPP2_ERR_ARG_FILENAME_INVALID, "Output path pointer is NULL");
+        return PISSTVPP2_ERR_ARG_FILENAME_INVALID;
     }
 
     if (!g_img.image) {
-        fprintf(stderr, "[ERROR] image_save_to_file: no image loaded\n");
-        return -1;
+        error_log(PISSTVPP2_ERR_IMAGE_LOAD, "No image loaded");
+        return PISSTVPP2_ERR_IMAGE_LOAD;
     }
 
     if (vips_image_write_to_file(g_img.image, output_path, NULL)) {
-        fprintf(stderr, "[ERROR] Failed to save image to '%s': %s\n", output_path, vips_error_buffer());
+        error_log(PISSTVPP2_ERR_FILE_WRITE, "Failed to save image to '%s' (Details: %s)", output_path, vips_error_buffer());
         vips_error_clear();
-        return -1;
+        return PISSTVPP2_ERR_FILE_WRITE;
     }
 
     if (verbose) {
         printf("[DEBUG] Image saved to: %s\n", output_path);
     }
 
-    return 0;
+    return PISSTVPP2_OK;
 }
 
 void image_print_diagnostics(void) {

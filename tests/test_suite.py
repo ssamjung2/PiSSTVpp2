@@ -46,14 +46,16 @@ class TestSuite:
             raise FileNotFoundError("No test images found in images directory")
     
     def _discover_test_images(self):
-        """Find all test images in the images directory"""
+        """Find all test images in the tests/images directory"""
         image_extensions = ['.jpg', '.jpeg', '.png', '.bmp', '.gif', '.tiff']
         images = {}
-        images_dir = Path("images")
         
-        # Create images directory if it doesn't exist
+        # Determine the correct images directory path relative to this script
+        script_dir = Path(__file__).parent
+        images_dir = script_dir / "images"
+        
         if not images_dir.exists():
-            images_dir.mkdir(parents=True, exist_ok=True)
+            raise FileNotFoundError(f"Images directory not found: {images_dir}")
         
         for ext in image_extensions:
             for img_file in images_dir.glob(f"*{ext}"):

@@ -1,0 +1,156 @@
+# Legacy Components Build System
+# PiSSTVpp v1.0 (original) and pifm_sstv (RPi FM transmitter)
+# 
+# Usage:
+#   make -f Makefile.legacy all              # Build all legacy components
+#   make -f Makefile.legacy pisstvpp         # Build original pisstvpp
+#   make -f Makefile.legacy pifm             # Build pifm (RPi only)
+#   make -f Makefile.legacy clean            # Clean build artifacts
+#   make -f Makefile.legacy help             # Show this help
+
+CC ?= gcc
+CXX ?= g++
+PKG_CONFIG ?= pkg-config
+
+# Platform detection
+UNAME_S := $(shell uname -s)
+UNAME_M := $(shell uname -m)
+
+# Legacy component directories
+LEGACY_DIR = .
+BIN_DIR = ../bin
+DOCS_DIR = ../docs
+
+# ============================================================================
+# SECTION 1: Original PiSSTVpp (pisstvpp) - Image to SSTV Audio
+# ============================================================================
+
+# Compiler flags for original pisstvpp
+CFLAGS_PISSTVPP = -O2 -Wall -std=c11
+
+# Try to find libgd using pkg-config, fall back to direct flags
+CFLAGS_LIBGD = $(shell $(PKG_CONFIG) --cflags gdlib 2>/dev/null || echo "-I/opt/homebrew/opt/gd/include -I/usr/include")
+LDFLAGS_LIBGD = $(shell $(PKG_CONFIG) --libs gdlib 2>/dev/null || echo "-L/opt/homebrew/opt/gd/lib -L/usr/lib -lgd")
+
+# libmagic for file type detection
+CFLAGS_MAGIC = -I/opt/homebrew/opt/libmagic/include -I/usr/include
+LDFLAGS_MAGIC = -L/opt/homebrew/opt/libmagic/lib -L/usr/lib -lmagic
+
+# Combine flags
+CFLAGS_PISSTVPP_FULL = $(CFLAGS_PISSTVPP) $(CFLAGS_LIBGD) $(CFLAGS_MAGIC)
+LDFLAGS_PISSTVPP_FULL = $(LDFLAGS_LIBGD) $(LDFLAGS_MAGIC) -lm
+
+PISSTVPP_TARGET = $(BIN_DIR)/pisstvpp
+PISSTVPP_SRC = $(LEGACY_DIR)/pisstvpp.c
+
+# ============================================================================
+# SECTION 2: pifm_sstv - Raspberry Pi FM Transmitter
+# ============================================================================
+
+# IMPORTANT: pifm_sstv requires C++ compiler (contains C++ classes)
+CFLAGS_PIFM = -O2 -Wall -std=c++11 -fPIC
+LDFLAGS_PIFM = -lm
+
+PIFM_TARGET = $(BIN_DIR)/pifm
+PIFM_SRC = $(LEGACY_DIR)/pifm_sstv.c
+
+# ============================================================================
+# ERROR CHECKING
+# ============================================================================
+
+check_libgd:
+	@pkg-config --exists gdlib || \
+	{ echo "ERROR: libgd-dev not found. Install with:"; \
+	  echo "  macOS:  brew install gd"; \
+	  echo "  Linux:  sudo apt-get install libgd-dev"; \
+	  exit 1; }
+
+check_libmagic:
+	@command -v file >/dev/null 2>&1 || \
+	{ echo "ERROR: libmagic-dev not found. Install with:"; \
+	  echo "  macOS:  brew install libmagic"; \
+	  echo "  Linux:  sudo apt-get install libmagic-dev"; \
+	  exit 1; }
+
+check_cxx:
+	@command -v $(CXX) >/dev/null 2>&1 || \
+	{ echo "ERROR: C++ compiler not found. Install with:"; \
+	  echo "  macOS:  brew install gcc"; \
+	  echo "  Linux:  sudo apt-get install g++"; \
+	  exit 1; }
+
+# ============================================================================
+# BUILD TARGETS
+# ============================================================================
+
+.PHONY: all pisstvpp pifm clean help check_libgd check_libmagic check_cxx
+
+all: pisstvpp
+
+# Build original PiSSTVpp (all platforms)
+pisstvpp: check_libgd check_libmagic $(BIN_DIR) $(PISSTVPP_TARGET)
+
+$(PISSTVPP_TARGET): $(PISSTVPP_SRC)
+	@echo "Building PiSSTVpp (original)..."
+	$(CC) $(CFLAGS_PISSTVPP_FULL) $(PISSTVPP_SRC) -o $(PISSTVPP_TARGET) $(LDFLAGS_PISSTVPP_FULL)
+	@echo "✓ Built: $@"
+	@ls -lh $@
+
+# Build pifm (Raspberry Pi FM transmitter - RPi only)
+pifm: check_cxx $(BIN_DIR) $(PIFM_TARGET)
+	@echo "WARNING: pifm requires Raspberry Pi hardware with BCM2835+ and root access"
+
+$(PIFM_TARGET): $(PIFM_SRC)
+	@echo "Building pifm (RPi FM transmitter)..."
+	@echo "NOTE: Compiling as C++ (requires g++ or clang++)"
+	$(CXX) $(CFLAGS_PIFM) $(PIFM_SRC) -o $(PIFM_TARGET) $(LDFLAGS_PIFM)
+	@echo "✓ Built: $@"
+	@ls -lh $@
+	@echo "NOTE: Run with root: sudo $(PIFM_TARGET) sound.wav"
+
+$(BIN_DIR):
+	mkdir -p $(BIN_DIR)
+
+# ============================================================================
+# CLEANUP
+# ============================================================================
+
+clean:
+	rm -f $(PISSTVPP_TARGET) $(PIFM_TARGET)
+	rmdir $(BIN_DIR) 2>/dev/null || true
+	@echo "✓ Cleaned legacy binaries"
+
+# ============================================================================
+# HELP
+# ============================================================================
+
+help:
+	@echo "Legacy Components Build System"
+	@echo ""
+	@echo "Components:"
+	@echo "  pisstvpp  - Original PiSSTVpp v1.0 (image to SSTV audio)"
+	@echo "  pifm      - Raspberry Pi FM transmitter (RPi only)"
+	@echo ""
+	@echo "Usage:"
+	@echo "  make -f Makefile.legacy all        # Build all available on this platform"
+	@echo "  make -f Makefile.legacy pisstvpp   # Build original pisstvpp"
+	@echo "  make -f Makefile.legacy pifm       # Build pifm (RPi only)"
+	@echo "  make -f Makefile.legacy clean      # Clean build artifacts"
+	@echo "  make -f Makefile.legacy help       # Show this help message"
+	@echo ""
+	@echo "Install Dependencies:"
+	@echo "  macOS:"
+	@echo "    brew install gd libmagic"
+	@echo ""
+	@echo "  Debian/Ubuntu/Raspberry Pi OS:"
+	@echo "    sudo apt-get install libgd-dev libmagic-dev build-essential"
+	@echo ""
+	@echo "Building:"
+	@echo "  cd src/legacy"
+	@echo "  make -f Makefile.legacy all"
+	@echo ""
+	@echo "Notes:"
+	@echo "  - pifm requires C++ compiler and is Raspberry Pi specific"
+	@echo "  - pifm requires root privileges to run"
+	@echo "  - See ../docs/LEGACY_BUILD.md for detailed instructions"
+

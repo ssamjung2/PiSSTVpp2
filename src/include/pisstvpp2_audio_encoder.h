@@ -9,9 +9,13 @@
  *
  * Design Pattern: Factory pattern with abstract interface
  *
+ * Error Handling:
+ * All functions return error codes from the unified error system.
+ *
  * Usage:
  *   AudioEncoder *encoder = audio_encoder_create("ogg");
- *   audio_encoder_init(encoder, sample_rate, bits, channels, output_path);
+ *   int ret = audio_encoder_init(encoder, sample_rate, bits, channels, output_path);
+ *   if (ret != PISSTVPP2_OK) { error_log(ret, ...); return ret; }
  *   audio_encoder_encode(encoder, audio_samples, sample_count);
  *   audio_encoder_finish(encoder);
  *   audio_encoder_destroy(encoder);
@@ -24,6 +28,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "error.h"
 
 /**
  * @defgroup AudioEncoderInterface Audio Encoder Interface
@@ -181,13 +186,13 @@ int audio_encoder_is_format_supported(const char *format);
  * @param channels     Number of channels
  * @param filename     Output filename
  *
- * @return 0 on success, non-zero on error
+ * @return Error code: PISSTVPP2_OK on success, or audio/file error codes
  */
 static inline int audio_encoder_init(AudioEncoder *encoder, uint16_t sample_rate,
                                      uint16_t bit_depth, uint8_t channels,
                                      const char *filename)
 {
-    if (!encoder || !encoder->init) return -1;
+    if (!encoder || !encoder->init) return PISSTVPP2_ERR_AUDIO_ENCODE;
     return encoder->init(encoder->state, sample_rate, bit_depth, channels, filename);
 }
 
@@ -198,13 +203,13 @@ static inline int audio_encoder_init(AudioEncoder *encoder, uint16_t sample_rate
  * @param samples       PCM audio samples
  * @param sample_count  Number of samples
  *
- * @return 0 on success, non-zero on error
+ * @return Error code: PISSTVPP2_OK on success, or PISSTVPP2_ERR_AUDIO_ENCODE on error
  */
 static inline int audio_encoder_encode(AudioEncoder *encoder,
                                       const uint16_t *samples,
                                       uint32_t sample_count)
 {
-    if (!encoder || !encoder->encode) return -1;
+    if (!encoder || !encoder->encode) return PISSTVPP2_ERR_AUDIO_ENCODE;
     return encoder->encode(encoder->state, samples, sample_count);
 }
 
@@ -213,11 +218,11 @@ static inline int audio_encoder_encode(AudioEncoder *encoder,
  *
  * @param encoder Encoder instance
  *
- * @return 0 on success, non-zero on error
+ * @return Error code: PISSTVPP2_OK on success, or PISSTVPP2_ERR_AUDIO_ENCODE on error
  */
 static inline int audio_encoder_finish(AudioEncoder *encoder)
 {
-    if (!encoder || !encoder->finish) return -1;
+    if (!encoder || !encoder->finish) return PISSTVPP2_ERR_AUDIO_ENCODE;
     return encoder->finish(encoder->state);
 }
 
