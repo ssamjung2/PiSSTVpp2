@@ -71,6 +71,7 @@
 
 #include <stdint.h>
 #include "pisstvpp2_image.h"
+#include "overlay_spec.h"
 
 // ===========================================================================
 // CONSTANTS
@@ -119,11 +120,15 @@
 /** Maximum CW tone frequency (Hz) */
 #define CONFIG_MAX_CW_TONE 2000
 
+/** Maximum length for station ID callsign */
+#define CONFIG_MAX_STATION_CALLSIGN 31
+
 /** @} */
 
 // ===========================================================================
 // ENUMERATIONS
 // ===========================================================================
+// Note: Using enumerations from overlay_spec.h for consistency
 
 /**
  * @brief Complete application configuration
@@ -156,10 +161,19 @@ typedef struct {
     int cw_wpm;                                     /**< CW transmission speed (words/minute) */
     uint16_t cw_tone;                               /**< CW tone frequency (Hz) */
 
+    // Text overlay specifications (flexible system)
+    OverlaySpecList overlay_specs;                  /**< List of text overlays to apply */
+    TextOverlaySpec *current_overlay;               /**< Pointer to overlay currently being configured via CLI flags */
+
+    // Color bar specifications (visual separation of overlay areas)
+    ColorBarList colorbar_specs;                    /**< List of color bars to apply */
+
     // Debug and logging options
     int verbose;                                    /**< Enable verbose output */
     int timestamp_logging;                          /**< Add timestamps to verbose output */
     int keep_intermediate;                          /**< Keep intermediate processed images */
+    int skip_audio_encoding;                        /**< 1 to skip SSTV audio encoding (overlay testing only) */
+    int text_only;                                  /**< 1 to skip aspect ratio and resizing (only applies with -N) */
 
 } PisstvppConfig;
 
@@ -222,6 +236,25 @@ int pisstvpp_config_init(PisstvppConfig *config);
  *       help display from actual parsing.
  */
 int pisstvpp_config_parse(PisstvppConfig *config, int argc, char *argv[]);
+
+/**
+ * @brief Finalize current overlay and add to overlay list
+ *
+ * Called when moving from one overlay to the next (via -O flag) or when
+ * CLI parsing completes. Moves the overlay from current_overlay pointer
+ * to the overlay_specs list.
+ *
+ * @param config Pointer to PisstvppConfig with current_overlay set
+ * @return Error code (PISSTVPP2_OK on success, error code on failure)
+ *
+ * @retval PISSTVPP2_OK Overlay successfully added to list
+ * @retval PISSTVPP2_ERR_MEMORY_ALLOC Memory allocation failed
+ * @retval PISSTVPP2_ERR_ARG_INVALID_PROTOCOL Invalid overlay specification
+ *
+ * @note Sets current_overlay to NULL after finalization
+ * @note Safe to call with NULL current_overlay (no-op)
+ */
+int pisstvpp_config_finalize_current_overlay(PisstvppConfig *config);
 
 /**
  * @brief Validate complete configuration for consistency
@@ -331,5 +364,15 @@ void pisstvpp_config_cleanup(PisstvppConfig *config);
  * @note Modifies config->output_file in place
  */
 int pisstvpp_config_autogen_output_filename(PisstvppConfig *config);
+
+/**
+ * @brief Display detailed help message with all options, styling, and examples
+ *
+ * Shows comprehensive help including all text overlay styling options,
+ * color choices, positioning information, and detailed usage examples.
+ *
+ * @param program_name The name of the program (typically argv[0])
+ */
+void pisstvpp_config_show_detailed_help(const char *program_name);
 
 #endif // PISSTVPP2_CONFIG_H

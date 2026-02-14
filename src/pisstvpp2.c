@@ -263,17 +263,24 @@ static void show_help(void) {
     printf("  -v              Enable verbose output (progress details)\n");
     printf("  -K              Keep intermediate processed image (for debugging)\n");
     printf("  -Z              Add timestamps to verbose logging (auto-enables -v, for log analysis)\n");
+    printf("  -N              Skip audio encoding (test mode, for testing overlay without audio)\n");
+    printf("  -O              Text-only overlay (skip resizing/aspect correction, requires -N)\n");
     printf("  -h              Display this help message\n\n");
     printf("CW SIGNATURE OPTIONS (optional):\n");
     printf("  -C <callsign>   Add CW signature with callsign (max 31 characters).\n");
     printf("  -W <wpm>        Set CW signature speed in WPM, range 1-50 (default: 15)\n");
     printf("  -T <freq>       Set CW signature tone frequency in Hz, range 400-2000 (default: 800)\n\n");    
+    printf("TEXT OVERLAY OPTIONS (optional):\n");
+    printf("  -T <spec>       Text overlay specification (e.g., 'N0CALL|size=20|placement=bottom')\n\n");
     printf("EXAMPLES:\n");
     printf("  ./pisstvpp2 -i image.jpg -o out.aiff\n");
     printf("  ./pisstvpp2 -i image.jpg -f wav -p s2 -r 11025 -v\n");
     printf("  ./pisstvpp2 -i image.png -o output.wav -p r36\n\n");
     printf("  ./pisstvpp2 -i image.jpg -v -Z                          # Verbose with timestamps\n");
     printf("  ./pisstvpp2 -i image.jpg -C N0CALL -K                   # Keep intermediate, add CW\n");
+    printf("  ./pisstvpp2 -i image.jpg -T 'N0CALL|placement=bottom'  # Text overlay\n");
+    printf("  ./pisstvpp2 -i image.jpg -T 'N0CALL' -N                # Test overlay (no audio)\n");
+    printf("  ./pisstvpp2 -i image.jpg -T 'ID' -N -O                 # Text-only (no resize)\n");
     printf("  ./pisstvpp2 -i image.jpg -v -Z > processing.log         # Log with timestamps\n\n");
 }
 
@@ -326,6 +333,29 @@ static void show_help(void) {
  * @see audio_encoder_create() Encoder factory implementation
  */
 int main(int argc, char *argv[]) {
+
+    // Show short help if no arguments provided
+    if (argc == 1) {
+        printf("PiSSTVpp2 - SSTV Image to Audio Encoder\n\n");
+        printf("Usage: %s -i <input> [options]\n\n", argv[0]);
+        printf("Required Arguments:\n");
+        printf("  -i <file>        Input image file\n\n");
+        printf("Common Options:\n");
+        printf("  -o <file>        Output audio file (default: input.wav)\n");
+        printf("  -p <protocol>    SSTV protocol: m1, m2, s1, s2, sdx, r36, r72 (default: m1)\n");
+        printf("  -f <format>      Audio format: wav, aiff, ogg (default: wav)\n");
+        printf("  -r <rate>        Sample rate in Hz 8000-48000 (default: 22050)\n");
+        printf("  -T <spec>        Text overlay: \"text|size=20|color=white|pos=top\"\n");
+        printf("  -C <callsign>    Amateur radio callsign for CW signature\n");
+        printf("  -v               Verbose output\n");
+        printf("  -h               Detailed help (all options and examples)\n\n");
+        printf("Examples:\n");
+        printf("  %s -i photo.jpg\n", argv[0]);
+        printf("  %s -i photo.jpg -p s2 -C N0CALL\n", argv[0]);
+        printf("  %s -i photo.jpg -T \"Callsign|size=16|pos=bottom\"\n\n", argv[0]);
+        printf("For detailed help on all options and styling: %s -h\n", argv[0]);
+        return PISSTVPP2_OK;
+    }
 
     // Initialize libvips
     if (VIPS_INIT(argv[0])) {
@@ -417,15 +447,55 @@ int main(int argc, char *argv[]) {
         verbose_print(config.verbose, config.timestamp_logging, "--------------------------------------------------------------\n");
         verbose_print(config.verbose, config.timestamp_logging, "Configuration Summary:\n");
         verbose_print(config.verbose, config.timestamp_logging, "  Input image:      %s\n", config.input_file);
-        verbose_print(config.verbose, config.timestamp_logging, "  Output file:      %s\n", config.output_file);
+        
+        // Show output based on mode
+        if (config.skip_audio_encoding) {
+            // -N flag: show overlay image output instead of audio
+            char overlay_image[1024];
+            char out_dir[1024] = {0};
+            const char *last_slash = strrchr(config.output_file, '/');
+            if (last_slash) {
+                int dir_len = last_slash - config.output_file;
+                strncpy(out_dir, config.output_file, dir_len);
+                out_dir[dir_len] = '\0';
+            } else {
+                strcpy(out_dir, ".");
+            }
+            char out_base[256];
+            const char *base_start = last_slash ? last_slash + 1 : config.output_file;
+            const char *dot = strrchr(base_start, '.');
+            if (dot) {
+                int base_len = dot - base_start;
+                strncpy(out_base, base_start, base_len);
+                out_base[base_len] = '\0';
+            } else {
+                strcpy(out_base, base_start);
+            }
+            // Extract extension from input file instead of relying on original_extension
+            // (which may not be set yet before image loading)
+            const char *input_ext = "";
+            const char *dot_input = strrchr(config.input_file, '.');
+            if (dot_input && dot_input != config.input_file) {
+                input_ext = dot_input;
+            }
+            snprintf(overlay_image, sizeof(overlay_image), "%s/%s_overlay%s", out_dir, out_base, input_ext);
+            verbose_print(config.verbose, config.timestamp_logging, "  Output image:     %s (test mode - overlay only)\n", overlay_image);
+            verbose_print(config.verbose, config.timestamp_logging, "  MODE:             TEST/DEBUG (audio encoding disabled)\n");
+        } else {
+            verbose_print(config.verbose, config.timestamp_logging, "  Output file:      %s\n", config.output_file);
+        }
+        
         const char *format_display = "WAV";
         if (strcmp(config.format, "aiff") == 0) format_display = "AIFF";
         else if (strcmp(config.format, "ogg") == 0 || strcmp(config.format, "vorbis") == 0) format_display = "OGG Vorbis";
-        verbose_print(config.verbose, config.timestamp_logging, "  Audio format:     %s at %d Hz\n", format_display, config.sample_rate);
-        verbose_print(config.verbose, config.timestamp_logging, "  SSTV protocol:    %s (VIS code %d)\n", config.protocol, protocol_code);
-        verbose_print(config.verbose, config.timestamp_logging, "  Image dimensions: 320x256 pixels\n");
-        verbose_print(config.verbose, config.timestamp_logging, "Mode Details:\n");
-        sstv_get_mode_details(protocol_code, config.verbose, config.timestamp_logging);
+        
+        if (!config.skip_audio_encoding) {
+            verbose_print(config.verbose, config.timestamp_logging, "  Audio format:     %s at %d Hz\n", format_display, config.sample_rate);
+            verbose_print(config.verbose, config.timestamp_logging, "  SSTV protocol:    %s (VIS code %d)\n", config.protocol, protocol_code);
+            verbose_print(config.verbose, config.timestamp_logging, "  Image dimensions: 320x256 pixels\n");
+            verbose_print(config.verbose, config.timestamp_logging, "Mode Details:\n");
+            sstv_get_mode_details(protocol_code, config.verbose, config.timestamp_logging);
+        }
         verbose_print(config.verbose, config.timestamp_logging, "--------------------------------------------------------------\n");
     } else {
         printf("--------------------------------------------------------------\n");
@@ -433,15 +503,55 @@ int main(int argc, char *argv[]) {
         printf("--------------------------------------------------------------\n");
         printf("Configuration Summary:\n");
         printf("  Input image:      %s\n", config.input_file);
-        printf("  Output file:      %s\n", config.output_file);
+        
+        // Show output based on mode
+        if (config.skip_audio_encoding) {
+            // -N flag: show overlay image output instead of audio
+            char overlay_image[1024];
+            char out_dir[1024] = {0};
+            const char *last_slash = strrchr(config.output_file, '/');
+            if (last_slash) {
+                int dir_len = last_slash - config.output_file;
+                strncpy(out_dir, config.output_file, dir_len);
+                out_dir[dir_len] = '\0';
+            } else {
+                strcpy(out_dir, ".");
+            }
+            char out_base[256];
+            const char *base_start = last_slash ? last_slash + 1 : config.output_file;
+            const char *dot = strrchr(base_start, '.');
+            if (dot) {
+                int base_len = dot - base_start;
+                strncpy(out_base, base_start, base_len);
+                out_base[base_len] = '\0';
+            } else {
+                strcpy(out_base, base_start);
+            }
+            // Extract extension from input file instead of relying on original_extension
+            // (which may not be set yet before image loading)
+            const char *input_ext = "";
+            const char *dot_input = strrchr(config.input_file, '.');
+            if (dot_input && dot_input != config.input_file) {
+                input_ext = dot_input;
+            }
+            snprintf(overlay_image, sizeof(overlay_image), "%s/%s_overlay%s", out_dir, out_base, input_ext);
+            printf("  Output image:     %s (test mode - overlay only)\n", overlay_image);
+            printf("  MODE:             TEST/DEBUG (audio encoding disabled)\n");
+        } else {
+            printf("  Output file:      %s\n", config.output_file);
+        }
+        
         const char *format_display = "WAV";
         if (strcmp(config.format, "aiff") == 0) format_display = "AIFF";
         else if (strcmp(config.format, "ogg") == 0 || strcmp(config.format, "vorbis") == 0) format_display = "OGG Vorbis";
-        printf("  Audio format:     %s at %d Hz\n", format_display, config.sample_rate);
-        printf("  SSTV protocol:    %s (VIS code %d)\n", config.protocol, protocol_code);
-        printf("  Image dimensions: 320x256 pixels\n");
-        printf("Mode Details:\n");
-        sstv_get_mode_details(protocol_code, 0, 0);
+        
+        if (!config.skip_audio_encoding) {
+            printf("  Audio format:     %s at %d Hz\n", format_display, config.sample_rate);
+            printf("  SSTV protocol:    %s (VIS code %d)\n", config.protocol, protocol_code);
+            printf("  Image dimensions: 320x256 pixels\n");
+            printf("Mode Details:\n");
+            sstv_get_mode_details(protocol_code, 0, 0);
+        }
         printf("--------------------------------------------------------------\n");
     }
 
@@ -469,8 +579,9 @@ int main(int argc, char *argv[]) {
     // INTERMEDIATE IMAGE PATH CONSTRUCTION
     // ======================================================================
     // Build path for intermediate resized image preserving original format.
-    // Structure: {output_dir}/{output_base}{original_extension}
+    // Structure: {output_dir}/{output_base}{suffix}{original_extension}
     // Example: output.wav in /tmp with input.png → /tmp/output.png
+    // When -N (skip audio), add "_overlay" suffix to prevent collision with source
     char intermediate_image[1024];
     {
         // Extract directory component from output path
@@ -499,17 +610,109 @@ int main(int argc, char *argv[]) {
         // Get original image extension
         const char *orig_ext = image_get_original_extension();
         
-        // Build intermediate path: {dir}/{base}{original_ext}
-        snprintf(intermediate_image, sizeof(intermediate_image), "%s/%s%s", 
-                 out_dir, out_base, orig_ext);
+        // Build intermediate path: {dir}/{base}{suffix}{original_ext}
+        // Suffix based on operation mode
+        if (config.text_only) {
+            // Text-only mode: preserve original dimensions
+            snprintf(intermediate_image, sizeof(intermediate_image), "%s/%s_textonly%s", 
+                     out_dir, out_base, orig_ext);
+        } else if (config.skip_audio_encoding) {
+            // Standard overlay (with aspect correction)
+            snprintf(intermediate_image, sizeof(intermediate_image), "%s/%s_overlay%s", 
+                     out_dir, out_base, orig_ext);
+        } else {
+            // SSTV encoding mode
+            snprintf(intermediate_image, sizeof(intermediate_image), "%s/%s%s", 
+                     out_dir, out_base, orig_ext);
+        }
     }
     
-    int aspect_result = image_correct_aspect_and_resize(required_width, required_height, config.aspect_mode, 
-                                                         config.verbose, config.timestamp_logging,
-                                                         config.keep_intermediate ? intermediate_image : NULL);
-    if (aspect_result != PISSTVPP2_OK) {
-        // Error already logged by image_correct_aspect_and_resize()
-        error_code = aspect_result;
+    // Skip aspect ratio correction if text-only mode is enabled
+    if (!config.text_only) {
+        int aspect_result = image_correct_aspect_and_resize(required_width, required_height, config.aspect_mode, 
+                                                             config.verbose, config.timestamp_logging,
+                                                             NULL);
+        if (aspect_result != PISSTVPP2_OK) {
+            // Error already logged by image_correct_aspect_and_resize()
+            error_code = aspect_result;
+            goto cleanup;
+        }
+    } else {
+        verbose_print(config.verbose, config.timestamp_logging,
+                     "[1a/4] Text-only mode: skipping aspect ratio correction and resizing\n");
+    }
+
+    // ======================================================================
+    // APPLY TEXT OVERLAY (if enabled)
+    // ======================================================================
+    // Text overlays are applied with blue text and white background
+    // Configured via -T (text overlay) option
+    
+    if (overlay_spec_list_count(&config.overlay_specs) > 0) {
+        verbose_print(config.verbose, config.timestamp_logging, 
+                     "[1b/4] Applying %zu text overlay(s)...\n",
+                     overlay_spec_list_count(&config.overlay_specs));
+        
+        int overlay_result = image_apply_overlay_list(&config.overlay_specs, 
+                                                      config.verbose, 
+                                                      config.timestamp_logging);
+        if (overlay_result != PISSTVPP2_OK) {
+            error_log(overlay_result, "Text overlay application failed");
+            error_code = overlay_result;
+            goto cleanup;
+        }
+        
+        verbose_print(config.verbose, config.timestamp_logging, 
+                     "   [OK] Overlays applied to image\n");
+    }
+
+    // ======================================================================
+    // SAVE INTERMEDIATE IMAGE (if requested via -K flag)
+    // ======================================================================
+    // Save intermediate image after all processing (aspect correction + overlays)
+    // but before audio encoding. This ensures the intermediate includes overlays.
+    
+    if (config.keep_intermediate) {
+        int save_result = image_save_to_file(intermediate_image, config.verbose);
+        if (save_result != PISSTVPP2_OK) {
+            error_log(save_result, "Failed to save intermediate image");
+            error_code = save_result;
+            goto cleanup;
+        }
+        verbose_print(config.verbose, config.timestamp_logging, 
+                     "   --> Saved intermediate image (with overlays): %s\n", intermediate_image);
+    }
+    
+    // ======================================================================
+    // CHECK FOR TEST MODE (skip audio encoding)
+    // ======================================================================
+    // If -N flag was used, skip SSTV encoding and exit after saving intermediate
+    // This allows users to test overlay functionality without encoding overhead
+    
+    if (config.skip_audio_encoding) {
+        verbose_print(config.verbose, config.timestamp_logging, 
+                     "[2/4] Skipping SSTV audio encoding (test mode)...\n");
+        
+        // Processed image was saved above due to auto-enabled keep_intermediate
+        if (!config.keep_intermediate) {
+            // Safety check: should never happen due to auto-enable, but be defensive
+            int save_result = image_save_to_file(intermediate_image, config.verbose);
+            if (save_result != PISSTVPP2_OK) {
+                error_log(save_result, "Failed to save test output image");
+                error_code = save_result;
+                goto cleanup;
+            }
+        }
+        
+        verbose_print(config.verbose, config.timestamp_logging, 
+                     "[OK] Test mode complete\n");
+        verbose_print(config.verbose, config.timestamp_logging, 
+                     "     Overlay result saved to: %s\n", intermediate_image);
+        verbose_print(config.verbose, config.timestamp_logging, 
+                     "     (Audio encoding skipped in test mode)\n");
+        
+        // Jump to cleanup without encoding
+        error_code = PISSTVPP2_OK;
         goto cleanup;
     }
     

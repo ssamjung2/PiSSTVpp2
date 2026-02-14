@@ -8,11 +8,13 @@
 #include "pisstvpp2_image.h"
 #include "error.h"
 #include "logging.h"
+#include "overlay_spec.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
 #include <errno.h>
+#include <time.h>
 
 /* ============================================================================
    INTERNAL STATE
@@ -547,6 +549,444 @@ void image_print_diagnostics(void) {
     printf("[IMAGE] Rowstride: %d bytes\n", g_img.buffer->rowstride);
     printf("[IMAGE] Total size: %d bytes\n", g_img.buffer->height * g_img.buffer->rowstride);
 }
+
+/**
+ * apply_single_overlay - Apply a single text overlay to the image
+ * 
+ * @param spec TextOverlaySpec with overlay configuration
+ * @param verbose Debug output
+ * @param timestamp_logging Timestamp flag
+ * 
+ * @return Error code
+ * 
+ * Renders text with blue color, white background, and appropriate sizing
+ */
+static int apply_single_overlay(const TextOverlaySpec *spec, int verbose, int timestamp_logging)
+{
+    if (!spec || !g_img.image) {
+        return PISSTVPP2_OK;  // Skip empty specs
+    }
+
+    // Prepare text content - either use provided text or generate timestamp
+    char display_text[OVERLAY_MAX_TEXT_LENGTH];
+    
+    if (spec->timestamp_format[0] != '\0') {
+        // Generate timestamp using current system time
+        time_t now = time(NULL);
+        struct tm *timeinfo = localtime(&now);
+        if (timeinfo == NULL) {
+            // Fall back to empty text if time generation fails
+            display_text[0] = '\0';
+        } else {
+            // Format timestamp using strftime
+            strftime(display_text, sizeof(display_text), spec->timestamp_format, timeinfo);
+        }
+        log_verbose(verbose, timestamp_logging,
+                   "      Generated timestamp: '%s' (format: %s)\n", 
+                   display_text, spec->timestamp_format);
+    } else if (strlen(spec->text) > 0) {
+        // Use provided text
+        strncpy(display_text, spec->text, sizeof(display_text) - 1);
+        display_text[sizeof(display_text) - 1] = '\0';
+    } else {
+        // No text or timestamp specified
+        return PISSTVPP2_OK;
+    }
+    
+    if (display_text[0] == '\0') {
+        return PISSTVPP2_OK;  // Skip if text is empty
+    }
+
+    int font_size = spec->font_size > 0 ? spec->font_size : 24;
+    
+    // Format color for display
+    char color_str[32];
+    snprintf(color_str, sizeof(color_str), "#%02X%02X%02X", 
+             spec->text_color.r, spec->text_color.g, spec->text_color.b);
+    
+    log_verbose(verbose, timestamp_logging,
+               "      Rendering overlay text '%s' (font size: %d, color: %s)\n", 
+               display_text, font_size, color_str);
+
+    // Create font description
+    char font_str[256];
+    snprintf(font_str, sizeof(font_str), "sans bold %d", font_size);
+
+    // Create Pango markup with color using hex notation
+    // vips_text supports Pango markup like <span foreground="#RRGGBB">text</span>
+    char markup_text[512];
+    snprintf(markup_text, sizeof(markup_text), 
+             "<span foreground=\"#%02X%02X%02X\">%s</span>",
+             spec->text_color.r, spec->text_color.g, spec->text_color.b, 
+             display_text);
+
+    // Create text image with RGBA support for proper alpha blending
+    // vips_text will render colored text via Pango markup
+    VipsImage *text_image = NULL;
+    if (vips_text(&text_image, markup_text, 
+                 "font", font_str,
+                 "rgba", TRUE,
+                 "dpi", 72,
+                 NULL)) {
+        log_verbose(verbose, timestamp_logging,
+                   "      Warning: Failed to render text '%s': %s\n", 
+                   spec->text, vips_error_buffer());
+        vips_error_clear();
+        return PISSTVPP2_OK;  // Don't fail, just skip this overlay
+    }
+
+    if (!text_image) {
+        return PISSTVPP2_OK;
+    }
+    
+    // Handle vertical bar text orientations
+    if (spec->bg_bar_enable && spec->bg_bar_orientation == BGBAR_ORIENT_VERTICAL_STACKED) {
+        // Stack text vertically with normal letter orientation
+        // Create text with line breaks between characters for vertical stacking
+        char stacked_markup[512] = {0};
+        int pos = 0;
+        
+        for (int i = 0; display_text[i] != '\0' && pos < (int)sizeof(stacked_markup) - 10; i++) {
+            stacked_markup[pos++] = display_text[i];
+            // Add newline after each character except the last
+            if (display_text[i + 1] != '\0') {
+                stacked_markup[pos++] = '\n';
+            }
+        }
+        
+        // Re-render text with vertical layout (one character per line)
+        VipsImage *stacked_image = NULL;
+        if (vips_text(&stacked_image, stacked_markup,
+                     "font", font_str,
+                     "rgba", TRUE,
+                     "dpi", 72,
+                     NULL) == 0) {
+            g_object_unref(text_image);
+            text_image = stacked_image;
+            log_verbose(verbose, timestamp_logging,
+                       "      Text arranged vertically (stacked, %d chars)\n",
+                       (int)strlen(display_text));
+        } else {
+            log_verbose(verbose, timestamp_logging,
+                       "      Note: Could not render vertically-stacked text\n");
+            vips_error_clear();
+        }
+    } else if (spec->bg_bar_enable && spec->bg_bar_orientation == BGBAR_ORIENT_VERTICAL) {
+        // Rotate text 90 degrees for vertical orientation
+        VipsImage *rotated_text = NULL;
+        // Rotate 90 degrees clockwise using vips_rot90 (only takes in/out, no direction param)
+        if (vips_rot90(text_image, &rotated_text, NULL) == 0) {
+            g_object_unref(text_image);
+            text_image = rotated_text;
+            log_verbose(verbose, timestamp_logging, 
+                       "      Rotated text 90 degrees for vertical bar\n");
+        } else {
+            log_verbose(verbose, timestamp_logging,
+                       "      Warning: Failed to rotate text for vertical bar\n");
+            vips_error_clear();
+        }
+    }
+    // Get image dimensions to calculate placement
+    int img_width = g_img.image->Xsize;
+    int img_height = g_img.image->Ysize;
+    int text_width = text_image->Xsize;
+    int text_height = text_image->Ysize;
+
+    // Calculate position based on placement spec
+    int x_pos = 10;  // Default: 10 pixels from left
+    int y_pos = 10;  // Default: 10 pixels from top
+
+    switch (spec->placement) {
+        case OVERLAY_PLACE_TOP:
+            x_pos = (img_width - text_width) / 2;  // Center horizontally
+            y_pos = 10;
+            break;
+        case OVERLAY_PLACE_BOTTOM:
+            x_pos = (img_width - text_width) / 2;
+            y_pos = img_height - text_height - 10;
+            break;
+        case OVERLAY_PLACE_LEFT:
+            x_pos = 10;
+            y_pos = (img_height - text_height) / 2;
+            break;
+        case OVERLAY_PLACE_RIGHT:
+            x_pos = img_width - text_width - 10;
+            y_pos = (img_height - text_height) / 2;
+            break;
+        case OVERLAY_PLACE_CENTER:
+            x_pos = (img_width - text_width) / 2;
+            y_pos = (img_height - text_height) / 2;
+            break;
+        default:
+            x_pos = 10;
+            y_pos = 10;
+    }
+
+    // Clamp to valid range
+    if (x_pos < 0) x_pos = 0;
+    if (y_pos < 0) y_pos = 0;
+    if (x_pos + text_width > img_width) x_pos = img_width - text_width;
+    if (y_pos + text_height > img_height) y_pos = img_height - text_height;
+
+    // If background bar is enabled, render it first
+    VipsImage *current_result = g_img.image;
+    if (spec->bg_bar_enable) {
+        // Calculate bar dimensions based on orientation
+        uint16_t total_margin = spec->padding + spec->bg_bar_margin;
+        int bar_width;
+        int bar_height;
+        int bar_x;
+        int bar_y;
+        
+        // Handle vertical vs horizontal orientation
+        if (spec->bg_bar_orientation == BGBAR_ORIENT_VERTICAL || 
+            spec->bg_bar_orientation == BGBAR_ORIENT_VERTICAL_STACKED) {
+            // VERTICAL/STACKED BAR: spans image height, positioned on left or right
+            bar_height = img_height;  // Full height
+            bar_y = 0;
+            
+            // Determine bar width (thickness of the vertical bar)
+            if (spec->placement == OVERLAY_PLACE_LEFT) {
+                bar_width = spec->bg_bar_custom_width > 0 ? spec->bg_bar_custom_width : 50;
+                bar_x = 0;
+            } else if (spec->placement == OVERLAY_PLACE_RIGHT) {
+                bar_width = spec->bg_bar_custom_width > 0 ? spec->bg_bar_custom_width : 50;
+                bar_x = img_width - bar_width;
+            } else {
+                // For non-left/right placements, default to left vertical bar
+                bar_width = spec->bg_bar_custom_width > 0 ? spec->bg_bar_custom_width : 50;
+                bar_x = 0;
+            }
+        } else {
+            // HORIZONTAL BAR: original behavior
+            bar_height = text_height + (total_margin * 2);
+            bar_x = x_pos - total_margin;
+            bar_y = y_pos - total_margin;
+            
+            // Determine bar width based on mode
+            switch (spec->bg_bar_width_mode) {
+                case BGBAR_WIDTH_FULL:
+                    // Full image width
+                    bar_width = img_width;
+                    bar_x = 0;
+                    break;
+                case BGBAR_WIDTH_HALF:
+                    // Half image width, centered on text
+                    bar_width = img_width / 2;
+                    bar_x = (img_width - bar_width) / 2;
+                    break;
+                case BGBAR_WIDTH_FIXED:
+                    // Custom pixel width, centered on text
+                    bar_width = spec->bg_bar_custom_width;
+                    bar_x = x_pos - (bar_width - text_width) / 2;
+                    break;
+                case BGBAR_WIDTH_AUTO:
+                default:
+                    // Auto: text + padding + margin (original behavior)
+                    bar_width = text_width + (total_margin * 2);
+                    bar_x = x_pos - total_margin;
+                    break;
+            }
+        }
+        
+        // Clamp bar position to valid range
+        if (bar_x < 0) bar_x = 0;
+        if (bar_y < 0) bar_y = 0;
+        // Clamp bar dimensions to image bounds
+        if (bar_width > img_width) bar_width = img_width;
+        if (bar_height > img_height) bar_height = img_height;
+        if (bar_x + bar_width > img_width) bar_x = img_width - bar_width;
+        if (bar_y + bar_height > img_height) bar_y = img_height - bar_height;
+        
+        // Render background bar (always render when enabled, use bg_bar_color)
+        VipsImage *bar_image = NULL;
+        
+        // Get the number of bands from current_result to match
+        int bands = current_result->Bands;
+        
+        // Create black image of bar dimensions with matching band count
+        if (vips_black(&bar_image, bar_width, bar_height, "bands", bands, NULL) == 0) {
+            // Create new image with the background bar color
+            if (bar_image != NULL) {
+                // Iterate through pixels and set color
+                VipsImage *colored_bar = NULL;
+                
+                // Use vips_copy to create a modifiable copy
+                if (vips_copy(bar_image, &colored_bar, NULL) == 0) {
+                    g_object_unref(bar_image);
+                    
+                    // Access the region to modify pixels
+                    VipsRegion *region = vips_region_new(colored_bar);
+                    if (region != NULL) {
+                        // Get the region for the entire image
+                        VipsRect rect = {0, 0, bar_width, bar_height};
+                        if (vips_region_prepare(region, &rect) == 0) {
+                            // Fill all pixels with bar color
+                            PEL *p = (PEL *)VIPS_REGION_ADDR(region, 0, 0);
+                            
+                            for (int row = 0; row < bar_height; row++) {
+                                PEL *row_ptr = p + row * VIPS_REGION_LSKIP(region);
+                                for (int col = 0; col < bar_width; col++) {
+                                    PEL *pixel = row_ptr + col * bands;
+                                    pixel[0] = spec->bg_bar_color.r;
+                                    pixel[1] = spec->bg_bar_color.g;
+                                    pixel[2] = spec->bg_bar_color.b;
+                                    // If there's an alpha channel, set it to fully opaque
+                                    if (bands > 3) {
+                                        pixel[3] = 255;
+                                    }
+                                }
+                            }
+                            
+                            log_verbose(verbose, timestamp_logging,
+                                       "      Rendered background bar at position (%d, %d), size %dx%d, color RGB(%d,%d,%d)\n",
+                                       bar_x, bar_y, bar_width, bar_height,
+                                       spec->bg_bar_color.r, spec->bg_bar_color.g, spec->bg_bar_color.b);
+                        }
+                        g_object_unref(region);
+                    }
+                    
+                    // Now composite the colored bar into current result
+                    VipsImage *result_with_bar = NULL;
+                    if (vips_insert(current_result, colored_bar, &result_with_bar,
+                                   bar_x, bar_y, NULL) == 0) {
+                        g_object_unref(colored_bar);
+                        if (current_result != g_img.image) {
+                            g_object_unref(current_result);
+                        }
+                        current_result = result_with_bar;
+                    } else {
+                        log_verbose(verbose, timestamp_logging,
+                                   "      Warning: Failed to insert background bar: %s\n",
+                                   vips_error_buffer());
+                        vips_error_clear();
+                        g_object_unref(colored_bar);
+                    }
+                } else {
+                    g_object_unref(bar_image);
+                }
+            }
+        } else {
+            log_verbose(verbose, timestamp_logging,
+                       "      Warning: Failed to create bar background image\n");
+            vips_error_clear();
+        }
+    }
+
+    // Composite text_image onto current result (which may have background bar)
+    // vips_composite2() handles RGBA->RGB properly with blend mode OVER
+    VipsImage *composited = NULL;
+    if (vips_composite2(current_result, text_image, &composited,
+                       VIPS_BLEND_MODE_OVER,
+                       "x", x_pos,
+                       "y", y_pos,
+                       NULL)) {
+        error_log(PISSTVPP2_ERR_IMAGE_PROCESS, 
+                  "Failed to composite text overlay: %s", 
+                  vips_error_buffer());
+        vips_error_clear();
+        g_object_unref(text_image);
+        if (current_result != g_img.image) {
+            g_object_unref(current_result);
+        }
+        return PISSTVPP2_ERR_IMAGE_PROCESS;
+    }
+
+    // Verify compositing succeeded
+    if (!composited) {
+        error_log(PISSTVPP2_ERR_IMAGE_PROCESS, 
+                  "vips_composite2 returned NULL image");
+        g_object_unref(text_image);
+        if (current_result != g_img.image) {
+            g_object_unref(current_result);
+        }
+        return PISSTVPP2_ERR_IMAGE_PROCESS;
+    }
+
+    log_verbose(verbose, timestamp_logging,
+               "      Composited text at position (%d, %d) with alpha blending\n", 
+               x_pos, y_pos);
+
+    // Release old image reference and update to composited result
+    if (current_result != g_img.image) {
+        g_object_unref(current_result);
+    }
+    g_object_unref(g_img.image);
+    g_img.image = composited;
+    g_object_unref(text_image);
+
+    return PISSTVPP2_OK;
+}
+
+/* ============================================================================
+   PUBLIC: TEXT OVERLAY
+   ============================================================================ */
+
+/**
+ * image_apply_overlay_list - Apply overlay specifications to image
+ * 
+ * @param overlay_specs Pointer to OverlaySpecList with specifications
+ * @param verbose Debug output flag
+ * @param timestamp_logging Timestamp flag (requires verbose)
+ * 
+ * @return PISSTVPP2_OK on success, error code on failure
+ * 
+ * Renders text overlays with configurable:
+ * - Text content (arbitrary)
+ * - Font size
+ * - Placement (top, bottom, left, right, center)
+ * - Color and background (to be rendered in Phase 2.5)
+ */
+int image_apply_overlay_list(const OverlaySpecList *overlay_specs,
+                            int verbose, int timestamp_logging)
+{
+    if (!overlay_specs) {
+        error_log(PISSTVPP2_ERR_IMAGE_TEXT_OVERLAY, "No overlay specifications provided");
+        return PISSTVPP2_ERR_IMAGE_TEXT_OVERLAY;
+    }
+
+    if (!g_img.image) {
+        error_log(PISSTVPP2_ERR_IMAGE_LOAD, "No image loaded for overlay");
+        return PISSTVPP2_ERR_IMAGE_LOAD;
+    }
+
+    size_t overlay_count = overlay_spec_list_count((OverlaySpecList *)overlay_specs);
+    
+    if (overlay_count == 0) {
+        return PISSTVPP2_OK;
+    }
+
+    log_verbose(verbose, timestamp_logging,
+               "   Applying %zu text overlay(s) to image...\n", overlay_count);
+
+    // Apply each overlay spec
+    for (size_t i = 0; i < overlay_count; i++) {
+        TextOverlaySpec *spec = overlay_spec_list_get((OverlaySpecList *)overlay_specs, i);
+        
+        if (!spec || !spec->enabled) {
+            continue;
+        }
+
+        int result = apply_single_overlay(spec, verbose, timestamp_logging);
+        if (result != PISSTVPP2_OK) {
+            log_verbose(verbose, timestamp_logging,
+                       "      Warning: Overlay %zu processing\n", i + 1);
+        }
+    }
+
+    // Re-buffer the modified image
+    int result = buffer_vips_image(g_img.image, verbose, timestamp_logging);
+    if (result != PISSTVPP2_OK) {
+        error_log(result, "Failed to buffer image after overlays");
+        return result;
+    }
+
+    log_verbose(verbose, timestamp_logging,
+               "   [OK] All overlay specifications processed\n");
+
+    return PISSTVPP2_OK;
+}
+
 
 /* ============================================================================
    PUBLIC: HELPER UTILITIES

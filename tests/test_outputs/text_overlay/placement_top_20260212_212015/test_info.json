@@ -1,0 +1,5 @@
+{
+  "placement_mode": "top",
+  "test_name": "Top placement",
+  "expected_behavior": "Text/bar should appear at top of image"
+}

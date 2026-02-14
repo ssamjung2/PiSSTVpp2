@@ -1,0 +1,33 @@
+{
+  "test_name": "Text Overlay Pipeline Infrastructure",
+  "test_timestamp": "20260212_212015",
+  "input_image": "/Users/ssamjung/Desktop/WIP/PiSSTVpp2/tests/images/test_pattern_320x240.jpg",
+  "output_directory": "/Users/ssamjung/Desktop/WIP/PiSSTVpp2/tests/test_outputs/text_overlay/pipeline_test_20260212_212015",
+  "pipeline_steps": [
+    {
+      "step_name": "01_original",
+      "description": "Original input image",
+      "expected_output": "01_original.png"
+    },
+    {
+      "step_name": "02_aspect_corrected",
+      "description": "After aspect ratio correction",
+      "expected_output": "02_aspect_corrected.png"
+    },
+    {
+      "step_name": "03_with_color_bar",
+      "description": "After color bar added",
+      "expected_output": "03_with_color_bar.png"
+    },
+    {
+      "step_name": "04_with_station_id",
+      "description": "After station ID overlay",
+      "expected_output": "04_with_station_id.png"
+    },
+    {
+      "step_name": "05_final_output",
+      "description": "Final image ready for SSTV encoding",
+      "expected_output": "05_final_output.png"
+    }
+  ]
+}

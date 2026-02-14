@@ -19,6 +19,7 @@
 #include <stdint.h>
 #include <vips/vips.h>
 #include "error.h"
+#include "overlay_spec.h"
 
 /* Image buffer structure - stores decoded RGB pixel data */
 typedef struct {
@@ -216,6 +217,29 @@ int image_save_to_file(const char *output_path, int verbose);
  * - Useful for debugging and understanding processing steps
  */
 void image_print_diagnostics(void);
+
+/**
+ * image_apply_overlay_list
+ * 
+ * Apply a list of text overlay specifications to the current image.
+ * 
+ * @param overlay_specs Pointer to OverlaySpecList with specifications
+ * @param verbose If non-zero, print debug messages
+ * @param timestamp_logging If non-zero (and verbose is non-zero), add timestamps to output
+ * 
+ * @return Error code: PISSTVPP2_OK on success, or error code on failure
+ * 
+ * Effects:
+ * - Applies all enabled overlays from the list to the current image
+ * - Overlays are applied in order (first to last in the list)
+ * - Modifies the current image in the pipeline
+ * - Returns updated image ready for SSTV encoding
+ * 
+ * @note This function will be fully implemented in Phase 2.5 (text rendering)
+ * @note Currently prepares specifications but does not render overlays
+ */
+int image_apply_overlay_list(const OverlaySpecList *overlay_specs, 
+                            int verbose, int timestamp_logging);
 
 /* ============================================================================
    HELPER UTILITIES

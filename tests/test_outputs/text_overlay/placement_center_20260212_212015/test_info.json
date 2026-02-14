@@ -1,0 +1,5 @@
+{
+  "placement_mode": "center",
+  "test_name": "Center overlay",
+  "expected_behavior": "Text/bar should appear at center of image"
+}
