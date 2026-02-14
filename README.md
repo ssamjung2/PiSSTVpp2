@@ -1,4 +1,4 @@
-# PiSSTVpp2 v2.0
+# SlowFrame v2.0
 
 **Modern SSTV (Slow Scan Television) Encoder for Raspberry Pi and Linux**
 
@@ -51,8 +51,8 @@ Convert images to SSTV audio signals for amateur radio transmission. Supports 7 
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/PiSSTVpp2.git
-cd PiSSTVpp2
+git clone https://github.com/yourusername/SlowFrame.git
+cd SlowFrame
 
 # Install dependencies (Debian/Ubuntu)
 sudo apt-get update
@@ -62,23 +62,23 @@ sudo apt-get install build-essential libvips-dev libogg-dev libvorbis-dev
 make clean && make all
 
 # Verify installation
-./bin/pisstvpp2 -h
+./bin/slowframe -h
 ```
 
 ### Basic Usage
 
 ```bash
 # Encode image with default settings (Martin 1, WAV output)
-./bin/pisstvpp2 -i photo.jpg -o transmission.wav
+./bin/slowframe -i photo.jpg -o transmission.wav
 
 # Use Scottie 2 mode with OGG output
-./bin/pisstvpp2 -i photo.jpg -p s2 -f ogg -o transmission.ogg
+./bin/slowframe -i photo.jpg -p s2 -f ogg -o transmission.ogg
 
 # Add CW signature with callsign
-./bin/pisstvpp2 -i photo.jpg -p m1 -C "N0CALL" -o transmission.wav
+./bin/slowframe -i photo.jpg -p m1 -C "N0CALL" -o transmission.wav
 
 # High quality Robot 72 at 44.1kHz
-./bin/pisstvpp2 -i photo.jpg -p r72 -r 44100 -o transmission.wav
+./bin/slowframe -i photo.jpg -p r72 -r 44100 -o transmission.wav
 ```
 
 ---
@@ -155,55 +155,55 @@ make clean && make all
 
 ```bash
 # Martin 1 (most compatible)
-./bin/pisstvpp2 -i photo.jpg -p m1 -o transmission.wav
+./bin/slowframe -i photo.jpg -p m1 -o transmission.wav
 
 # Scottie 2 (good quality/speed balance)
-./bin/pisstvpp2 -i photo.jpg -p s2 -o transmission.wav
+./bin/slowframe -i photo.jpg -p s2 -o transmission.wav
 
 # Robot 72 (highest quality, longest transmission)
-./bin/pisstvpp2 -i photo.jpg -p r72 -o transmission.wav
+./bin/slowframe -i photo.jpg -p r72 -o transmission.wav
 ```
 
 ### Aspect Ratio Handling
 
 ```bash
 # Center-crop to 4:3 aspect (default)
-./bin/pisstvpp2 -i photo.jpg -a center -o output.wav
+./bin/slowframe -i photo.jpg -a center -o output.wav
 
 # Add black bars to preserve aspect
-./bin/pisstvpp2 -i photo.jpg -a pad -o output.wav
+./bin/slowframe -i photo.jpg -a pad -o output.wav
 
 # Stretch to fit (may distort)
-./bin/pisstvpp2 -i photo.jpg -a stretch -o output.wav
+./bin/slowframe -i photo.jpg -a stretch -o output.wav
 ```
 
 ### CW Identification
 
 ```bash
 # Add callsign signature
-./bin/pisstvpp2 -i photo.jpg -C "W1AW" -o transmission.wav
+./bin/slowframe -i photo.jpg -C "W1AW" -o transmission.wav
 
 # Fast CW (25 WPM)
-./bin/pisstvpp2 -i photo.jpg -C "N0CALL" -W 25 -o transmission.wav
+./bin/slowframe -i photo.jpg -C "N0CALL" -W 25 -o transmission.wav
 
 # Custom CW tone (1000 Hz)
-./bin/pisstvpp2 -i photo.jpg -C "K0ABC/P" -T 1000 -o transmission.wav
+./bin/slowframe -i photo.jpg -C "K0ABC/P" -T 1000 -o transmission.wav
 
 # Full custom CW signature
-./bin/pisstvpp2 -i photo.jpg -C "VE3XYZ" -W 18 -T 850 -o transmission.wav
+./bin/slowframe -i photo.jpg -C "VE3XYZ" -W 18 -T 850 -o transmission.wav
 ```
 
 ### High Quality Output
 
 ```bash
 # OGG format with high sample rate
-./bin/pisstvpp2 -i photo.jpg -p s1 -f ogg -r 44100 -o output.ogg
+./bin/slowframe -i photo.jpg -p s1 -f ogg -r 44100 -o output.ogg
 
 # Robot 72 at maximum quality
-./bin/pisstvpp2 -i photo.jpg -p r72 -r 48000 -o output.wav
+./bin/slowframe -i photo.jpg -p r72 -r 48000 -o output.wav
 
 # Scottie DX (highest quality RGB mode)
-./bin/pisstvpp2 -i photo.jpg -p sdx -r 44100 -o output.wav
+./bin/slowframe -i photo.jpg -p sdx -r 44100 -o output.wav
 ```
 
 ---
@@ -233,7 +233,7 @@ make clean && make all
 ```bash
 # Run full test suite (55 tests)
 cd tests
-python test_suite.py --exe ../bin/pisstvpp2
+python test_suite.py --exe ../bin/slowframe
 
 # Run quick tests
 make test-quick
@@ -370,15 +370,15 @@ make clean && make all
 # Verify file exists and path is correct
 ls -la your-image.jpg
 # Use absolute path
-./bin/pisstvpp2 -i /full/path/to/image.jpg -o output.wav
+./bin/slowframe -i /full/path/to/image.jpg -o output.wav
 ```
 
 **4. "Audio buffer overflow"**
 ```bash
 # Use lower sample rate
-./bin/pisstvpp2 -i photo.jpg -r 22050 -o output.wav
+./bin/slowframe -i photo.jpg -r 22050 -o output.wav
 # Or shorter transmission mode
-./bin/pisstvpp2 -i photo.jpg -p r36 -o output.wav
+./bin/slowframe -i photo.jpg -p r36 -o output.wav
 ```
 
 See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for more solutions.
@@ -436,28 +436,28 @@ See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for more solutions.
 ## Project Structure
 
 ```
-PiSSTVpp2/
+SlowFrame/
 ├── README.md              # Project overview
 ├── CONTRIBUTING.md        # Contribution guidelines
 ├── makefile              # Build configuration
 │
 ├── bin/                  # Built binary (generated)
-│   └── pisstvpp2
+│   └── slowframe
 │
 ├── src/                  # Source code
 │   ├── include/          # Header files
 │   │   ├── logging.h
 │   │   ├── mmsstv_stub.h
-│   │   ├── pisstvpp2_audio_encoder.h
-│   │   ├── pisstvpp2_image.h
-│   │   ├── pisstvpp2_mmsstv_adapter.h
-│   │   └── pisstvpp2_sstv.h
+│   │   ├── slowframe_audio_encoder.h
+│   │   ├── slowframe_image.h
+│   │   ├── slowframe_mmsstv_adapter.h
+│   │   └── slowframe_sstv.h
 │   │
-│   ├── pisstvpp2.c                    # Main program
-│   ├── pisstvpp2_image.c              # Image processing
-│   ├── pisstvpp2_sstv.c               # SSTV encoding
-│   ├── pisstvpp2_audio_encoder.c      # Audio encoder
-│   ├── pisstvpp2_mmsstv_adapter.c     # MMSSTV adapter (v2.1)
+│   ├── slowframe.c                    # Main program
+│   ├── slowframe_image.c              # Image processing
+│   ├── slowframe_sstv.c               # SSTV encoding
+│   ├── slowframe_audio_encoder.c      # Audio encoder
+│   ├── slowframe_mmsstv_adapter.c     # MMSSTV adapter (v2.1)
 │   │
 │   ├── audio_encoder_wav.c            # WAV encoder
 │   ├── audio_encoder_aiff.c           # AIFF encoder
@@ -486,7 +486,7 @@ PiSSTVpp2/
 │   │
 │   ├── MMSSTV_INTEGRATION.md          # v2.1 plan
 │   ├── MMSSTV_MODE_REFERENCE.md       # 43+ future modes
-│   ├── PISSTVPP2_v2_0_MASTER_PLAN.md  # Complete roadmap
+│   ├── SLOWFRAME_v2_0_MASTER_PLAN.md  # Complete roadmap
 │   ├── DOCUMENTATION_UPDATE_SUMMARY.md # Doc changes
 │   │
 │   ├── LICENSE.md                      # GPL-3.0 license
@@ -536,7 +536,7 @@ This project is licensed under the **GNU General Public License v3.0** - see [LI
 
 ### Credits
 
-**PiSSTVpp2 v2.0 (2026)**
+**SlowFrame v2.0 (2026)**
 - **KW9D** (Andrew Blessing) - Complete v2.0 refactoring, architecture redesign, comprehensive testing suite, and documentation
 
 **Original PiSSTVpp (2013-2014)**
@@ -553,8 +553,8 @@ This project is licensed under the **GNU General Public License v3.0** - see [LI
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/PiSSTVpp2/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/PiSSTVpp2/discussions)
+- **Issues**: [GitHub Issues](https://github.com/yourusername/SlowFrame/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/yourusername/SlowFrame/discussions)
 - **Documentation**: [docs/](docs/)
 
 ---

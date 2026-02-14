@@ -150,7 +150,7 @@ for (int i = 0; optarg[i]; i++) {
 }
 ```
 
-**File:** src/pisstvpp2_config.c (lines 203-211)
+**File:** src/slowframe_config.c (lines 203-211)
 
 ---
 
@@ -171,7 +171,7 @@ if (optarg[0] == '0' && optarg[1] != '\0') {
 long tmp = strtol(optarg, &endptr, 10);
 ```
 
-**File:** src/pisstvpp2_config.c (lines 220-226)
+**File:** src/slowframe_config.c (lines 220-226)
 
 ---
 
@@ -182,7 +182,7 @@ long tmp = strtol(optarg, &endptr, 10);
 
 **Fix Implementation:** Same as WPM (leading zero rejection + strtol base-10)
 
-**File:** src/pisstvpp2_config.c (lines 249-255)
+**File:** src/slowframe_config.c (lines 249-255)
 
 ---
 
@@ -216,7 +216,7 @@ for (int i = 0; optarg[i]; i++) {
 }
 ```
 
-**File:** src/pisstvpp2_config.c (lines 112-129)
+**File:** src/slowframe_config.c (lines 112-129)
 
 ---
 
@@ -239,7 +239,7 @@ if (errno != 0 || endptr == optarg || *endptr != '\0') {
 }
 ```
 
-**File:** src/pisstvpp2_config.c (lines 226-231)
+**File:** src/slowframe_config.c (lines 226-231)
 
 ---
 
@@ -326,12 +326,12 @@ Vulnerabilities Fixed:  11/11 ✅
 ### Safe Usage Examples
 ```bash
 # Correct
-./pisstvpp2 -i photo.jpg -C N0CALL -W 15 -T 800
+./slowframe -i photo.jpg -C N0CALL -W 15 -T 800
 
 # Incorrect (will be rejected)
-./pisstvpp2 -i photo.jpg -C "N0 CALL"     # Spaces rejected
-./pisstvpp2 -i photo.jpg -W 15             # WPM needs callsign
-./pisstvpp2 -i photo.jpg -r 022050         # Leading zero rejected
+./slowframe -i photo.jpg -C "N0 CALL"     # Spaces rejected
+./slowframe -i photo.jpg -W 15             # WPM needs callsign
+./slowframe -i photo.jpg -r 022050         # Leading zero rejected
 ```
 
 ---
@@ -375,7 +375,7 @@ Vulnerabilities Fixed:  11/11 ✅
 
 ## Conclusion
 
-The PiSSTVpp2 application has been hardened against identified security vulnerabilities through:
+The SlowFrame application has been hardened against identified security vulnerabilities through:
 
 1. **Character-level validation** of sensitive string parameters
 2. **Proper numeric parsing** preventing encoding attacks

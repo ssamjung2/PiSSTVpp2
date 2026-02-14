@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Comprehensive Test Runner for PiSSTVpp2
+Comprehensive Test Runner for SlowFrame
 Orchestrates all test suites with aggregated reporting
 """
 
@@ -33,7 +33,7 @@ class ComprehensiveTestRunner:
             tests_dir = str(script_dir)
         if exe_path is None:
             script_dir = Path(__file__).parent.parent.parent
-            exe_path = str(script_dir / "bin" / "pisstvpp2")
+            exe_path = str(script_dir / "bin" / "slowframe")
         self.tests_dir = tests_dir
         self.exe_path = exe_path
         self.results = {}
@@ -138,7 +138,7 @@ class ComprehensiveTestRunner:
     def _print_header(self):
         """Print test run header"""
         print(f"\n{Colors.BOLD}{Colors.CYAN}╔═══════════════════════════════════════════════════════════════╗{Colors.RESET}")
-        print(f"{Colors.BOLD}{Colors.CYAN}║           PiSSTVpp2 - Comprehensive Test Suite                 ║{Colors.RESET}")
+        print(f"{Colors.BOLD}{Colors.CYAN}║           SlowFrame - Comprehensive Test Suite                 ║{Colors.RESET}")
         print(f"{Colors.BOLD}{Colors.CYAN}║     Edge Cases | Security | Error Codes | Integration          ║{Colors.RESET}")
         print(f"{Colors.BOLD}{Colors.CYAN}║     File I/O | Performance | Stress Testing                    ║{Colors.RESET}")
         print(f"{Colors.BOLD}{Colors.CYAN}╚═══════════════════════════════════════════════════════════════╝{Colors.RESET}")
@@ -287,7 +287,7 @@ if __name__ == "__main__":
         exe_path = sys.argv[2]
     else:
         script_dir = Path(__file__).parent.parent.parent
-        exe_path = str(script_dir / "bin" / "pisstvpp2")
+        exe_path = str(script_dir / "bin" / "slowframe")
     
     try:
         runner = ComprehensiveTestRunner(tests_dir, exe_path)

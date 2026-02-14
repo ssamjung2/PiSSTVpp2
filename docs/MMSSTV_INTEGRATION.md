@@ -9,7 +9,7 @@
 
 ## Overview
 
-This document describes how PiSSTVpp2 v2.1 integrates the optional MMSSTV library for runtime access to 50+ additional SSTV modes.
+This document describes how SlowFrame v2.1 integrates the optional MMSSTV library for runtime access to 50+ additional SSTV modes.
 
 **Key Principle:** The MMSSTV library is **optional**. Your application always works with native 7 modes, but gains 50+ additional modes if the library is present.
 
@@ -54,7 +54,7 @@ export MMSSTV_LIB_PATH="/custom/path/libmmsstv.so"
 export MMSSTV_INCLUDE_PATH="/custom/path/mmsstv/include"
 
 # Run application
-./pisstvpp2 -m m1 input.png output.wav
+./slowframe -m m1 input.png output.wav
 ```
 
 ### Installation Instructions
@@ -139,7 +139,7 @@ A: Install the mmsstv-portable library and the application will auto-detect it.
 A: Either unset the environment variable or don't install the library. The application always works.
 
 **Q: How can I verify MMSSTV is detected?**
-A: Run `./pisstvpp2 --mmsstv-status` to see library detection status.
+A: Run `./slowframe --mmsstv-status` to see library detection status.
 
 **Q: Do I need to recompile to enable MMSSTV?**
 A: No. The detection happens at runtime.

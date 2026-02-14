@@ -1,20 +1,20 @@
 /**
- * @file pisstvpp2.c
- * @brief PiSSTVpp2 - Raspberry Pi SSTV Image to Audio Encoder (Main Entry Point)
+ * @file slowframe.c
+ * @brief SlowFrame - SSTV Image to Audio Encoder (Main Entry Point)
  *
  * ## Overview
- * This is the main program entry point for PiSSTVpp2, a high-performance SSTV
+ * This is the main program entry point for SlowFrame, a high-performance SSTV
  * (Slow Scan Television) image-to-audio encoder designed for Raspberry Pi and
  * other embedded systems. The program converts still images into audio signals
  * compatible with amateur radio SSTV transmission protocols.
  *
  * ## Architecture
- * PiSSTVpp2 uses a modular architecture with three main subsystems:
- * - **Image Processing** (pisstvpp2_image.h): libvips-based image loading,
+ * SlowFrame uses a modular architecture with three main subsystems:
+ * - **Image Processing** (slowframe_image.h): libvips-based image loading,
  *   scaling, aspect correction, and pixel access
- * - **SSTV Encoding** (pisstvpp2_sstv.h): Audio synthesis, protocol encoding
+ * - **SSTV Encoding** (slowframe_sstv.h): Audio synthesis, protocol encoding
  *   (Martin, Scottie, Robot), VIS headers, and optional CW signatures
- * - **Audio Encoding** (pisstvpp2_audio_encoder.h): Pluggable format encoders
+ * - **Audio Encoding** (slowframe_audio_encoder.h): Pluggable format encoders
  *   supporting WAV, AIFF, and OGG Vorbis (optional)
  *
  * ## Features
@@ -46,8 +46,8 @@
  *   -I/opt/homebrew/include \
  *   -I/opt/homebrew/Cellar/glib/2.86.3/include/glib-2.0 \
  *   -I/opt/homebrew/Cellar/glib/2.86.3/lib/glib-2.0/include \
- *   pisstvpp2.c pisstvpp2_image.c pisstvpp2_sstv.c pisstvpp2_audio_encoder.c \
- *   -o pisstvpp2 \
+ *   slowframe.c slowframe_image.c slowframe_sstv.c slowframe_audio_encoder.c \
+ *   -o slowframe \
  *   -L/opt/homebrew/lib -L/opt/homebrew/Cellar/glib/2.86.3/lib \
  *   -lvips -lglib-2.0 -lgobject-2.0 -lvorbis -logg -lm
  * @endcode
@@ -55,25 +55,25 @@
  * ## Usage Examples
  * @code
  * # Basic: Convert image to WAV using default Martin 1 mode
- * ./pisstvpp2 -i photo.jpg
+ * ./slowframe -i photo.jpg
  *
  * # Specify output format and protocol
- * ./pisstvpp2 -i photo.png -f ogg -p s1 -o output.ogg
+ * ./slowframe -i photo.png -f ogg -p s1 -o output.ogg
  *
  * # Verbose output with custom sample rate
- * ./pisstvpp2 -i image.jpg -f wav -r 11025 -v
+ * ./slowframe -i image.jpg -f wav -r 11025 -v
  *
  * # Add CW signature
- * ./pisstvpp2 -i photo.jpg -C N0CALL -W 20 -T 700
+ * ./slowframe -i photo.jpg -C N0CALL -W 20 -T 700
  *
  * # Robot 36 mode with aspect correction
- * ./pisstvpp2 -i photo.jpg -p r36 -a pad
+ * ./slowframe -i photo.jpg -p r36 -a pad
  * @endcode
  *
  * ## License
  * Open source software - see LICENSE file in repository
  *
- * @author PiSSTVpp2 Contributors
+ * @author SlowFrame Contributors
  * @version 2.1.0
  * @date January 2026
  */
@@ -94,10 +94,10 @@
 #include <tgmath.h>
 #include <unistd.h>
 #include <errno.h>
-#include "pisstvpp2_image.h"
-#include "pisstvpp2_sstv.h"
-#include "pisstvpp2_audio_encoder.h"
-#include "pisstvpp2_config.h"
+#include "slowframe_image.h"
+#include "slowframe_sstv.h"
+#include "slowframe_audio_encoder.h"
+#include "slowframe_config.h"
 #include "logging.h"
 #include "error.h"
 
@@ -131,12 +131,12 @@ enum {
  * @brief Centralized error code system for consistent error management
  *
  * All error handling uses the unified error code system (error.h) with
- * PISSTVPP2_OK for success and PISSTVPP2_ERR_* codes for failures.
+ * SLOWFRAME_OK for success and SLOWFRAME_ERR_* codes for failures.
  *
  * **Error Handling Pattern:**
  * @code
  * int result = some_operation();
- * if (result != PISSTVPP2_OK) {
+ * if (result != SLOWFRAME_OK) {
  *     error_log(result, "Operation context", "Additional details");
  *     return result;  // or set error_code = result; goto cleanup;
  * }
@@ -241,47 +241,47 @@ static void verbose_print(int verbose_enabled, int add_timestamp, const char *fo
  * @note Does NOT exit the program - caller decides whether to continue
  */
 static void show_help(void) {
-    printf("Usage: ./pisstvpp2 -i <input_file> [OPTIONS]\n\n");
-    printf("PiSSTVpp v2.1.0 (built Jan 23 2026)\n");
-    printf("Convert an image (PNG/JPEG/GIF/BMP) to SSTV audio format.\n\n");
-    printf("REQUIRED OPTIONS:\n");
-    printf("  -i <file>       Input image file (PNG, JPEG, GIF, or BMP)\n\n");
-    printf("OPTIONAL OPTIONS:\n");
-    printf("  -a <mode>       Aspect ratio correction: center, pad, or stretch (default: center)\n");
-    printf("  -o <file>       Output audio file (default: input_file.wav)\n");
-    printf("  -p <protocol>   SSTV protocol to use (default: m1)\n");
-    printf("                  Available protocols:\n");
-    printf("                    m1     - Martin 1 (VIS 44)\n");
-    printf("                    m2     - Martin 2 (VIS 40)\n");
-    printf("                    s1     - Scottie 1 (VIS 60)\n");
-    printf("                    s2     - Scottie 2 (VIS 56)\n");
-    printf("                    sdx    - Scottie DX (VIS 76)\n");
-    printf("                    r36    - Robot 36 Color (VIS 8)\n");
-    printf("                    r72    - Robot 72 Color (VIS 12)\n");
-    printf("  -f <fmt>        Output format: wav, aiff, or ogg (default: wav)\n");
-    printf("  -r <rate>       Audio sample rate in Hz (default: 22050, range: 8000-48000)\n");
-    printf("  -v              Enable verbose output (progress details)\n");
-    printf("  -K              Keep intermediate processed image (for debugging)\n");
-    printf("  -Z              Add timestamps to verbose logging (auto-enables -v, for log analysis)\n");
-    printf("  -N              Skip audio encoding (test mode, for testing overlay without audio)\n");
-    printf("  -O              Text-only overlay (skip resizing/aspect correction, requires -N)\n");
-    printf("  -h              Display this help message\n\n");
-    printf("CW SIGNATURE OPTIONS (optional):\n");
-    printf("  -C <callsign>   Add CW signature with callsign (max 31 characters).\n");
-    printf("  -W <wpm>        Set CW signature speed in WPM, range 1-50 (default: 15)\n");
-    printf("  -T <freq>       Set CW signature tone frequency in Hz, range 400-2000 (default: 800)\n\n");    
-    printf("TEXT OVERLAY OPTIONS (optional):\n");
-    printf("  -T <spec>       Text overlay specification (e.g., 'N0CALL|size=20|placement=bottom')\n\n");
-    printf("EXAMPLES:\n");
-    printf("  ./pisstvpp2 -i image.jpg -o out.aiff\n");
-    printf("  ./pisstvpp2 -i image.jpg -f wav -p s2 -r 11025 -v\n");
-    printf("  ./pisstvpp2 -i image.png -o output.wav -p r36\n\n");
-    printf("  ./pisstvpp2 -i image.jpg -v -Z                          # Verbose with timestamps\n");
-    printf("  ./pisstvpp2 -i image.jpg -C N0CALL -K                   # Keep intermediate, add CW\n");
-    printf("  ./pisstvpp2 -i image.jpg -T 'N0CALL|placement=bottom'  # Text overlay\n");
-    printf("  ./pisstvpp2 -i image.jpg -T 'N0CALL' -N                # Test overlay (no audio)\n");
-    printf("  ./pisstvpp2 -i image.jpg -T 'ID' -N -O                 # Text-only (no resize)\n");
-    printf("  ./pisstvpp2 -i image.jpg -v -Z > processing.log         # Log with timestamps\n\n");
+    printf("SlowFrame - SSTV Image to Audio Encoder v2.1.0\n\n");
+    printf("Usage: ./slowframe -i <input_file> [OPTIONS]\n\n");
+    printf("REQUIRED ARGUMENTS:\n");
+    printf("  -i <file>                 Input image file (PNG, JPEG, GIF, BMP, TIFF, WebP)\n\n");
+
+    printf("AUDIO OUTPUT OPTIONS:\n");
+    printf("  -o <file>                 Output audio file (default: input_basename.wav)\n");
+    printf("  -p <protocol>             SSTV protocol (default: m1)\n");
+    printf("                            m1=Martin 1, m2=Martin 2, s1=Scottie 1, s2=Scottie 2,\n");
+    printf("                            sdx=Scottie DX, r36=Robot 36, r72=Robot 72\n");
+    printf("  -f <format>               Audio format: wav, aiff, ogg (default: wav)\n");
+    printf("  -r <rate>                 Sample rate in Hz: 8000-48000 (default: 22050)\n");
+    printf("  -a <mode>                 Aspect ratio: center, pad, stretch (default: center)\n\n");
+
+    printf("TEXT OVERLAY:\n");
+    printf("  -T <spec>                 Text overlay spec (e.g., \"N0CALL|size=20|pos=bottom\")\n");
+    printf("                            Use -h (in slowframe_config) for full styling options\n\n");
+
+    printf("CW SIGNATURE:\n");
+    printf("  -C <callsign>             Ham radio callsign for CW signature (max 31 chars)\n");
+    printf("  -W <wpm>                  CW speed: 1-50 words/minute (default: 15)\n");
+    printf("  -Q <hz>                   CW tone: 400-2000 Hz (default: 800)\n\n");
+
+    printf("DEBUGGING & ANALYSIS:\n");
+    printf("  -v                        Verbose output with processing details\n");
+    printf("  -Z                        Add timestamps to verbose logging (implies -v)\n");
+    printf("  -K                        Keep intermediate processed images\n");
+    printf("  -N                        Skip audio encoding (test mode)\n");
+    printf("  -O                        Text-only overlay (no resizing, requires -N)\n\n");
+
+    printf("HELP:\n");
+    printf("  -h                        Show detailed help with all options and examples\n\n");
+
+    printf("QUICK EXAMPLES:\n");
+    printf("  ./slowframe -i photo.jpg\n");
+    printf("  ./slowframe -i photo.jpg -p s2 -C N0CALL -W 18\n");
+    printf("  ./slowframe -i photo.jpg -T \"N0CALL|size=20|pos=bottom\"\n");
+    printf("  ./slowframe -i photo.jpg -T \"W5ABC|size=16|pos=top\" -T \"EM12AB|size=14|pos=bottom\"\n");
+    printf("  ./slowframe -i photo.jpg -v -Z > encoder.log\n");
+    printf("  ./slowframe -i photo.jpg -T \"Test|size=32|color=yellow|bg=black\" -N\n\n");
+    printf("For detailed help: Check documentation or use slowframe_config -h for advanced options.\n");
 }
 
 /**
@@ -336,33 +336,16 @@ int main(int argc, char *argv[]) {
 
     // Show short help if no arguments provided
     if (argc == 1) {
-        printf("PiSSTVpp2 - SSTV Image to Audio Encoder\n\n");
-        printf("Usage: %s -i <input> [options]\n\n", argv[0]);
-        printf("Required Arguments:\n");
-        printf("  -i <file>        Input image file\n\n");
-        printf("Common Options:\n");
-        printf("  -o <file>        Output audio file (default: input.wav)\n");
-        printf("  -p <protocol>    SSTV protocol: m1, m2, s1, s2, sdx, r36, r72 (default: m1)\n");
-        printf("  -f <format>      Audio format: wav, aiff, ogg (default: wav)\n");
-        printf("  -r <rate>        Sample rate in Hz 8000-48000 (default: 22050)\n");
-        printf("  -T <spec>        Text overlay: \"text|size=20|color=white|pos=top\"\n");
-        printf("  -C <callsign>    Amateur radio callsign for CW signature\n");
-        printf("  -v               Verbose output\n");
-        printf("  -h               Detailed help (all options and examples)\n\n");
-        printf("Examples:\n");
-        printf("  %s -i photo.jpg\n", argv[0]);
-        printf("  %s -i photo.jpg -p s2 -C N0CALL\n", argv[0]);
-        printf("  %s -i photo.jpg -T \"Callsign|size=16|pos=bottom\"\n\n", argv[0]);
-        printf("For detailed help on all options and styling: %s -h\n", argv[0]);
-        return PISSTVPP2_OK;
+        show_help();
+        return SLOWFRAME_OK;
     }
 
     // Initialize libvips
     if (VIPS_INIT(argv[0])) {
-        error_log(PISSTVPP2_ERR_SSTV_INIT, "libvips initialization", 
+        error_log(SLOWFRAME_ERR_SSTV_INIT, "libvips initialization", 
                  "Failed to initialize libvips: %s", vips_error_buffer());
         vips_error_clear();
-        return PISSTVPP2_ERR_SSTV_INIT;
+        return SLOWFRAME_ERR_SSTV_INIT;
     }
 
     int error_code = 0;  // For centralized error cleanup
@@ -372,9 +355,9 @@ int main(int argc, char *argv[]) {
     // ======================================================================
     // Initialize configuration structure with defaults, then parse command-line
     // arguments. The config module handles all validation and error reporting.
-    PisstvppConfig config;
-    int config_result = pisstvpp_config_init(&config);
-    if (config_result != PISSTVPP2_OK) {
+    SlowframeConfig config;
+    int config_result = slowframe_config_init(&config);
+    if (config_result != SLOWFRAME_OK) {
         error_log(config_result, "Failed to initialize configuration");
         return config_result;
     }
@@ -384,9 +367,9 @@ int main(int argc, char *argv[]) {
     // ======================================================================
     // Parse and validate all command-line arguments using configuration module.
     // This replaces inline getopt logic with centralized, tested code.
-    config_result = pisstvpp_config_parse(&config, argc, argv);
-    if (config_result != PISSTVPP2_OK) {
-        // Error already logged by pisstvpp_config_parse()
+    config_result = slowframe_config_parse(&config, argc, argv);
+    if (config_result != SLOWFRAME_OK) {
+        // Error already logged by slowframe_config_parse()
         return config_result;
     }
 
@@ -419,9 +402,9 @@ int main(int argc, char *argv[]) {
         protocol_code = 12; // Robot 72
     }
     else {
-        error_log(PISSTVPP2_ERR_ARG_INVALID_PROTOCOL, "Unrecognized protocol: %s (must be m1, m2, s1, s2, sdx, r36, r72)", config.protocol);
+        error_log(SLOWFRAME_ERR_ARG_INVALID_PROTOCOL, "Unrecognized protocol: %s (must be m1, m2, s1, s2, sdx, r36, r72)", config.protocol);
         show_help();
-        error_code = PISSTVPP2_ERR_ARG_INVALID_PROTOCOL;
+        error_code = SLOWFRAME_ERR_ARG_INVALID_PROTOCOL;
         goto cleanup;
     }
 
@@ -434,7 +417,7 @@ int main(int argc, char *argv[]) {
 
     // Initialize SSTV encoding module
     int sstv_result = sstv_init(config.sample_rate, config.verbose, config.timestamp_logging);
-    if (sstv_result != PISSTVPP2_OK) {
+    if (sstv_result != SLOWFRAME_OK) {
         // Error already logged by sstv_init()
         error_code = sstv_result;
         goto cleanup;
@@ -558,7 +541,7 @@ int main(int argc, char *argv[]) {
     // Load image using new image module (auto-detects format)
     verbose_print(config.verbose, config.timestamp_logging, "[1/4] Loading image...\n");
     int image_result = image_load_from_file(config.input_file, config.verbose, config.timestamp_logging, NULL);
-    if (image_result != PISSTVPP2_OK) {
+    if (image_result != SLOWFRAME_OK) {
         // Error already logged by image_load_from_file(), propagate error code
         error_code = image_result;
         goto cleanup;
@@ -632,7 +615,7 @@ int main(int argc, char *argv[]) {
         int aspect_result = image_correct_aspect_and_resize(required_width, required_height, config.aspect_mode, 
                                                              config.verbose, config.timestamp_logging,
                                                              NULL);
-        if (aspect_result != PISSTVPP2_OK) {
+        if (aspect_result != SLOWFRAME_OK) {
             // Error already logged by image_correct_aspect_and_resize()
             error_code = aspect_result;
             goto cleanup;
@@ -656,7 +639,7 @@ int main(int argc, char *argv[]) {
         int overlay_result = image_apply_overlay_list(&config.overlay_specs, 
                                                       config.verbose, 
                                                       config.timestamp_logging);
-        if (overlay_result != PISSTVPP2_OK) {
+        if (overlay_result != SLOWFRAME_OK) {
             error_log(overlay_result, "Text overlay application failed");
             error_code = overlay_result;
             goto cleanup;
@@ -674,7 +657,7 @@ int main(int argc, char *argv[]) {
     
     if (config.keep_intermediate) {
         int save_result = image_save_to_file(intermediate_image, config.verbose);
-        if (save_result != PISSTVPP2_OK) {
+        if (save_result != SLOWFRAME_OK) {
             error_log(save_result, "Failed to save intermediate image");
             error_code = save_result;
             goto cleanup;
@@ -697,7 +680,7 @@ int main(int argc, char *argv[]) {
         if (!config.keep_intermediate) {
             // Safety check: should never happen due to auto-enable, but be defensive
             int save_result = image_save_to_file(intermediate_image, config.verbose);
-            if (save_result != PISSTVPP2_OK) {
+            if (save_result != SLOWFRAME_OK) {
                 error_log(save_result, "Failed to save test output image");
                 error_code = save_result;
                 goto cleanup;
@@ -712,7 +695,7 @@ int main(int argc, char *argv[]) {
                      "     (Audio encoding skipped in test mode)\n");
         
         // Jump to cleanup without encoding
-        error_code = PISSTVPP2_OK;
+        error_code = SLOWFRAME_OK;
         goto cleanup;
     }
     
@@ -723,7 +706,7 @@ int main(int argc, char *argv[]) {
     fflush(stdout);
     
     int encode_result = sstv_encode_frame(config.verbose, config.timestamp_logging);
-    if (encode_result != PISSTVPP2_OK) {
+    if (encode_result != SLOWFRAME_OK) {
         // Error already logged by sstv_encode_frame()
         error_code = encode_result;
         goto cleanup;
@@ -748,13 +731,13 @@ int main(int argc, char *argv[]) {
     
     // Basic safety checks before writing
     if (sample_count == 0) {
-        error_log(PISSTVPP2_ERR_SSTV_ENCODE, "Audio synthesis", "No audio samples generated from SSTV encoding");
-        error_code = PISSTVPP2_ERR_SSTV_ENCODE;
+        error_log(SLOWFRAME_ERR_SSTV_ENCODE, "Audio synthesis", "No audio samples generated from SSTV encoding");
+        error_code = SLOWFRAME_ERR_SSTV_ENCODE;
         goto cleanup;
     }
     if ((uint64_t)sample_count >= (uint64_t)MAXSAMPLES) {
-        error_log(PISSTVPP2_ERR_SYSTEM_RESOURCE, "Audio buffer", "Audio sample count exceeds capacity: %u >= %llu", sample_count, (unsigned long long)MAXSAMPLES);
-        error_code = PISSTVPP2_ERR_SYSTEM_RESOURCE;
+        error_log(SLOWFRAME_ERR_SYSTEM_RESOURCE, "Audio buffer", "Audio sample count exceeds capacity: %u >= %llu", sample_count, (unsigned long long)MAXSAMPLES);
+        error_code = SLOWFRAME_ERR_SYSTEM_RESOURCE;
         goto cleanup;
     }
 
@@ -769,14 +752,14 @@ int main(int argc, char *argv[]) {
     if (!encoder) {
         // Factory returns NULL if format unsupported (should never happen
         // due to earlier validation, but defensive check)
-        error_log(PISSTVPP2_ERR_ARG_INVALID_FORMAT, "Audio encoder factory", "Unsupported format: %s", config.format);
-        error_code = PISSTVPP2_ERR_ARG_INVALID_FORMAT;
+        error_log(SLOWFRAME_ERR_ARG_INVALID_FORMAT, "Audio encoder factory", "Unsupported format: %s", config.format);
+        error_code = SLOWFRAME_ERR_ARG_INVALID_FORMAT;
         goto cleanup;
     }
 
     // Initialize encoder: opens file, writes headers
     int encoder_init_result = audio_encoder_init(encoder, config.sample_rate, BITS, CHANS, config.output_file);
-    if (encoder_init_result != PISSTVPP2_OK) {
+    if (encoder_init_result != SLOWFRAME_OK) {
         error_log(encoder_init_result, "Audio encoder initialization", 
                  "Failed to initialize %s encoder for output file: %s", config.format, config.output_file);
         audio_encoder_destroy(encoder);
@@ -786,7 +769,7 @@ int main(int argc, char *argv[]) {
 
     // Write audio samples (encoding happens here for OGG)
     int encoder_encode_result = audio_encoder_encode(encoder, audio_samples, sample_count);
-    if (encoder_encode_result != PISSTVPP2_OK) {
+    if (encoder_encode_result != SLOWFRAME_OK) {
         error_log(encoder_encode_result, "Audio sample encoding", 
                  "Failed to encode %u audio samples to %s format", sample_count, config.format);
         audio_encoder_destroy(encoder);
@@ -796,7 +779,7 @@ int main(int argc, char *argv[]) {
 
     // Finalize file: update headers with final sizes, flush buffers, close
     int encoder_finish_result = audio_encoder_finish(encoder);
-    if (encoder_finish_result != PISSTVPP2_OK) {
+    if (encoder_finish_result != SLOWFRAME_OK) {
         error_log(encoder_finish_result, "Audio file finalization", 
                  "Failed to finalize %s audio file: %s", config.format, config.output_file);
         audio_encoder_destroy(encoder);
@@ -845,7 +828,7 @@ cleanup:
     // state gracefully.
     image_free();                       // Free libvips image resources
     sstv_cleanup();                     // Free SSTV audio buffer
-    pisstvpp_config_cleanup(&config);   // Free config resources
+    slowframe_config_cleanup(&config);   // Free config resources
     vips_shutdown();                    // Shutdown libvips (releases all resources)
     return error_code;  // Propagate error code to shell (0 = success, >0 = error)
 }

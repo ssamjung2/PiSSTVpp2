@@ -20,7 +20,7 @@
 
 ## Module-by-Module Action Plan
 
-### Module 1: pisstvpp2.c (Main Program) - CRITICAL PATH
+### Module 1: slowframe.c (Main Program) - CRITICAL PATH
 
 **Priority:** 🔴 **HIGHEST** - This is the main application entry point
 
@@ -134,7 +134,7 @@ if (result != PISSTVPP2_OK) {
 return 0;  // Success
 ```
 
-**Files to Modify:** `src/pisstvpp2.c`
+**Files to Modify:** `src/slowframe.c`
 
 **Expected Changes:**
 - Remove VIPS_CALL macro definition (12 lines)
@@ -145,16 +145,16 @@ return 0;  // Success
 
 **Testing After:**
 ```bash
-./bin/pisstvpp2 -i test_image.jpg              # Should work
-./bin/pisstvpp2 -i /tmp/nonexistent.jpg        # Should show error code 501
-./bin/pisstvpp2 -i test_image.jpg -p invalid_mode  # Should show error code 106
+./bin/slowframe -i test_image.jpg              # Should work
+./bin/slowframe -i /tmp/nonexistent.jpg        # Should show error code 501
+./bin/slowframe -i test_image.jpg -p invalid_mode  # Should show error code 106
 ```
 
 **Estimated Time:** 4-5 hours
 
 ---
 
-### Module 2: pisstvpp2_image.c (Image Processing)
+### Module 2: slowframe_image.c (Image Processing)
 
 **Priority:** 🟠 **HIGH** - Core functionality, blocks Phase 2
 
@@ -214,12 +214,12 @@ return PISSTVPP2_ERR_IMAGE_PROCESS;
 
 **Testing After:**
 ```bash
-./bin/pisstvpp2 -i test_pattern_320x240.jpg    # Should work
-./bin/pisstvpp2 -i /nonexistent.jpg            # error_code 201
-./bin/pisstvpp2 -i /etc/passwd                 # error_code 202 (bad format)
+./bin/slowframe -i test_pattern_320x240.jpg    # Should work
+./bin/slowframe -i /nonexistent.jpg            # error_code 201
+./bin/slowframe -i /etc/passwd                 # error_code 202 (bad format)
 ```
 
-**Files to Modify:** `src/pisstvpp2_image.c`
+**Files to Modify:** `src/slowframe_image.c`
 
 **Expected Changes:** ~20 lines modified
 
@@ -227,7 +227,7 @@ return PISSTVPP2_ERR_IMAGE_PROCESS;
 
 ---
 
-### Module 3: pisstvpp2_sstv.c (SSTV Encoding)
+### Module 3: slowframe_sstv.c (SSTV Encoding)
 
 **Priority:** 🟠 **HIGH** - Core encoding functionality
 
@@ -271,7 +271,7 @@ error_log(PISSTVPP2_ERR_SSTV_INIT, "SSTV encoding", "Module must be initialized 
 - VIS encoding → `PISSTVPP2_ERR_SSTV_VIS` (306)
 - CW encoding → `PISSTVPP2_ERR_SSTV_CW` (307)
 
-**Files to Modify:** `src/pisstvpp2_sstv.c`
+**Files to Modify:** `src/slowframe_sstv.c`
 
 **Expected Changes:** ~8-10 lines modified
 
@@ -438,7 +438,7 @@ error_log(PISSTVPP2_ERR_AUDIO_OGG, "OGG Vorbis encoding",
 
 ---
 
-### Module 7: pisstvpp2_audio_encoder.c (Base Encoder)
+### Module 7: slowframe_audio_encoder.c (Base Encoder)
 
 **Priority:** 🟡 **MEDIUM** - Factory and base functionality
 
@@ -454,7 +454,7 @@ error_log(PISSTVPP2_ERR_AUDIO_OGG, "OGG Vorbis encoding",
 **Solution:**
 Review all error returns and ensure they use PISSTVPP2_ERR_AUDIO_* codes
 
-**Files to Modify:** `src/pisstvpp2_audio_encoder.c`
+**Files to Modify:** `src/slowframe_audio_encoder.c`
 
 **Expected Changes:** ~5-10 lines
 
@@ -462,7 +462,7 @@ Review all error returns and ensure they use PISSTVPP2_ERR_AUDIO_* codes
 
 ---
 
-### Module 8: pisstvpp2_mmsstv_adapter.c (MMSSTV Library Integration)
+### Module 8: slowframe_mmsstv_adapter.c (MMSSTV Library Integration)
 
 **Priority:** 🟡 **MEDIUM** - Phase 4 blocker, but needed for dynamic mode system
 
@@ -513,7 +513,7 @@ if (ret != PISSTVPP2_OK) {
 }
 ```
 
-**Files to Modify:** `src/pisstvpp2_mmsstv_adapter.c`
+**Files to Modify:** `src/slowframe_mmsstv_adapter.c`
 
 **Expected Changes:** 40-50 lines modified
 
@@ -524,8 +524,8 @@ if (ret != PISSTVPP2_OK) {
 ## Execution Plan (Recommended Order)
 
 ### Phase 1A - Critical Path (5-6 hours)
-1. **pisstvpp2.c** - Remove VIPS_CALL, add proper error handling (4-5 hrs)
-2. **pisstvpp2_image.c** - Replace return -1, add error_log (2-3 hrs)
+1. **slowframe.c** - Remove VIPS_CALL, add proper error handling (4-5 hrs)
+2. **slowframe_image.c** - Replace return -1, add error_log (2-3 hrs)
 
 ✅ **Stop here and test** - Verify audio output quality unchanged
 
@@ -537,9 +537,9 @@ if (ret != PISSTVPP2_OK) {
 ✅ **Test** - Verify WAV/AIFF/OGG encoding works
 
 ### Phase 1C - Remaining Modules (4-6 hours)
-6. **pisstvpp2_sstv.c** - Update error handling (2-3 hrs)
+6. **slowframe_sstv.c** - Update error handling (2-3 hrs)
 7. **audio_encoder_base** - Review factory functions (1-2 hrs)
-8. **pisstvpp2_mmsstv_adapter.c** - Full update (2-3 hrs)
+8. **slowframe_mmsstv_adapter.c** - Full update (2-3 hrs)
 
 ✅ **Final Test** - Run all 249 tests
 
@@ -557,10 +557,10 @@ make clean && make all
 python3 tests/test_suite.py
 
 # Check specific scenarios
-./bin/pisstvpp2 -i tests/images/test_pattern_320x240.jpg              # Success case
-./bin/pisstvpp2 -i /nonexistent_file.jpg                             # File not found
-./bin/pisstvpp2 -i tests/images/test_pattern_320x240.jpg -f invalid   # Format error
-./bin/pisstvpp2 -i tests/images/test_pattern_320x240.jpg -p invalid   # Mode error
+./bin/slowframe -i tests/images/test_pattern_320x240.jpg              # Success case
+./bin/slowframe -i /nonexistent_file.jpg                             # File not found
+./bin/slowframe -i tests/images/test_pattern_320x240.jpg -f invalid   # Format error
+./bin/slowframe -i tests/images/test_pattern_320x240.jpg -p invalid   # Mode error
 
 # Validation
 echo "Check that all error messages are clear and helpful"
@@ -613,5 +613,5 @@ Before committing each module update:
 
 **Last Updated:** February 11, 2026  
 **Status:** Action Plan Ready  
-**Next Step:** Begin with Module 1 (pisstvpp2.c)  
+**Next Step:** Begin with Module 1 (slowframe.c)  
 **Estimated Completion:** 2-3 business days

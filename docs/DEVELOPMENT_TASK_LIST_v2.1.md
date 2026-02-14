@@ -1,5 +1,5 @@
 
-# PiSSTVpp2 v2.1 Development Task List
+# SlowFrame v2.1 Development Task List
 
 **Organized by Phase, Priority, and Estimated Effort**
 
@@ -35,8 +35,8 @@
 **Description:** Centralized config structure and validation
 
 **Files to Create:**
-- `src/core/pisstvpp2_config.h` - Config structures
-- `src/core/pisstvpp2_config.c` - Config parsing and validation
+- `src/core/slowframe_config.h` - Config structures
+- `src/core/slowframe_config.c` - Config parsing and validation
 
 **Implementation:**
 - [ ] Move `config_t` structure to config.h
@@ -58,11 +58,11 @@
 **Description:** Unified global state container
 
 **Files to Create:**
-- `src/core/pisstvpp2_context.h` - Global state structure
-- `src/core/pisstvpp2_context.c` - Context lifecycle
+- `src/core/slowframe_context.h` - Global state structure
+- `src/core/slowframe_context.c` - Context lifecycle
 
 **Implementation:**
-- [ ] Create `pisstvpp2_context_t` containing:
+- [ ] Create `slowframe_context_t` containing:
   - Config
   - Image buffer
   - SSTV state
@@ -84,10 +84,10 @@
 **Description:** Replace scattered error handling with unified system
 
 **Files to Update:**
-- `src/pisstvpp2.c` - Main entry point
-- `src/pisstvpp2_image.c` - Image loading
-- `src/pisstvpp2_sstv.c` - SSTV encoding
-- `src/pisstvpp2_audio_encoder.c` - Audio format orchestration
+- `src/slowframe.c` - Main entry point
+- `src/slowframe_image.c` - Image loading
+- `src/slowframe_sstv.c` - SSTV encoding
+- `src/slowframe_audio_encoder.c` - Audio format orchestration
 - `src/audio_encoder_*.c` - Format encoders
 
 **Implementation per file:**
@@ -115,8 +115,8 @@
 - `src/image/image_loader.c` - Implementation
 
 **Files to Modify:**
-- `src/pisstvpp2_image.c` - Remove loading code
-- `src/pisstvpp2_image.h` - Update includes
+- `src/slowframe_image.c` - Remove loading code
+- `src/slowframe_image.h` - Update includes
 
 **Implementation:**
 - [ ] Move vips image loading to image_loader.c
@@ -143,7 +143,7 @@
 - `src/image/image_processor.c` - Implementation
 
 **Files to Modify:**
-- `src/pisstvpp2_image.c` - Remove processing code
+- `src/slowframe_image.c` - Remove processing code
 
 **Implementation:**
 - [ ] Move color space conversion to image_processor.c
@@ -169,7 +169,7 @@
 - `src/image/image_aspect.c` - Implementation
 
 **Files to Modify:**
-- `src/pisstvpp2_image.c` - Remove aspect code
+- `src/slowframe_image.c` - Remove aspect code
 
 **Implementation:**
 - [ ] Move center-crop logic to image_aspect.c
@@ -190,16 +190,16 @@
 ### Task 2.4: Update Main Module for New Image Structure
 **Effort:** 2-3 hours  
 **Status:** Not Started  
-**Description:** Update pisstvpp2.c to use refactored image modules
+**Description:** Update slowframe.c to use refactored image modules
 
 **Files to Modify:**
-- `src/pisstvpp2.c` - Update image calls
+- `src/slowframe.c` - Update image calls
 
 **Implementation:**
 - [ ] Replace `image_load_from_file()` with `image_loader_load()`
 - [ ] Update argument passing to new modular functions
 - [ ] Update error handling for new error codes
-- [ ] Remove old `pisstvpp2_image.c` includes
+- [ ] Remove old `slowframe_image.c` includes
 
 **Testing:**
 - [ ] Verify 55/55 tests pass
@@ -253,7 +253,7 @@
 - `src/sstv/modes_robot.c` - Robot implementations
 
 **Implementation per file:**
-- [ ] Move mode definitions from pisstvpp2_sstv.c
+- [ ] Move mode definitions from slowframe_sstv.c
 - [ ] Create function pointers for encode_frame
 - [ ] Move mode-specific encoding logic
 - [ ] Implement `buildaudio_m()`, `buildaudio_s()`, etc. as mode functions
@@ -334,7 +334,7 @@ const mode_definition_t mode_martin_1 = {
 **Description:** Integrate mode registry into main application
 
 **Files to Modify:**
-- `src/pisstvpp2.c` - Replace SSTV calls
+- `src/slowframe.c` - Replace SSTV calls
 
 **Implementation:**
 - [ ] Create mode registry on startup
@@ -468,7 +468,7 @@ int mmsstv_adapter_init(mode_registry_t *reg) {
 **Description:** Dynamic CLI support reflecting available modes
 
 **Files to Modify:**
-- `src/pisstvpp2.c` - Update show_help() and new functions
+- `src/slowframe.c` - Update show_help() and new functions
 
 **Implementation:**
 - [ ] Create `show_native_modes()` function
@@ -481,7 +481,7 @@ int mmsstv_adapter_init(mode_registry_t *reg) {
 
 **Output Example (with MMSSTV):**
 ```
-Usage: pisstvpp2 -i INPUT -o OUTPUT [OPTIONS]
+Usage: slowframe -i INPUT -o OUTPUT [OPTIONS]
 
 SSTV Modes:
   Native Modes (7):

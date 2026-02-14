@@ -1,5 +1,5 @@
 
-# PiSSTVpp2 v2.1: Complete Development Strategy - Delivery Summary
+# SlowFrame v2.1: Complete Development Strategy - Delivery Summary
 
 **Delivered:** February 10, 2026  
 **Status:** Ready for Implementation  
@@ -24,7 +24,7 @@
 ## The Complete Strategy at a Glance
 
 ### Vision
-Transform PiSSTVpp2 v2.0 into a modern, extensible, community-friendly codebase that:
+Transform SlowFrame v2.0 into a modern, extensible, community-friendly codebase that:
 - ✅ Maintains 100% backward compatibility
 - ✅ Dynamically detects and loads MMSSTV library (50+ new modes)
 - ✅ Scales CLI options based on library availability
@@ -211,7 +211,7 @@ Mode Registry System (Dynamic)
 
 ### Step 1: Understand the Strategy (Today)
 ```bash
-cd /Users/ssamjung/Desktop/WIP/PiSSTVpp2/docs
+cd /Users/ssamjung/Desktop/WIP/SlowFrame/docs
 
 # Read in this order:
 1. PLANNING_DOCUMENTATION_INDEX.md (orientation)       # 5 min
@@ -225,7 +225,7 @@ Total: ~2 hours for complete understanding
 
 ### Step 2: Verify Current State
 ```bash
-cd /Users/ssamjung/Desktop/WIP/PiSSTVpp2
+cd /Users/ssamjung/Desktop/WIP/SlowFrame
 
 # Build current v2.0
 make clean && make all

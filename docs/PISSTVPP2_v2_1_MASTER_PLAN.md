@@ -1,18 +1,18 @@
 
-# PiSSTVpp2 v2.1 - Unified Master Plan & Development Roadmap
+# SlowFrame v2.1 - Unified Master Plan & Development Roadmap
 
 **Complete Strategy for Modernization & MMSSTV Integration**
 
 **Document Version:** 1.0 (Unified)  
 **Date:** February 10, 2026  
 **Status:** Ready for Implementation  
-**Scope:** PiSSTVpp2 v2.1 Modernization & MMSSTV Integration
+**Scope:** SlowFrame v2.1 Modernization & MMSSTV Integration
 
 ---
 
 ## Overview: What This Document Is
 
-This is the **single source of truth** for PiSSTVpp2 v2.1 development. It consolidates all planning, architecture, tasks, and workflow into one coherent strategy.
+This is the **single source of truth** for SlowFrame v2.1 development. It consolidates all planning, architecture, tasks, and workflow into one coherent strategy.
 
 If you're looking for:
 - **Quick overview:** See "Executive Summary" below
@@ -26,7 +26,7 @@ If you're looking for:
 ## Executive Summary
 
 ### Vision
-Transform PiSSTVpp2 v2.0 (solid 7-mode SSTV encoder) into v2.1: a modern, modular, community-friendly codebase that:
+Transform SlowFrame v2.0 (solid 7-mode SSTV encoder) into v2.1: a modern, modular, community-friendly codebase that:
 - ✅ Maintains 100% backward compatibility (all 55 tests pass)
 - ✅ Dynamically detects MMSSTV library (optional, at runtime)
 - ✅ Scales from 7 native modes → 57+ modes (if library present)
@@ -84,7 +84,7 @@ Transform PiSSTVpp2 v2.0 (solid 7-mode SSTV encoder) into v2.1: a modern, modula
 ### A1. Dynamic Mode Registry System
 
 **Current State (v2.0):**
-- 7 native modes hardcoded in `pisstvpp2_sstv.c`
+- 7 native modes hardcoded in `slowframe_sstv.c`
 - No plugin or dynamic mechanism
 - Adding MMSSTV modes requires major rewrite
 
@@ -200,7 +200,7 @@ This section contains all 50+ tasks organized by phase. Each task includes:
 **Success Criteria:** Unified error system ready, tests passing
 
 #### Task 1.2: Create Config Management Module (3-4 hours)
-**Files:** Create `src/core/pisstvpp2_config.h/c`
+**Files:** Create `src/core/slowframe_config.h/c`
 **Checklist:**
 - [ ] Move `config_t` structure to config.h
 - [ ] Create `config_init()` with defaults
@@ -214,9 +214,9 @@ This section contains all 50+ tasks organized by phase. Each task includes:
 **Success Criteria:** Config module works identically to current behavior
 
 #### Task 1.3: Create Context/State Management (3-4 hours)
-**Files:** Create `src/core/pisstvpp2_context.h/c`
+**Files:** Create `src/core/slowframe_context.h/c`
 **Checklist:**
-- [ ] Define `pisstvpp2_context_t` containing:
+- [ ] Define `slowframe_context_t` containing:
   - Config
   - Image buffer
   - SSTV state
@@ -238,10 +238,10 @@ This section contains all 50+ tasks organized by phase. Each task includes:
 - [ ] Update error checking pattern
 - [ ] Add error propagation context
 **Files to update:**
-- [ ] pisstvpp2.c
-- [ ] pisstvpp2_image.c
-- [ ] pisstvpp2_sstv.c
-- [ ] pisstvpp2_audio_encoder.c
+- [ ] slowframe.c
+- [ ] slowframe_image.c
+- [ ] slowframe_sstv.c
+- [ ] slowframe_audio_encoder.c
 - [ ] audio_encoder_*.c
 **Testing:**
 - [ ] All 55 tests pass
@@ -344,7 +344,7 @@ This section contains all 50+ tasks organized by phase. Each task includes:
 **Example Feature Usage:**
 ```bash
 # Add call sign to bottom bar
-./pisstvpp2 -i image.png \
+./slowframe -i image.png \
   --text-overlay-placement bottom \
   --text-overlay-content "K0ABC / EN96" \
   --text-size large \
@@ -353,7 +353,7 @@ This section contains all 50+ tasks organized by phase. Each task includes:
   -m m1 -o output.wav
 
 # Add grid square to top with translucent background
-./pisstvpp2 -i image.png \
+./slowframe -i image.png \
   --text-overlay-placement top \
   --text-overlay-content "EN96ab" \
   --text-size medium \
@@ -362,7 +362,7 @@ This section contains all 50+ tasks organized by phase. Each task includes:
   -m s1 -o output.wav
 
 # Multiple text elements
-./pisstvpp2 -i image.png \
+./slowframe -i image.png \
   --text-overlay "K0ABC/EN96|top|white|black" \
   --text-overlay "2026-02-10|bottom|yellow|black" \
   -m pd120 -o output.wav
@@ -404,7 +404,7 @@ Phase 2 is now 24-26 hours total (up from 16-20 hours):
 - Create `src/sstv/modes_scottie.h/c` (Scottie 1/2/DX)
 - Create `src/sstv/modes_robot.h/c` (Robot 36/72)
 **Checklist per file:**
-- [ ] Move mode definitions from pisstvpp2_sstv.c
+- [ ] Move mode definitions from slowframe_sstv.c
 - [ ] Create function pointers for encode_frame
 - [ ] Implement mode-specific encoding (buildaudio_m(), buildaudio_s(), buildaudio_r36(), buildaudio_r72())
 - [ ] Register with registry in each file
@@ -509,7 +509,7 @@ const mode_definition_t mode_martin_1 = {
 **Success Criteria:** Dynamic mode system fully integrated
 
 #### Task 4.4: Update CLI for Dynamic Modes (3-4 hours)
-**Files:** Modify `src/pisstvpp2.c`
+**Files:** Modify `src/slowframe.c`
 **Checklist:**
 - [ ] Create `show_native_modes()` function
 - [ ] Create `show_mmsstv_modes()` function (if available)
@@ -739,10 +739,10 @@ const mode_definition_t mode_martin_1 = {
 
 ```bash
 # 1. Read the complete plan
-cat /Users/ssamjung/Desktop/WIP/PiSSTVpp2/docs/PISSTVPP2_v2_1_MASTER_PLAN.md | less
+cat /Users/ssamjung/Desktop/WIP/SlowFrame/docs/PISSTVPP2_v2_1_MASTER_PLAN.md | less
 
 # 2. Understand current state
-cd /Users/ssamjung/Desktop/WIP/PiSSTVpp2
+cd /Users/ssamjung/Desktop/WIP/SlowFrame
 git status
 git log --oneline -5
 
@@ -970,7 +970,7 @@ export MMSSTV_INCLUDE_PATH="/path/to/mmsstv/headers"
 pkg-config mmsstv-portable --cflags --libs
 
 # Verify detection
-./bin/pisstvpp2 --mmsstv-status
+./bin/slowframe --mmsstv-status
 ```
 
 ---
@@ -983,14 +983,14 @@ pkg-config mmsstv-portable --cflags --libs
 
 ```bash
 # Basic text overlay on bottom bar with call sign
-./pisstvpp2 -i image.png \
+./slowframe -i image.png \
   --text-overlay "K0ABC/EN96" \
   --text-placement bottom \
   --text-size medium \
   -m m1 -o output.wav
 
 # Detailed control of appearance
-./pisstvpp2 -i image.png \
+./slowframe -i image.png \
   --text-overlay "K0ABC/EN96" \
   --text-placement bottom \
   --text-size large              # small, medium, large, or pixels (e.g., 24)
@@ -1001,7 +1001,7 @@ pkg-config mmsstv-portable --cflags --libs
   -m m1 -o output.wav
 
 # Multiple text lines (FCC compliance)
-./pisstvpp2 -i image.png \
+./slowframe -i image.png \
   --text-overlay-top "K0ABC"         # Station identification
   --text-overlay-bottom "EN96ab"     # Grid square
   --text-size medium \
@@ -1010,7 +1010,7 @@ pkg-config mmsstv-portable --cflags --libs
   -m m1 -o output.wav
 
 # Color bar with text (common for SSTV)
-./pisstvpp2 -i image.png \
+./slowframe -i image.png \
   --color-bar bottom \               # Add solid color bar at bottom
   --bar-height 40 \                  # Bar height in pixels
   --bar-color "0,0,0" \              # Black bar for contrast
@@ -1020,7 +1020,7 @@ pkg-config mmsstv-portable --cflags --libs
   -m m1 -o output.wav
 
 # FCC Part 97 compliant transmission
-./pisstvpp2 -i image.png \
+./slowframe -i image.png \
   --color-bar top \                  # Station ID at top
   --bar-height 30 \
   --bar-color "180,180,180" \       # Light gray

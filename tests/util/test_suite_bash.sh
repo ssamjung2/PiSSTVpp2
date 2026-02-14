@@ -6,7 +6,7 @@
 set -e  # Exit on error
 
 TEST_DIR="test_outputs"
-EXECUTABLE="${1:-./../bin}/pisstvpp2"
+EXECUTABLE="${1:-./../bin}/slowframe"
 FAILED=0
 PASSED=0
 

@@ -6,7 +6,7 @@
 
 ## Summary
 
-A comprehensive text overlay test suite has been created for PiSSTVpp2, providing complete validation of all styling options and realistic QSO (radio contact) scenarios. All tests automatically save intermediate debug PNG images for visual verification.
+A comprehensive text overlay test suite has been created for SlowFrame, providing complete validation of all styling options and realistic QSO (radio contact) scenarios. All tests automatically save intermediate debug PNG images for visual verification.
 
 ## Deliverables
 
@@ -223,7 +223,7 @@ Test Output Structure:
 ### Execute All Tests
 ```bash
 cd tests
-python3 test_text_overlay_comprehensive.py --exe ../bin/pisstvpp2
+python3 test_text_overlay_comprehensive.py --exe ../bin/slowframe
 ```
 
 ### Output Location
@@ -279,7 +279,7 @@ Opens after completion: `comprehensive_results_*.json`
 
 The comprehensive test suite complements existing test infrastructure:
 - Works with `run_all_tests.py` in test suite
-- Uses same binary location (`../bin/pisstvpp2`)
+- Uses same binary location (`../bin/slowframe`)
 - Follows consistent naming conventions
 - Generates JSON results compatible with test framework
 
@@ -303,7 +303,7 @@ Possible additions (not yet needed):
 
 ### Reference
 - [Overlay Specification](../src/include/overlay_spec.h) - Complete parameter reference
-- [Image Implementation](../src/pisstvpp2_image.c) - Rendering code
+- [Image Implementation](../src/slowframe_image.c) - Rendering code
 - [Parser Implementation](../src/overlay_spec.c) - Parameter parsing
 
 ## Conclusion

@@ -1,4 +1,4 @@
-# PiSSTVpp2 Configuration Audit Summary
+# SlowFrame Configuration Audit Summary
 ## Work Completed: February 12, 2026
 
 ---
@@ -10,9 +10,9 @@
 The `-G <grid>` flag has been completely removed from the codebase:
 
 **Files Modified:**
-- `src/pisstvpp2_config.c` - Removed getopt handler and case statement
-- `src/pisstvpp2_config.h` - Removed struct field and constant
-- `src/pisstvpp2.c` - Updated help text
+- `src/slowframe_config.c` - Removed getopt handler and case statement
+- `src/slowframe_config.h` - Removed struct field and constant
+- `src/slowframe.c` - Updated help text
 
 **What was removed:**
 - Command-line flag parsing
@@ -136,24 +136,24 @@ All remaining flags are either working or partially working. No other useless fl
 
 ### For Basic SSTV (Always Works)
 ```
-./pisstvpp2 -i image.jpg                    # Defaults to m1, 22050 Hz, WAV
-./pisstvpp2 -i image.jpg -p r36 -f aiff     # Specific protocol and format
-./pisstvpp2 -i image.jpg -a pad              # Preserve aspect ratio with black bars
+./slowframe -i image.jpg                    # Defaults to m1, 22050 Hz, WAV
+./slowframe -i image.jpg -p r36 -f aiff     # Specific protocol and format
+./slowframe -i image.jpg -a pad              # Preserve aspect ratio with black bars
 ```
 
 ### With CW Morse Signature (Tested & Works)
 ```
-./pisstvpp2 -i image.jpg -C N0CALL          # Default 15 WPM, 800 Hz
-./pisstvpp2 -i image.jpg -C N0CALL -W 20 -Q 1000   # Custom speed and tone
+./slowframe -i image.jpg -C N0CALL          # Default 15 WPM, 800 Hz
+./slowframe -i image.jpg -C N0CALL -W 20 -Q 1000   # Custom speed and tone
 ```
 
 ### With Text Overlay (Use with Verification Tools)
 ```
 # Add callsign at top
-./pisstvpp2 -i image.jpg -S "N0CALL"
+./slowframe -i image.jpg -S "N0CALL"
 
 # Add at bottom with custom font
-./pisstvpp2 -i image.jpg -S "N0CALL" -F 30 -I bottom
+./slowframe -i image.jpg -S "N0CALL" -F 30 -I bottom
 
 # Then verify with tools:
 python3 tests/util/verify_overlay.py output.png \
@@ -162,9 +162,9 @@ python3 tests/util/verify_overlay.py output.png \
 
 ### DO NOT USE (Known Issues)
 ```
-./pisstvpp2 -i image.jpg -G "EM12ab"           # WRONG - flag removed
-./pisstvpp2 -i image.jpg -O "text" -P x -I y   # CONFUSING - use only -P
-./pisstvpp2 -i image.jpg -R "bottom:red,green" # INCOMPLETE - color bars not working
+./slowframe -i image.jpg -G "EM12ab"           # WRONG - flag removed
+./slowframe -i image.jpg -O "text" -P x -I y   # CONFUSING - use only -P
+./slowframe -i image.jpg -R "bottom:red,green" # INCOMPLETE - color bars not working
 ```
 
 ---
@@ -219,9 +219,9 @@ def test_overlay_verification():
     import subprocess
     import json
     
-    # Run pisstvpp2 with overlay
+    # Run slowframe with overlay
     result = subprocess.run([
-        './pisstvpp2', 
+        './slowframe', 
         '-i', 'tests/images/sample.png',
         '-S', 'N0CALL',
         '-o', 'tests/test_outputs/test.wav'

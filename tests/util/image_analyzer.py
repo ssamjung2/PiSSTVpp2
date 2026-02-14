@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Image Analyzer for PiSSTVpp2 Output Verification
+Image Analyzer for SlowFrame Output Verification
 
 Analyzes SSTV output images to verify:
 - Text overlays were applied correctly

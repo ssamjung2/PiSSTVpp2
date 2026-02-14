@@ -71,10 +71,10 @@ Transmits audio as FM signal using Raspberry Pi's GPIO and clock circuits. Origi
 
 ### Legacy Code Separation
 
-The legacy components are completely independent of PiSSTVpp2:
+The legacy components are completely independent of SlowFrame:
 
 ```
-PiSSTVpp2 (v2.0)
+SlowFrame (v2.0)
 ├── Modern architecture with libvips
 ├── Multiple audio codecs (WAV/AIFF/OGG)
 ├── Cross-platform support
@@ -83,13 +83,13 @@ PiSSTVpp2 (v2.0)
 src/legacy/
 ├── pisstvpp.c        (v1.0 - uses libgd/libmagic)
 └── pifm_sstv.c       (RPi hardware specific)
-    └── No dependencies on PiSSTVpp2
+    └── No dependencies on SlowFrame
 ```
 
 **Rationale for Separation:**
 
-1. **Different Dependencies:** PiSSTVpp2 uses libvips, legacy uses libgd
-2. **Different Architectures:** PiSSTVpp2 is modular, legacy is monolithic
+1. **Different Dependencies:** SlowFrame uses libvips, legacy uses libgd
+2. **Different Architectures:** SlowFrame is modular, legacy is monolithic
 3. **Different Target Audiences:** Legacy tools used independently
 4. **Maintenance Isolation:** Changes to one don't affect the other
 5. **Historical Reference:** Shows original implementation approach
@@ -156,7 +156,7 @@ sudo ./bin/pifm photo.jpg.wav 145.5 22050
 
 ## Comparison: Legacy vs. Modern
 
-### PiSSTVpp (Legacy v1.0) vs. PiSSTVpp2 (v2.0)
+### PiSSTVpp (Legacy v1.0) vs. SlowFrame (v2.0)
 
 | Aspect | Legacy (v1.0) | Modern (v2.0) |
 |--------|---------------|---------------|
@@ -172,7 +172,7 @@ sudo ./bin/pifm photo.jpg.wav 145.5 22050
 | **Build System** | Simple | Comprehensive |
 | **Performance** | Good | Optimized |
 
-**Recommendation:** Use **PiSSTVpp2** for new projects. Legacy tools are retained for:
+**Recommendation:** Use **SlowFrame** for new projects. Legacy tools are retained for:
 - Historical reference
 - Backward compatibility
 - Specific use cases where original tools preferred
@@ -268,8 +268,8 @@ make -f Makefile.legacy clean
 
 - [LEGACY_CODE_ANALYSIS.md](./LEGACY_CODE_ANALYSIS.md) - Detailed code analysis
 - [LEGACY_BUILD.md](./LEGACY_BUILD.md) - Build instructions
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - PiSSTVpp2 modern architecture
-- [USER_GUIDE.md](./USER_GUIDE.md) - PiSSTVpp2 usage guide
+- [ARCHITECTURE.md](./ARCHITECTURE.md) - SlowFrame modern architecture
+- [USER_GUIDE.md](./USER_GUIDE.md) - SlowFrame usage guide
 
 ---
 

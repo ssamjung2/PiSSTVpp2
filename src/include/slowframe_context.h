@@ -1,9 +1,9 @@
 /**
- * @file pisstvpp2_context.h
- * @brief PiSSTVpp2 Application Context and State Management
+ * @file slowframe_context.h
+ * @brief SlowFrame Application Context and State Management
  *
  * This module provides centralized application state management and lifecycle
- * control for pisstvpp2. It encapsulates:
+ * control for slowframe. It encapsulates:
  *
  * - Application configuration (command-line parameters)
  * - Image processing state and resources
@@ -33,22 +33,22 @@
  * ## Usage Pattern
  *
  * @code
- * PisstvppContext ctx;
- * int result = pisstvpp_context_init(&ctx, &config);
- * if (result != PISSTVPP2_OK) {
+ * SlowframeContext ctx;
+ * int result = slowframe_context_init(&ctx, &config);
+ * if (result != SLOWFRAME_OK) {
  *     error_log(result, "Failed to initialize context");
  *     return 1;
  * }
  *
  * // Modules now have access to config and state via context
  * result = process_image(&ctx);
- * if (result != PISSTVPP2_OK) {
+ * if (result != SLOWFRAME_OK) {
  *     error_log(result, "Image processing failed");
- *     pisstvpp_context_cleanup(&ctx);
+ *     slowframe_context_cleanup(&ctx);
  *     return 1;
  * }
  *
- * pisstvpp_context_cleanup(&ctx);
+ * slowframe_context_cleanup(&ctx);
  * @endcode
  *
  * ## Thread Safety
@@ -64,15 +64,15 @@
  * Errors during initialization trigger automatic cleanup of partially-
  * initialized subsystems.
  *
- * @author PiSSTVpp2 Contributors
+ * @author SlowFrame Contributors
  * @version 2.1.0
  * @date February 2026
  */
 
-#ifndef PISSTVPP2_CONTEXT_H
-#define PISSTVPP2_CONTEXT_H
+#ifndef SLOWFRAME_CONTEXT_H
+#define SLOWFRAME_CONTEXT_H
 
-#include "pisstvpp2_config.h"
+#include "slowframe_config.h"
 #include <vips/vips.h>
 
 // ===========================================================================
@@ -80,9 +80,9 @@
 // ===========================================================================
 
 // Opaque pointers to module-specific state
-typedef struct PisstvppImageState PisstvppImageState;
-typedef struct PisstvppSSTVState PisstvppSSTVState;
-typedef struct PisstvppAudioState PisstvppAudioState;
+typedef struct SlowframeImageState SlowframeImageState;
+typedef struct SlowframeSSTVState SlowframeSSTVState;
+typedef struct SlowframeAudioState SlowframeAudioState;
 
 // ===========================================================================
 // STRUCTURES
@@ -108,16 +108,16 @@ typedef struct PisstvppAudioState PisstvppAudioState;
  *
  * **Configuration Reference:**
  * The context holds ownership of the config structure. It's initialized by
- * pisstvpp_context_init and cleaned up by pisstvpp_context_cleanup.
+ * slowframe_context_init and cleaned up by slowframe_context_cleanup.
  */
 typedef struct {
     // Configuration (owned by context)
-    PisstvppConfig config;
+    SlowframeConfig config;
 
     // Module state (opaque pointers to hide implementation)
-    PisstvppImageState *image_state;        /**< Image processing module state */
-    PisstvppSSTVState *sstv_state;          /**< SSTV encoding module state */
-    PisstvppAudioState *audio_state;        /**< Audio encoder module state */
+    SlowframeImageState *image_state;        /**< Image processing module state */
+    SlowframeSSTVState *sstv_state;          /**< SSTV encoding module state */
+    SlowframeAudioState *audio_state;        /**< Audio encoder module state */
 
     // Lifecycle tracking
     int config_initialized;                 /**< Config parsing completed */
@@ -128,7 +128,7 @@ typedef struct {
     // libvips state (shared across modules)
     int vips_initialized;                   /**< libvips is initialized */
 
-} PisstvppContext;
+} SlowframeContext;
 
 // ===========================================================================
 // PUBLIC FUNCTION DECLARATIONS
@@ -147,23 +147,23 @@ typedef struct {
  * **Error Handling:**
  * If any step fails, automatic cleanup of successfully initialized steps
  * is performed (in reverse order). The context is left in a clean state
- * suitable for immediate pisstvpp_context_cleanup().
+ * suitable for immediate slowframe_context_cleanup().
  *
- * @param ctx Pointer to uninitialized PisstvppContext
- * @param config Pointer to valid PisstvppConfig (created bytes pisstvpp_config_parse)
- * @return Error code (PISSTVPP2_OK on success, error code on failure)
+ * @param ctx Pointer to uninitialized SlowframeContext
+ * @param config Pointer to valid SlowframeConfig (created bytes slowframe_config_parse)
+ * @return Error code (SLOWFRAME_OK on success, error code on failure)
  *
- * @retval PISSTVPP2_OK Successfully initialized all subsystems
- * @retval PISSTVPP2_ERR_ARG_INVALID_PROTOCOL Config has invalid protocol
- * @retval PISSTVPP2_ERR_ARG_INVALID_FORMAT Config has invalid format
- * @retval PISSTVPP2_ERR_MEMORY_ALLOC Failed to allocate module state
- * @retval PISSTVPP2_ERR_SSTV_INIT SSTV module initialization failed
- * @retval PISSTVPP2_ERR_AUDIO_ENCODE Audio encoder initialization failed
+ * @retval SLOWFRAME_OK Successfully initialized all subsystems
+ * @retval SLOWFRAME_ERR_ARG_INVALID_PROTOCOL Config has invalid protocol
+ * @retval SLOWFRAME_ERR_ARG_INVALID_FORMAT Config has invalid format
+ * @retval SLOWFRAME_ERR_MEMORY_ALLOC Failed to allocate module state
+ * @retval SLOWFRAME_ERR_SSTV_INIT SSTV module initialization failed
+ * @retval SLOWFRAME_ERR_AUDIO_ENCODE Audio encoder initialization failed
  *
  * @note The context takes ownership of config's memory (does not copy)
  * @note libvips must not be already initialized (this function initializes it)
  */
-int pisstvpp_context_init(PisstvppContext *ctx, PisstvppConfig *config);
+int slowframe_context_init(SlowframeContext *ctx, SlowframeConfig *config);
 
 /**
  * @brief Clean up application context and release all resources
@@ -177,7 +177,7 @@ int pisstvpp_context_init(PisstvppContext *ctx, PisstvppConfig *config);
  * Each cleanup step only executes if that subsystem was successfully
  * initialized, preventing errors from double-cleanup attempts.
  *
- * @param ctx Pointer to PisstvppContext (may be partially initialized)
+ * @param ctx Pointer to SlowframeContext (may be partially initialized)
  *
  * @note Safe to call on:
  *   - Fully initialized context
@@ -186,7 +186,7 @@ int pisstvpp_context_init(PisstvppContext *ctx, PisstvppConfig *config);
  *   - Already-cleaned-up context (no-op)
  * @note Idempotent: calling multiple times is safe
  */
-void pisstvpp_context_cleanup(PisstvppContext *ctx);
+void slowframe_context_cleanup(SlowframeContext *ctx);
 
 /**
  * @brief Check if all required subsystems are initialized
@@ -194,13 +194,13 @@ void pisstvpp_context_cleanup(PisstvppContext *ctx);
  * Performs a quick validation that the context is ready for use by
  * confirming all required initialization steps completed.
  *
- * @param ctx Pointer to PisstvppContext to check
+ * @param ctx Pointer to SlowframeContext to check
  * @return 1 if fully initialized, 0 if any subsystem is missing
  *
  * @note This is primarily a safety check; in normal flow, successful
- *       pisstvpp_context_init() guarantees this will return 1
+ *       slowframe_context_init() guarantees this will return 1
  */
-int pisstvpp_context_is_valid(const PisstvppContext *ctx);
+int slowframe_context_is_valid(const SlowframeContext *ctx);
 
 /**
  * @brief Get configuration from context (const access)
@@ -209,12 +209,12 @@ int pisstvpp_context_is_valid(const PisstvppContext *ctx);
  * should access config parameters through the context to ensure consistency.
  *
  * @param ctx Context to query
- * @return Pointer to const PisstvppConfig (guaranteed non-NULL)
+ * @return Pointer to const SlowframeConfig (guaranteed non-NULL)
  *
  * @note Return value is const; modules must request changes through
  *       a formal config update mechanism (not yet implemented)
  */
-const PisstvppConfig* pisstvpp_context_get_config(const PisstvppContext *ctx);
+const SlowframeConfig* slowframe_context_get_config(const SlowframeContext *ctx);
 
 /**
  * @brief Print context state to output for debugging
@@ -230,7 +230,7 @@ const PisstvppConfig* pisstvpp_context_get_config(const PisstvppContext *ctx);
  *
  * @note Outputs to stdout via error_log and similar functions
  */
-void pisstvpp_context_print_state(const PisstvppContext *ctx);
+void slowframe_context_print_state(const SlowframeContext *ctx);
 
 /**
  * @brief Get opaque pointer to image module state
@@ -244,7 +244,7 @@ void pisstvpp_context_print_state(const PisstvppContext *ctx);
  * @note Module state structure is defined in image.c; definition not
  *       exposed in header to prevent circular dependencies
  */
-PisstvppImageState* pisstvpp_context_get_image_state(PisstvppContext *ctx);
+SlowframeImageState* slowframe_context_get_image_state(SlowframeContext *ctx);
 
 /**
  * @brief Get opaque pointer to SSTV module state
@@ -258,7 +258,7 @@ PisstvppImageState* pisstvpp_context_get_image_state(PisstvppContext *ctx);
  * @note Module state structure is defined in sstv.c; definition not
  *       exposed in header to prevent circular dependencies
  */
-PisstvppSSTVState* pisstvpp_context_get_sstv_state(PisstvppContext *ctx);
+SlowframeSSTVState* slowframe_context_get_sstv_state(SlowframeContext *ctx);
 
 /**
  * @brief Get opaque pointer to audio encoder state
@@ -272,6 +272,7 @@ PisstvppSSTVState* pisstvpp_context_get_sstv_state(PisstvppContext *ctx);
  * @note Module state structure is defined in audio_encoder.c; definition
  *       not exposed in header to prevent circular dependencies
  */
-PisstvppAudioState* pisstvpp_context_get_audio_state(PisstvppContext *ctx);
+SlowframeAudioState* slowframe_context_get_audio_state(SlowframeContext *ctx);
 
-#endif // PISSTVPP2_CONTEXT_H
+#endif // SLOWFRAME_CONTEXT_H
+

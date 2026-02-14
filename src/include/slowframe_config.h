@@ -1,8 +1,8 @@
 /**
- * @file pisstvpp2_config.h
- * @brief PiSSTVpp2 Configuration Management Module
+ * @file slowframe_config.h
+ * @brief SlowFrame Configuration Management Module
  *
- * This module provides centralized configuration management for pisstvpp2.
+ * This module provides centralized configuration management for slowframe.
  * It handles:
  * - Command-line argument parsing and validation
  * - Configuration defaults and constraints
@@ -10,7 +10,7 @@
  * - Platform-agnostic error handling using error codes
  *
  * ## Architecture
- * The config module uses a single `PisstvppConfig` structure to encapsulate
+ * The config module uses a single `SlowframeConfig` structure to encapsulate
  * all application settings. This enables:
  * - Easy extension with new options
  * - Clean separation of parsing from application logic
@@ -19,24 +19,24 @@
  *
  * ## Usage Pattern
  * @code
- * PisstvppConfig config;
- * int result = pisstvpp_config_init(&config);
- * if (result != PISSTVPP2_OK) {
+ * SlowframeConfig config;
+ * int result = slowframe_config_init(&config);
+ * if (result != SLOWFRAME_OK) {
  *     error_log(result, "Failed to initialize config");
  *     return 1;
  * }
  *
- * result = pisstvpp_config_parse(&config, argc, argv);
- * if (result != PISSTVPP2_OK) {
+ * result = slowframe_config_parse(&config, argc, argv);
+ * if (result != SLOWFRAME_OK) {
  *     error_log(result, "Invalid arguments");
- *     pisstvpp_config_cleanup(&config);
+ *     slowframe_config_cleanup(&config);
  *     return 1;
  * }
  *
  * // Config now contains all validated parameters
  * process_image(config.input_file, config.protocol, config.sample_rate);
  *
- * pisstvpp_config_cleanup(&config);
+ * slowframe_config_cleanup(&config);
  * @endcode
  *
  * ## Aspect Ratio Modes
@@ -50,27 +50,27 @@
  * - OGG: Optional (requires libvorbis + libogg)
  *
  * ## Error Codes (100-199 range)
- * - PISSTVPP2_ERR_NO_INPUT_FILE: No input file specified
- * - PISSTVPP2_ERR_ARG_INVALID_PROTOCOL: Unknown SSTV protocol
- * - PISSTVPP2_ERR_ARG_INVALID_FORMAT: Unsupported audio format
- * - PISSTVPP2_ERR_ARG_INVALID_SAMPLE_RATE: Sample rate out of range
- * - PISSTVPP2_ERR_ARG_INVALID_ASPECT: Unknown aspect ratio mode
- * - PISSTVPP2_ERR_ARG_CALLSIGN_INVALID: Callsign too long or invalid
- * - PISSTVPP2_ERR_ARG_CW_INVALID_WPM: WPM out of valid range
- * - PISSTVPP2_ERR_ARG_CW_INVALID_TONE: Tone frequency out of range
- * - PISSTVPP2_ERR_ARG_CW_MISSING_CALLSIGN: -W/-T used without -C
- * - PISSTVPP2_ERR_ARG_FILENAME_TOO_LONG: Path exceeds 254 characters
+ * - SLOWFRAME_ERR_NO_INPUT_FILE: No input file specified
+ * - SLOWFRAME_ERR_ARG_INVALID_PROTOCOL: Unknown SSTV protocol
+ * - SLOWFRAME_ERR_ARG_INVALID_FORMAT: Unsupported audio format
+ * - SLOWFRAME_ERR_ARG_INVALID_SAMPLE_RATE: Sample rate out of range
+ * - SLOWFRAME_ERR_ARG_INVALID_ASPECT: Unknown aspect ratio mode
+ * - SLOWFRAME_ERR_ARG_CALLSIGN_INVALID: Callsign too long or invalid
+ * - SLOWFRAME_ERR_ARG_CW_INVALID_WPM: WPM out of valid range
+ * - SLOWFRAME_ERR_ARG_CW_INVALID_TONE: Tone frequency out of range
+ * - SLOWFRAME_ERR_ARG_CW_MISSING_CALLSIGN: -W/-T used without -C
+ * - SLOWFRAME_ERR_ARG_FILENAME_TOO_LONG: Path exceeds 254 characters
  *
- * @author PiSSTVpp2 Contributors
+ * @author SlowFrame Contributors
  * @version 2.1.0
  * @date February 2026
  */
 
-#ifndef PISSTVPP2_CONFIG_H
-#define PISSTVPP2_CONFIG_H
+#ifndef SLOWFRAME_CONFIG_H
+#define SLOWFRAME_CONFIG_H
 
 #include <stdint.h>
-#include "pisstvpp2_image.h"
+#include "slowframe_image.h"
 #include "overlay_spec.h"
 
 // ===========================================================================
@@ -175,7 +175,7 @@ typedef struct {
     int skip_audio_encoding;                        /**< 1 to skip SSTV audio encoding (overlay testing only) */
     int text_only;                                  /**< 1 to skip aspect ratio and resizing (only applies with -N) */
 
-} PisstvppConfig;
+} SlowframeConfig;
 
 // ===========================================================================
 // PUBLIC FUNCTION DECLARATIONS
@@ -187,13 +187,13 @@ typedef struct {
  * Sets all configuration parameters to their default values. Must be called
  * before any other config operation.
  *
- * @param config Pointer to PisstvppConfig structure to initialize
- * @return Error code (PISSTVPP2_OK on success, error code on failure)
+ * @param config Pointer to SlowframeConfig structure to initialize
+ * @return Error code (SLOWFRAME_OK on success, error code on failure)
  *
  * @note This function initializes the structure with safe defaults. It does
  *       not perform any validation - that happens during parse.
  */
-int pisstvpp_config_init(PisstvppConfig *config);
+int slowframe_config_init(SlowframeConfig *config);
 
 /**
  * @brief Parse command-line arguments into configuration
@@ -217,25 +217,25 @@ int pisstvpp_config_init(PisstvppConfig *config);
  * - `-K` Keep intermediate processed images (debugging)
  * - `-h` Show help text
  *
- * @param config Pointer to PisstvppConfig structure to populate
+ * @param config Pointer to SlowframeConfig structure to populate
  * @param argc Command-line argument count
  * @param argv Command-line argument vector
- * @return Error code (PISSTVPP2_OK on success, error code on failure)
+ * @return Error code (SLOWFRAME_OK on success, error code on failure)
  *
- * @retval PISSTVPP2_OK All arguments parsed and validated successfully
- * @retval PISSTVPP2_ERR_NO_INPUT_FILE No -i option provided
- * @retval PISSTVPP2_ERR_ARG_INVALID_PROTOCOL Unknown protocol specified
- * @retval PISSTVPP2_ERR_ARG_INVALID_FORMAT Unsupported audio format
- * @retval PISSTVPP2_ERR_ARG_INVALID_SAMPLE_RATE Sample rate out of range
- * @retval PISSTVPP2_ERR_ARG_INVALID_ASPECT Unknown aspect mode
- * @retval PISSTVPP2_ERR_ARG_CALLSIGN_INVALID Callsign too long
- * @retval PISSTVPP2_ERR_ARG_FILENAME_TOO_LONG File path too long
+ * @retval SLOWFRAME_OK All arguments parsed and validated successfully
+ * @retval SLOWFRAME_ERR_NO_INPUT_FILE No -i option provided
+ * @retval SLOWFRAME_ERR_ARG_INVALID_PROTOCOL Unknown protocol specified
+ * @retval SLOWFRAME_ERR_ARG_INVALID_FORMAT Unsupported audio format
+ * @retval SLOWFRAME_ERR_ARG_INVALID_SAMPLE_RATE Sample rate out of range
+ * @retval SLOWFRAME_ERR_ARG_INVALID_ASPECT Unknown aspect mode
+ * @retval SLOWFRAME_ERR_ARG_CALLSIGN_INVALID Callsign too long
+ * @retval SLOWFRAME_ERR_ARG_FILENAME_TOO_LONG File path too long
  *
  * @note The function shows help text (-h) and returns success without
  *       further parsing. Check config->input_file to distinguish normal
  *       help display from actual parsing.
  */
-int pisstvpp_config_parse(PisstvppConfig *config, int argc, char *argv[]);
+int slowframe_config_parse(SlowframeConfig *config, int argc, char *argv[]);
 
 /**
  * @brief Finalize current overlay and add to overlay list
@@ -244,17 +244,17 @@ int pisstvpp_config_parse(PisstvppConfig *config, int argc, char *argv[]);
  * CLI parsing completes. Moves the overlay from current_overlay pointer
  * to the overlay_specs list.
  *
- * @param config Pointer to PisstvppConfig with current_overlay set
- * @return Error code (PISSTVPP2_OK on success, error code on failure)
+ * @param config Pointer to SlowframeConfig with current_overlay set
+ * @return Error code (SLOWFRAME_OK on success, error code on failure)
  *
- * @retval PISSTVPP2_OK Overlay successfully added to list
- * @retval PISSTVPP2_ERR_MEMORY_ALLOC Memory allocation failed
- * @retval PISSTVPP2_ERR_ARG_INVALID_PROTOCOL Invalid overlay specification
+ * @retval SLOWFRAME_OK Overlay successfully added to list
+ * @retval SLOWFRAME_ERR_MEMORY_ALLOC Memory allocation failed
+ * @retval SLOWFRAME_ERR_ARG_INVALID_PROTOCOL Invalid overlay specification
  *
  * @note Sets current_overlay to NULL after finalization
  * @note Safe to call with NULL current_overlay (no-op)
  */
-int pisstvpp_config_finalize_current_overlay(PisstvppConfig *config);
+int slowframe_config_finalize_current_overlay(SlowframeConfig *config);
 
 /**
  * @brief Validate complete configuration for consistency
@@ -263,16 +263,16 @@ int pisstvpp_config_finalize_current_overlay(PisstvppConfig *config);
  * For example, verifies that CW WPM/tone parameters are only used with
  * a callsign.
  *
- * @param config Pointer to PisstvppConfig to validate
- * @return Error code (PISSTVPP2_OK if valid, error code if issues found)
+ * @param config Pointer to SlowframeConfig to validate
+ * @return Error code (SLOWFRAME_OK if valid, error code if issues found)
  *
- * @retval PISSTVPP2_OK Configuration is internally consistent
- * @retval PISSTVPP2_ERR_ARG_CW_MISSING_CALLSIGN -W/-T used without -C
+ * @retval SLOWFRAME_OK Configuration is internally consistent
+ * @retval SLOWFRAME_ERR_ARG_CW_MISSING_CALLSIGN -W/-T used without -C
  *
- * @note This is automatically called by pisstvpp_config_parse(), but can
+ * @note This is automatically called by slowframe_config_parse(), but can
  *       be called independently if configuration is modified after parsing.
  */
-int pisstvpp_config_validate(const PisstvppConfig *config);
+int slowframe_config_validate(const SlowframeConfig *config);
 
 /**
  * @brief Get human-readable protocol name
@@ -285,7 +285,7 @@ int pisstvpp_config_validate(const PisstvppConfig *config);
  *
  * @note The returned pointer points to static memory; do not free
  */
-const char* pisstvpp_config_get_protocol_name(const char *protocol);
+const char* slowframe_config_get_protocol_name(const char *protocol);
 
 /**
  * @brief Print current configuration to output stream
@@ -293,11 +293,11 @@ const char* pisstvpp_config_get_protocol_name(const char *protocol);
  * Outputs a human-readable summary of all configuration parameters.
  * Useful for debugging and verbose mode output.
  *
- * @param config Pointer to PisstvppConfig to display
+ * @param config Pointer to SlowframeConfig to display
  *
  * @note Outputs to stdout; uses the logging module for consistency
  */
-void pisstvpp_config_print(const PisstvppConfig *config);
+void slowframe_config_print(const SlowframeConfig *config);
 
 /**
  * @brief Check if audio format is locally supported
@@ -318,7 +318,7 @@ void pisstvpp_config_print(const PisstvppConfig *config);
  * @note This replaces the separate audio_encoder_is_format_supported()
  *       function, centralizing format support queries to the config module
  */
-int pisstvpp_config_is_format_supported(const char *format);
+int slowframe_config_is_format_supported(const char *format);
 
 /**
  * @brief Check if protocol is valid
@@ -333,7 +333,7 @@ int pisstvpp_config_is_format_supported(const char *format);
  * @param protocol Protocol code to validate (e.g., "m1", "s2")
  * @return 1 if valid, 0 if not valid
  */
-int pisstvpp_config_is_protocol_valid(const char *protocol);
+int slowframe_config_is_protocol_valid(const char *protocol);
 
 /**
  * @brief Clean up configuration resources
@@ -342,11 +342,11 @@ int pisstvpp_config_is_protocol_valid(const char *protocol);
  * configuration. For current implementation, this is mostly a noop
  * but allows future extension (e.g., if config includes strdup'd strings).
  *
- * @param config Pointer to PisstvppConfig to clean up
+ * @param config Pointer to SlowframeConfig to clean up
  *
  * @note Safe to call multiple times; subsequent calls are noops
  */
-void pisstvpp_config_cleanup(PisstvppConfig *config);
+void slowframe_config_cleanup(SlowframeConfig *config);
 
 /**
  * @brief Generate output filename from input
@@ -363,7 +363,7 @@ void pisstvpp_config_cleanup(PisstvppConfig *config);
  *
  * @note Modifies config->output_file in place
  */
-int pisstvpp_config_autogen_output_filename(PisstvppConfig *config);
+int slowframe_config_autogen_output_filename(SlowframeConfig *config);
 
 /**
  * @brief Display detailed help message with all options, styling, and examples
@@ -373,6 +373,7 @@ int pisstvpp_config_autogen_output_filename(PisstvppConfig *config);
  *
  * @param program_name The name of the program (typically argv[0])
  */
-void pisstvpp_config_show_detailed_help(const char *program_name);
+void slowframe_config_show_detailed_help(const char *program_name);
 
-#endif // PISSTVPP2_CONFIG_H
+#endif // SLOWFRAME_CONFIG_H
+

@@ -1,11 +1,11 @@
 /*
- * pisstvpp2_mmsstv_adapter.h
+ * slowframe_mmsstv_adapter.h
  *
- * MMSSTV Library Integration Adapter for PiSSTVpp2
+ * MMSSTV Library Integration Adapter for SlowFrame
  *
- * This module provides the integration layer between PiSSTVpp2 and the
+ * This module provides the integration layer between SlowFrame and the
  * mmsstv-portable library. It handles:
- * - Mode translation between PiSSTVpp2 and MMSSTV formats
+ * - Mode translation between SlowFrame and MMSSTV formats
  * - Pixel access delegation to image module
  * - Audio buffer management and delegation
  * - Configuration parameter mapping
@@ -24,8 +24,8 @@
  * Status: Development - Ready for mmsstv-portable completion
  */
 
-#ifndef PISSTVPP2_MMSSTV_ADAPTER_H
-#define PISSTVPP2_MMSSTV_ADAPTER_H
+#ifndef SLOWFRAME_MMSSTV_ADAPTER_H
+#define SLOWFRAME_MMSSTV_ADAPTER_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -58,7 +58,7 @@ extern "C" {
    ============================================================================ */
 
 /**
- * Maps PiSSTVpp2 protocol strings to mode identifiers.
+ * Maps SlowFrame protocol strings to mode identifiers.
  * Supports both legacy and MMSSTV modes.
  */
 typedef struct {
@@ -77,7 +77,7 @@ typedef struct {
 
 /**
  * Opaque adapter context.
- * Manages state for MMSSTV encoding with PiSSTVpp2.
+ * Manages state for MMSSTV encoding with SlowFrame.
  */
 typedef struct mmsstv_adapter_ctx mmsstv_adapter_ctx_t;
 
@@ -185,7 +185,7 @@ void mmsstv_adapter_destroy(mmsstv_adapter_ctx_t *ctx);
 
 /**
  * Configure adapter to use legacy SSTV module.
- * Only called for modes handled by pisstvpp2_sstv.c (m1, m2, s1, s2, sdx, r36, r72).
+ * Only called for modes handled by slowframe_sstv.c (m1, m2, s1, s2, sdx, r36, r72).
  *
  * @param ctx Encoder context
  * @return 0 on success, -1 on error
@@ -246,7 +246,7 @@ uint32_t mmsstv_adapter_estimate_samples(
 
 /**
  * Internal pixel callback for MMSSTV library.
- * Delegates to PiSSTVpp2 image module.
+ * Delegates to SlowFrame image module.
  * DO NOT CALL DIRECTLY - Used internally by adapter.
  */
 int mmsstv_adapter_pixel_callback(
@@ -257,7 +257,7 @@ int mmsstv_adapter_pixel_callback(
 
 /**
  * Internal audio callback for MMSSTV library.
- * Writes to PiSSTVpp2 audio buffer.
+ * Writes to SlowFrame audio buffer.
  * DO NOT CALL DIRECTLY - Used internally by adapter.
  */
 int mmsstv_adapter_audio_callback(
@@ -296,4 +296,5 @@ const char* mmsstv_adapter_get_error(void);
 }
 #endif
 
-#endif /* PISSTVPP2_MMSSTV_ADAPTER_H */
+#endif /* SLOWFRAME_MMSSTV_ADAPTER_H */
+

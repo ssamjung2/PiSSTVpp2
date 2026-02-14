@@ -1,11 +1,11 @@
 /*
- * pisstvpp2_image.c
+ * slowframe_image.c
  * 
- * Image processing module for PiSSTVpp2
+ * Image processing module for SlowFrame
  * Implements image loading, resizing, aspect ratio correction, and debug export
  */
 
-#include "pisstvpp2_image.h"
+#include "slowframe_image.h"
 #include "error.h"
 #include "logging.h"
 #include "overlay_spec.h"
@@ -78,20 +78,20 @@ static void clear_image_state(void) {
 /**
  * buffer_vips_image
  * Convert a VipsImage to internal pixel buffer
- * Returns PISSTVPP2_OK on success, error code on failure
+ * Returns SLOWFRAME_OK on success, error code on failure
  */
 static int buffer_vips_image(VipsImage *image, int verbose, int timestamp_logging) {
     if (!image) {
-        error_log(PISSTVPP2_ERR_IMAGE_LOAD, "No image to buffer");
-        return PISSTVPP2_ERR_IMAGE_LOAD;
+        error_log(SLOWFRAME_ERR_IMAGE_LOAD, "No image to buffer");
+        return SLOWFRAME_ERR_IMAGE_LOAD;
     }
 
     /* Ensure image is in RGB format */
     VipsImage *rgb_image = NULL;
     if (vips_colourspace(image, &rgb_image, VIPS_INTERPRETATION_sRGB, NULL)) {
-        error_log(PISSTVPP2_ERR_IMAGE_PROCESS, "Colorspace conversion failed: %s", vips_error_buffer());
+        error_log(SLOWFRAME_ERR_IMAGE_PROCESS, "Colorspace conversion failed: %s", vips_error_buffer());
         vips_error_clear();
-        return PISSTVPP2_ERR_IMAGE_PROCESS;
+        return SLOWFRAME_ERR_IMAGE_PROCESS;
     }
 
     /* Replace with RGB version if conversion needed */
@@ -103,9 +103,9 @@ static int buffer_vips_image(VipsImage *image, int verbose, int timestamp_loggin
     /* Allocate buffer structure */
     ImageBuffer *buf = (ImageBuffer *)malloc(sizeof(ImageBuffer));
     if (!buf) {
-        error_log(PISSTVPP2_ERR_MEMORY_ALLOC, "Failed to allocate ImageBuffer structure");
+        error_log(SLOWFRAME_ERR_MEMORY_ALLOC, "Failed to allocate ImageBuffer structure");
         g_object_unref(image);
-        return PISSTVPP2_ERR_MEMORY_ALLOC;
+        return SLOWFRAME_ERR_MEMORY_ALLOC;
     }
 
     /* Get metadata */
@@ -117,11 +117,11 @@ static int buffer_vips_image(VipsImage *image, int verbose, int timestamp_loggin
     int data_size = buf->height * buf->rowstride;
     buf->data = (uint8_t *)malloc(data_size);
     if (!buf->data) {
-        error_log(PISSTVPP2_ERR_MEMORY_ALLOC, "Failed to allocate %d bytes for pixel data (image %dx%d, %d bytes/row)", 
+        error_log(SLOWFRAME_ERR_MEMORY_ALLOC, "Failed to allocate %d bytes for pixel data (image %dx%d, %d bytes/row)", 
                 data_size, buf->width, buf->height, buf->rowstride);
         free(buf);
         g_object_unref(image);
-        return PISSTVPP2_ERR_MEMORY_ALLOC;
+        return SLOWFRAME_ERR_MEMORY_ALLOC;
     }
 
     log_verbose(verbose, timestamp_logging, "   --> Buffering %dx%d RGB image (%d bytes)...\n", buf->width, buf->height, data_size);
@@ -129,33 +129,33 @@ static int buffer_vips_image(VipsImage *image, int verbose, int timestamp_loggin
     /* Prepare image region and copy data */
     VipsRegion *region = vips_region_new(image);
     if (!region) {
-        error_log(PISSTVPP2_ERR_IMAGE_PROCESS, "Failed to create VipsRegion for image");
+        error_log(SLOWFRAME_ERR_IMAGE_PROCESS, "Failed to create VipsRegion for image");
         free(buf->data);
         free(buf);
         g_object_unref(image);
-        return PISSTVPP2_ERR_IMAGE_PROCESS;
+        return SLOWFRAME_ERR_IMAGE_PROCESS;
     }
 
     VipsRect rect = { 0, 0, image->Xsize, image->Ysize };
     if (vips_region_prepare(region, &rect)) {
-        error_log(PISSTVPP2_ERR_IMAGE_PROCESS, "Failed to prepare image region: %s", vips_error_buffer());
+        error_log(SLOWFRAME_ERR_IMAGE_PROCESS, "Failed to prepare image region: %s", vips_error_buffer());
         vips_error_clear();
         g_object_unref(region);
         free(buf->data);
         free(buf);
         g_object_unref(image);
-        return PISSTVPP2_ERR_IMAGE_PROCESS;
+        return SLOWFRAME_ERR_IMAGE_PROCESS;
     }
 
     /* Copy pixel data */
     const uint8_t *src = VIPS_REGION_ADDR(region, 0, 0);
     if (!src) {
-        error_log(PISSTVPP2_ERR_IMAGE_PROCESS, "Failed to access pixel data from VipsRegion");
+        error_log(SLOWFRAME_ERR_IMAGE_PROCESS, "Failed to access pixel data from VipsRegion");
         g_object_unref(region);
         free(buf->data);
         free(buf);
         g_object_unref(image);
-        return PISSTVPP2_ERR_IMAGE_PROCESS;
+        return SLOWFRAME_ERR_IMAGE_PROCESS;
     }
 
     memcpy(buf->data, src, data_size);
@@ -171,7 +171,7 @@ static int buffer_vips_image(VipsImage *image, int verbose, int timestamp_loggin
     g_img.buffer = buf;
     g_img.image = image;
 
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 /* ============================================================================
@@ -180,8 +180,8 @@ static int buffer_vips_image(VipsImage *image, int verbose, int timestamp_loggin
 
 int image_load_from_file(const char *filename, int verbose, int timestamp_logging, const char *debug_output_dir) {
     if (!filename) {
-        error_log(PISSTVPP2_ERR_ARG_FILENAME_INVALID, "Filename pointer is NULL");
-        return PISSTVPP2_ERR_ARG_FILENAME_INVALID;
+        error_log(SLOWFRAME_ERR_ARG_FILENAME_INVALID, "Filename pointer is NULL");
+        return SLOWFRAME_ERR_ARG_FILENAME_INVALID;
     }
 
     log_verbose(verbose, timestamp_logging, "   Loading image from: %s\n", filename);
@@ -196,16 +196,16 @@ int image_load_from_file(const char *filename, int verbose, int timestamp_loggin
     /* Load image with libvips auto-detect */
     VipsImage *image = vips_image_new_from_file(filename, NULL);
     if (!image) {
-        error_log(PISSTVPP2_ERR_IMAGE_LOAD, "Failed to load image: %s (Details: %s)", filename, vips_error_buffer());
+        error_log(SLOWFRAME_ERR_IMAGE_LOAD, "Failed to load image: %s (Details: %s)", filename, vips_error_buffer());
         vips_error_clear();
-        return PISSTVPP2_ERR_IMAGE_LOAD;
+        return SLOWFRAME_ERR_IMAGE_LOAD;
     }
 
     log_verbose(verbose, timestamp_logging, "   --> Loaded: %dx%d, %d-band image\n", image->Xsize, image->Ysize, image->Bands);
 
     /* Buffer the image (includes RGB conversion) */
     int buffer_result = buffer_vips_image(image, verbose, timestamp_logging);
-    if (buffer_result != PISSTVPP2_OK) {
+    if (buffer_result != SLOWFRAME_OK) {
         error_log(buffer_result, "Failed to buffer image data");
         g_object_unref(image);
         return buffer_result;
@@ -217,22 +217,22 @@ int image_load_from_file(const char *filename, int verbose, int timestamp_loggin
     if (debug_output_dir) {
         char debug_path[1024];
         snprintf(debug_path, sizeof(debug_path), "%s/01_loaded.png", debug_output_dir);
-        if (image_save_to_file(debug_path, 0) == PISSTVPP2_OK && verbose) {
+        if (image_save_to_file(debug_path, 0) == SLOWFRAME_OK && verbose) {
             printf("[DEBUG] Saved loaded image to: %s\n", debug_path);
         }
     }
 
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 int image_get_dimensions(int *width, int *height) {
     if (!g_img.buffer) {
-        error_log(PISSTVPP2_ERR_IMAGE_LOAD, "No image loaded");
-        return PISSTVPP2_ERR_IMAGE_LOAD;
+        error_log(SLOWFRAME_ERR_IMAGE_LOAD, "No image loaded");
+        return SLOWFRAME_ERR_IMAGE_LOAD;
     }
     if (width) *width = g_img.buffer->width;
     if (height) *height = g_img.buffer->height;
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 void image_get_pixel_rgb(int x, int y, uint8_t *r, uint8_t *g, uint8_t *b) {
@@ -299,10 +299,10 @@ static int apply_center_transformation(int target_width, int target_height,
 
     /* Crop from center to extract the requested region */
     if (vips_crop(g_img.image, &cropped, *crop_left, *crop_top, actual_crop_width, actual_crop_height, NULL)) {
-        error_log(PISSTVPP2_ERR_IMAGE_ASPECT_CORRECTION, "Image cropping",
+        error_log(SLOWFRAME_ERR_IMAGE_ASPECT_CORRECTION, "Image cropping",
                  "vips_crop failed: %s", vips_error_buffer());
         vips_error_clear();
-        return PISSTVPP2_ERR_IMAGE_ASPECT_CORRECTION;
+        return SLOWFRAME_ERR_IMAGE_ASPECT_CORRECTION;
     }
 
     /* Resize to exact target dimensions if needed */
@@ -311,11 +311,11 @@ static int apply_center_transformation(int target_width, int target_height,
         double scale_y = (double)target_height / cropped->Ysize;
 
         if (vips_resize(cropped, &resized, scale_x, "vscale", scale_y, NULL)) {
-            error_log(PISSTVPP2_ERR_IMAGE_ASPECT_CORRECTION, "Image resizing",
+            error_log(SLOWFRAME_ERR_IMAGE_ASPECT_CORRECTION, "Image resizing",
                      "vips_resize failed: %s", vips_error_buffer());
             vips_error_clear();
             g_object_unref(cropped);
-            return PISSTVPP2_ERR_IMAGE_ASPECT_CORRECTION;
+            return SLOWFRAME_ERR_IMAGE_ASPECT_CORRECTION;
         }
 
         g_object_unref(cropped);
@@ -330,7 +330,7 @@ static int apply_center_transformation(int target_width, int target_height,
         }
         *out_corrected = cropped;
     }
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 /**
@@ -350,10 +350,10 @@ static int apply_pad_transformation(int target_width, int target_height,
     /* Pad with black bars to exact target dimensions */
     if (vips_embed(g_img.image, &padded, *pad_left, *pad_top, target_width, target_height, 
                    "extend", VIPS_EXTEND_BLACK, NULL)) {
-        error_log(PISSTVPP2_ERR_IMAGE_ASPECT_CORRECTION, "Image padding",
+        error_log(SLOWFRAME_ERR_IMAGE_ASPECT_CORRECTION, "Image padding",
                  "vips_embed failed: %s", vips_error_buffer());
         vips_error_clear();
-        return PISSTVPP2_ERR_IMAGE_ASPECT_CORRECTION;
+        return SLOWFRAME_ERR_IMAGE_ASPECT_CORRECTION;
     }
 
     if (verbose) {
@@ -361,7 +361,7 @@ static int apply_pad_transformation(int target_width, int target_height,
     }
 
     *out_corrected = padded;
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 /**
@@ -381,21 +381,21 @@ static int apply_stretch_transformation(int target_width, int target_height,
     log_verbose(verbose, timestamp_logging, "       Resize scales: x=%.4f y=%.4f\n", scale_x, scale_y);
 
     if (vips_resize(g_img.image, &resized, scale_x, "vscale", scale_y, NULL)) {
-        error_log(PISSTVPP2_ERR_IMAGE_ASPECT_CORRECTION, "Image stretching",
+        error_log(SLOWFRAME_ERR_IMAGE_ASPECT_CORRECTION, "Image stretching",
                  "vips_resize failed: %s", vips_error_buffer());
         vips_error_clear();
-        return PISSTVPP2_ERR_IMAGE_ASPECT_CORRECTION;
+        return SLOWFRAME_ERR_IMAGE_ASPECT_CORRECTION;
     }
 
     *out_corrected = resized;
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 int image_correct_aspect_and_resize(int target_width, int target_height, AspectMode mode, 
                                     int verbose, int timestamp_logging, const char *debug_output_dir) {
     if (!g_img.buffer || !g_img.image) {
-        error_log(PISSTVPP2_ERR_IMAGE_LOAD, "No image loaded");
-        return PISSTVPP2_ERR_IMAGE_LOAD;
+        error_log(SLOWFRAME_ERR_IMAGE_LOAD, "No image loaded");
+        return SLOWFRAME_ERR_IMAGE_LOAD;
     }
 
     int img_width = g_img.buffer->width;
@@ -414,7 +414,7 @@ int image_correct_aspect_and_resize(int target_width, int target_height, AspectM
 
     if (!needs_size && !needs_aspect) {
         log_verbose(verbose, timestamp_logging, "   [OK] Image already correct size and aspect - no correction needed\n");
-        return PISSTVPP2_OK;
+        return SLOWFRAME_OK;
     }
 
     VipsImage *corrected = NULL;
@@ -446,7 +446,7 @@ int image_correct_aspect_and_resize(int target_width, int target_height, AspectM
     pad_top = (target_height - img_height) / 2;
 
     /* Apply transformation based on mode */
-    int result = PISSTVPP2_OK;
+    int result = SLOWFRAME_OK;
     switch (mode) {
         case ASPECT_CENTER:
             result = apply_center_transformation(target_width, target_height, 
@@ -462,11 +462,11 @@ int image_correct_aspect_and_resize(int target_width, int target_height, AspectM
             result = apply_stretch_transformation(target_width, target_height, &corrected, verbose, timestamp_logging);
             break;
         default:
-            error_log(PISSTVPP2_ERR_IMAGE_ASPECT_CORRECTION, "Unknown aspect mode: %d", mode);
-            return PISSTVPP2_ERR_IMAGE_ASPECT_CORRECTION;
+            error_log(SLOWFRAME_ERR_IMAGE_ASPECT_CORRECTION, "Unknown aspect mode: %d", mode);
+            return SLOWFRAME_ERR_IMAGE_ASPECT_CORRECTION;
     }
 
-    if (result != PISSTVPP2_OK) {
+    if (result != SLOWFRAME_OK) {
         error_log(result, "Image aspect correction transformation failed");
         if (corrected) g_object_unref(corrected);
         return result;
@@ -488,7 +488,7 @@ int image_correct_aspect_and_resize(int target_width, int target_height, AspectM
 
     /* Buffer the corrected image */
     int buffer_result = buffer_vips_image(corrected, verbose, timestamp_logging);
-    if (buffer_result != PISSTVPP2_OK) {
+    if (buffer_result != SLOWFRAME_OK) {
         error_log(buffer_result, "Failed to buffer corrected image");
         g_object_unref(corrected);
         return buffer_result;
@@ -496,16 +496,16 @@ int image_correct_aspect_and_resize(int target_width, int target_height, AspectM
 
     /* Verify result */
     if (g_img.buffer->width != target_width || g_img.buffer->height != target_height) {
-        error_log(PISSTVPP2_ERR_IMAGE_PROCESS, "Correction failed: got %dx%d, expected %dx%d",
+        error_log(SLOWFRAME_ERR_IMAGE_PROCESS, "Correction failed: got %dx%d, expected %dx%d",
                 g_img.buffer->width, g_img.buffer->height, target_width, target_height);
-        return PISSTVPP2_ERR_IMAGE_PROCESS;
+        return SLOWFRAME_ERR_IMAGE_PROCESS;
     }
 
     if (verbose) {
         log_verbose(verbose, timestamp_logging, "   [OK] Image corrected to %dx%d\n", g_img.buffer->width, g_img.buffer->height);
     }
 
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 /* ============================================================================
@@ -514,26 +514,26 @@ int image_correct_aspect_and_resize(int target_width, int target_height, AspectM
 
 int image_save_to_file(const char *output_path, int verbose) {
     if (!output_path) {
-        error_log(PISSTVPP2_ERR_ARG_FILENAME_INVALID, "Output path pointer is NULL");
-        return PISSTVPP2_ERR_ARG_FILENAME_INVALID;
+        error_log(SLOWFRAME_ERR_ARG_FILENAME_INVALID, "Output path pointer is NULL");
+        return SLOWFRAME_ERR_ARG_FILENAME_INVALID;
     }
 
     if (!g_img.image) {
-        error_log(PISSTVPP2_ERR_IMAGE_LOAD, "No image loaded");
-        return PISSTVPP2_ERR_IMAGE_LOAD;
+        error_log(SLOWFRAME_ERR_IMAGE_LOAD, "No image loaded");
+        return SLOWFRAME_ERR_IMAGE_LOAD;
     }
 
     if (vips_image_write_to_file(g_img.image, output_path, NULL)) {
-        error_log(PISSTVPP2_ERR_FILE_WRITE, "Failed to save image to '%s' (Details: %s)", output_path, vips_error_buffer());
+        error_log(SLOWFRAME_ERR_FILE_WRITE, "Failed to save image to '%s' (Details: %s)", output_path, vips_error_buffer());
         vips_error_clear();
-        return PISSTVPP2_ERR_FILE_WRITE;
+        return SLOWFRAME_ERR_FILE_WRITE;
     }
 
     if (verbose) {
         printf("[DEBUG] Image saved to: %s\n", output_path);
     }
 
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 void image_print_diagnostics(void) {
@@ -564,7 +564,7 @@ void image_print_diagnostics(void) {
 static int apply_single_overlay(const TextOverlaySpec *spec, int verbose, int timestamp_logging)
 {
     if (!spec || !g_img.image) {
-        return PISSTVPP2_OK;  // Skip empty specs
+        return SLOWFRAME_OK;  // Skip empty specs
     }
 
     // Prepare text content - either use provided text or generate timestamp
@@ -590,11 +590,11 @@ static int apply_single_overlay(const TextOverlaySpec *spec, int verbose, int ti
         display_text[sizeof(display_text) - 1] = '\0';
     } else {
         // No text or timestamp specified
-        return PISSTVPP2_OK;
+        return SLOWFRAME_OK;
     }
     
     if (display_text[0] == '\0') {
-        return PISSTVPP2_OK;  // Skip if text is empty
+        return SLOWFRAME_OK;  // Skip if text is empty
     }
 
     int font_size = spec->font_size > 0 ? spec->font_size : 24;
@@ -632,11 +632,11 @@ static int apply_single_overlay(const TextOverlaySpec *spec, int verbose, int ti
                    "      Warning: Failed to render text '%s': %s\n", 
                    spec->text, vips_error_buffer());
         vips_error_clear();
-        return PISSTVPP2_OK;  // Don't fail, just skip this overlay
+        return SLOWFRAME_OK;  // Don't fail, just skip this overlay
     }
 
     if (!text_image) {
-        return PISSTVPP2_OK;
+        return SLOWFRAME_OK;
     }
     
     // Handle vertical bar text orientations
@@ -881,7 +881,7 @@ static int apply_single_overlay(const TextOverlaySpec *spec, int verbose, int ti
                        "x", x_pos,
                        "y", y_pos,
                        NULL)) {
-        error_log(PISSTVPP2_ERR_IMAGE_PROCESS, 
+        error_log(SLOWFRAME_ERR_IMAGE_PROCESS, 
                   "Failed to composite text overlay: %s", 
                   vips_error_buffer());
         vips_error_clear();
@@ -889,18 +889,18 @@ static int apply_single_overlay(const TextOverlaySpec *spec, int verbose, int ti
         if (current_result != g_img.image) {
             g_object_unref(current_result);
         }
-        return PISSTVPP2_ERR_IMAGE_PROCESS;
+        return SLOWFRAME_ERR_IMAGE_PROCESS;
     }
 
     // Verify compositing succeeded
     if (!composited) {
-        error_log(PISSTVPP2_ERR_IMAGE_PROCESS, 
+        error_log(SLOWFRAME_ERR_IMAGE_PROCESS, 
                   "vips_composite2 returned NULL image");
         g_object_unref(text_image);
         if (current_result != g_img.image) {
             g_object_unref(current_result);
         }
-        return PISSTVPP2_ERR_IMAGE_PROCESS;
+        return SLOWFRAME_ERR_IMAGE_PROCESS;
     }
 
     log_verbose(verbose, timestamp_logging,
@@ -915,7 +915,7 @@ static int apply_single_overlay(const TextOverlaySpec *spec, int verbose, int ti
     g_img.image = composited;
     g_object_unref(text_image);
 
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 /* ============================================================================
@@ -929,7 +929,7 @@ static int apply_single_overlay(const TextOverlaySpec *spec, int verbose, int ti
  * @param verbose Debug output flag
  * @param timestamp_logging Timestamp flag (requires verbose)
  * 
- * @return PISSTVPP2_OK on success, error code on failure
+ * @return SLOWFRAME_OK on success, error code on failure
  * 
  * Renders text overlays with configurable:
  * - Text content (arbitrary)
@@ -941,19 +941,19 @@ int image_apply_overlay_list(const OverlaySpecList *overlay_specs,
                             int verbose, int timestamp_logging)
 {
     if (!overlay_specs) {
-        error_log(PISSTVPP2_ERR_IMAGE_TEXT_OVERLAY, "No overlay specifications provided");
-        return PISSTVPP2_ERR_IMAGE_TEXT_OVERLAY;
+        error_log(SLOWFRAME_ERR_IMAGE_TEXT_OVERLAY, "No overlay specifications provided");
+        return SLOWFRAME_ERR_IMAGE_TEXT_OVERLAY;
     }
 
     if (!g_img.image) {
-        error_log(PISSTVPP2_ERR_IMAGE_LOAD, "No image loaded for overlay");
-        return PISSTVPP2_ERR_IMAGE_LOAD;
+        error_log(SLOWFRAME_ERR_IMAGE_LOAD, "No image loaded for overlay");
+        return SLOWFRAME_ERR_IMAGE_LOAD;
     }
 
     size_t overlay_count = overlay_spec_list_count((OverlaySpecList *)overlay_specs);
     
     if (overlay_count == 0) {
-        return PISSTVPP2_OK;
+        return SLOWFRAME_OK;
     }
 
     log_verbose(verbose, timestamp_logging,
@@ -968,7 +968,7 @@ int image_apply_overlay_list(const OverlaySpecList *overlay_specs,
         }
 
         int result = apply_single_overlay(spec, verbose, timestamp_logging);
-        if (result != PISSTVPP2_OK) {
+        if (result != SLOWFRAME_OK) {
             log_verbose(verbose, timestamp_logging,
                        "      Warning: Overlay %zu processing\n", i + 1);
         }
@@ -976,7 +976,7 @@ int image_apply_overlay_list(const OverlaySpecList *overlay_specs,
 
     // Re-buffer the modified image
     int result = buffer_vips_image(g_img.image, verbose, timestamp_logging);
-    if (result != PISSTVPP2_OK) {
+    if (result != SLOWFRAME_OK) {
         error_log(result, "Failed to buffer image after overlays");
         return result;
     }
@@ -984,7 +984,7 @@ int image_apply_overlay_list(const OverlaySpecList *overlay_specs,
     log_verbose(verbose, timestamp_logging,
                "   [OK] All overlay specifications processed\n");
 
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 

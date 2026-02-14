@@ -12,7 +12,7 @@
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$( dirname "$SCRIPT_DIR" )"
-BIN="$PROJECT_ROOT/bin/pisstvpp2"
+BIN="$PROJECT_ROOT/bin/slowframe"
 TEST_RESULTS_DIR="$PROJECT_ROOT/tests/test_results"
 
 # Colors for output

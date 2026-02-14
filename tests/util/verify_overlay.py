@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Overlay Verification Test Helper for PiSSTVpp2
+Overlay Verification Test Helper for SlowFrame
 
 Validates that text overlay specifications were correctly applied to SSTV output images.
 Integrates with the test suite to verify overlay features work correctly.

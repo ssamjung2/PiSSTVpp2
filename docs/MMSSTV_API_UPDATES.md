@@ -37,7 +37,7 @@ size_t sstv_encoder_generate(
 **Original stub**: uint16_t PCM samples  
 **Actual mmsstv-portable**: float samples (-1.0 to +1.0 range)
 
-**Implication**: Adapter must convert float → uint16_t for PiSSTVpp2's audio buffer
+**Implication**: Adapter must convert float → uint16_t for SlowFrame's audio buffer
 
 #### 3. Direct Image Structure (Not Callback)
 
@@ -57,7 +57,7 @@ typedef struct {
 } sstv_image_t;
 ```
 
-**Implication**: Adapter must convert PiSSTVpp2's `ImageBuffer` to `sstv_image_t`
+**Implication**: Adapter must convert SlowFrame's `ImageBuffer` to `sstv_image_t`
 
 #### 4. Simplified Mode Enumeration
 
@@ -93,10 +93,10 @@ typedef struct {
 
 ## Integration Flow (Updated)
 
-### PiSSTVpp2 → mmsstv-portable Data Flow
+### SlowFrame → mmsstv-portable Data Flow
 
 ```
-1. Image Loading (PiSSTVpp2)
+1. Image Loading (SlowFrame)
    ├─ Load image with libvips
    ├─ Apply aspect correction
    └─ Store in ImageBuffer (RGB, 3 bytes/pixel)
@@ -117,10 +117,10 @@ typedef struct {
    ├─ while (!sstv_encoder_is_complete(encoder))
    │   ├─ count = sstv_encoder_generate(encoder, floatbuf, 4096)
    │   ├─ Convert float (-1.0 to +1.0) → uint16_t (0-65535)
-   │   └─ Append to PiSSTVpp2 audio buffer
+   │   └─ Append to SlowFrame audio buffer
    └─ encoding complete
 
-5. Audio Output (PiSSTVpp2)
+5. Audio Output (SlowFrame)
    └─ Write audio buffer to WAV/AIFF/OGG
 ```
 
@@ -131,11 +131,11 @@ typedef struct {
 ### 1. Image Conversion
 
 ```c
-// Convert PiSSTVpp2 ImageBuffer to sstv_image_t
+// Convert SlowFrame ImageBuffer to sstv_image_t
 sstv_image_t mmsstv_adapter_create_image(void) {
     sstv_image_t image;
     
-    // Get image buffer from PiSSTVpp2 image module
+    // Get image buffer from SlowFrame image module
     image.pixels = image_get_buffer();
     image.width = image_get_width();
     image.height = image_get_height();
@@ -229,7 +229,7 @@ int mmsstv_adapter_encode_frame(
 
 ## Mode Mapping Updates
 
-The adapter's mode table must map PiSSTVpp2 protocol strings to mmsstv-portable's enum:
+The adapter's mode table must map SlowFrame protocol strings to mmsstv-portable's enum:
 
 ```c
 static const mmsstv_mode_map_t g_mode_table[] = {
@@ -257,9 +257,9 @@ static const mmsstv_mode_map_t g_mode_table[] = {
 ### Encoding with mmsstv-portable
 
 ```c
-// PiSSTVpp2 integration example
+// SlowFrame integration example
 #include "sstv_encoder.h"
-#include "pisstvpp2_image.h"
+#include "slowframe_image.h"
 
 int encode_with_mmsstv(const char *protocol, uint32_t sample_rate) {
     // Map protocol to mode
@@ -271,7 +271,7 @@ int encode_with_mmsstv(const char *protocol, uint32_t sample_rate) {
         return -1;
     }
     
-    // Get image from PiSSTVpp2 image module
+    // Get image from SlowFrame image module
     sstv_image_t image;
     image.pixels = image_get_buffer();
     image.width = image_get_width();
@@ -317,7 +317,7 @@ int encode_with_mmsstv(const char *protocol, uint32_t sample_rate) {
 
 ```c
 void test_image_conversion(void) {
-    // Load test image with PiSSTVpp2
+    // Load test image with SlowFrame
     image_load("test.png");
     
     // Convert to sstv_image_t

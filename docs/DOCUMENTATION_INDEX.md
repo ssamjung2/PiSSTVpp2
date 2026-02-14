@@ -1,4 +1,4 @@
-# PiSSTVpp2 Documentation Index
+# SlowFrame Documentation Index
 
 **Complete guide to all documentation**
 
@@ -8,13 +8,13 @@ Version 2.0 | Updated: 2024
 
 ## 📖 Documentation Structure
 
-PiSSTVpp2 documentation is organized into several categories:
+SlowFrame documentation is organized into several categories:
 
 ### For Users
 
 **Getting Started**
 - [README](../README.md) - Project overview and quick start
-- [Quick Start Guide](QUICK_START.md) - 5-minute introduction to PiSSTVpp2
+- [Quick Start Guide](QUICK_START.md) - 5-minute introduction to SlowFrame
 - [User Guide](USER_GUIDE.md) - Complete feature reference
 
 **Installation & Building**
@@ -78,7 +78,7 @@ PiSSTVpp2 documentation is organized into several categories:
 
 ### I want to...
 
-**Use PiSSTVpp2**
+**Use SlowFrame**
 1. Start here: [Quick Start Guide](QUICK_START.md)
 2. Then read: [User Guide](USER_GUIDE.md)
 3. For problems: [Troubleshooting](USER_GUIDE.md#troubleshooting)
@@ -129,7 +129,7 @@ PiSSTVpp2 documentation is organized into several categories:
 
 **Aspect Ratio:**
 - [User Guide - Image Handling](USER_GUIDE.md#image-handling) - Center, pad, stretch modes
-- [Architecture - Image Module](ARCHITECTURE.md#pisstvpp2_image-module) - Implementation
+- [Architecture - Image Module](ARCHITECTURE.md#slowframe_image-module) - Implementation
 
 **Supported Formats:**
 - [User Guide - Image Handling](USER_GUIDE.md#supported-input-formats) - Format list
@@ -427,7 +427,7 @@ When adding/changing features:
 
 ---
 
-**This index is your map to all PiSSTVpp2 documentation. Start with the Quick Start Guide and explore from there!**
+**This index is your map to all SlowFrame documentation. Start with the Quick Start Guide and explore from there!**
 
 **73!** 📡
 

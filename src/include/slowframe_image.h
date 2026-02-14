@@ -1,7 +1,7 @@
 /*
- * pisstvpp2_image.h
+ * slowframe_image.h
  * 
- * Image processing module for PiSSTVpp2
+ * Image processing module for SlowFrame
  * Handles loading, resizing, aspect ratio correction, and debug export
  * 
  * Architecture:
@@ -13,8 +13,8 @@
  * - image_free(): Release all resources
  */
 
-#ifndef PISSTVPP2_IMAGE_H
-#define PISSTVPP2_IMAGE_H
+#ifndef SLOWFRAME_IMAGE_H
+#define SLOWFRAME_IMAGE_H
 
 #include <stdint.h>
 #include <vips/vips.h>
@@ -50,11 +50,11 @@ typedef enum {
  * @param timestamp_logging If non-zero (and verbose is non-zero), add timestamps to output
  * @param debug_output_dir If non-NULL, save debug images to this directory
  * 
- * @return Error code: PISSTVPP2_OK on success, or one of:
- *   - PISSTVPP2_ERR_FILE_NOT_FOUND: File does not exist
- *   - PISSTVPP2_ERR_IMAGE_LOAD: libvips failed to load the image
- *   - PISSTVPP2_ERR_IMAGE_FORMAT_UNSUPPORTED: Format not recognized by libvips
- *   - PISSTVPP2_ERR_MEMORY_ALLOC: Failed to allocate buffer for pixel data
+ * @return Error code: SLOWFRAME_OK on success, or one of:
+ *   - SLOWFRAME_ERR_FILE_NOT_FOUND: File does not exist
+ *   - SLOWFRAME_ERR_IMAGE_LOAD: libvips failed to load the image
+ *   - SLOWFRAME_ERR_IMAGE_FORMAT_UNSUPPORTED: Format not recognized by libvips
+ *   - SLOWFRAME_ERR_MEMORY_ALLOC: Failed to allocate buffer for pixel data
  * 
  * Effects:
  * - Loads image from disk using libvips auto-detect format
@@ -73,7 +73,7 @@ int image_load_from_file(const char *filename, int verbose, int timestamp_loggin
  * @param width Output: pointer to receive width in pixels
  * @param height Output: pointer to receive height in pixels
  * 
- * @return PISSTVPP2_OK if image is loaded, PISSTVPP2_ERR_IMAGE_LOAD if no image
+ * @return SLOWFRAME_OK if image is loaded, SLOWFRAME_ERR_IMAGE_LOAD if no image
  */
 int image_get_dimensions(int *width, int *height);
 
@@ -133,11 +133,11 @@ void image_free(void);
  * @param timestamp_logging If non-zero (and verbose is non-zero), add timestamps to output
  * @param debug_output_dir If non-NULL, save intermediate/final images to this directory
  * 
- * @return Error code: PISSTVPP2_OK on success, or one of:
- *   - PISSTVPP2_ERR_IMAGE_LOAD: No image loaded
- *   - PISSTVPP2_ERR_IMAGE_PROCESS: libvips transformation failed
- *   - PISSTVPP2_ERR_IMAGE_ASPECT_CORRECTION: Aspect correction failed
- *   - PISSTVPP2_ERR_MEMORY_ALLOC: Failed to allocate for transformed image
+ * @return Error code: SLOWFRAME_OK on success, or one of:
+ *   - SLOWFRAME_ERR_IMAGE_LOAD: No image loaded
+ *   - SLOWFRAME_ERR_IMAGE_PROCESS: libvips transformation failed
+ *   - SLOWFRAME_ERR_IMAGE_ASPECT_CORRECTION: Aspect correction failed
+ *   - SLOWFRAME_ERR_MEMORY_ALLOC: Failed to allocate for transformed image
  * 
  * Algorithm:
  * 
@@ -188,9 +188,9 @@ int image_correct_aspect_and_resize(int target_width, int target_height, AspectM
  * @param output_path Full path to output file (e.g., "/tmp/debug_001.png")
  * @param verbose If non-zero, print confirmation message
  * 
- * @return Error code: PISSTVPP2_OK on success, or:
- *   - PISSTVPP2_ERR_FILE_WRITE: Failed to write output file
- *   - PISSTVPP2_ERR_IMAGE_PROCESS: libvips save operation failed
+ * @return Error code: SLOWFRAME_OK on success, or:
+ *   - SLOWFRAME_ERR_FILE_WRITE: Failed to write output file
+ *   - SLOWFRAME_ERR_IMAGE_PROCESS: libvips save operation failed
  * 
  * Use cases:
  * - Save loaded image before transformation for comparison
@@ -227,7 +227,7 @@ void image_print_diagnostics(void);
  * @param verbose If non-zero, print debug messages
  * @param timestamp_logging If non-zero (and verbose is non-zero), add timestamps to output
  * 
- * @return Error code: PISSTVPP2_OK on success, or error code on failure
+ * @return Error code: SLOWFRAME_OK on success, or error code on failure
  * 
  * Effects:
  * - Applies all enabled overlays from the list to the current image
@@ -277,4 +277,5 @@ const char* aspect_mode_to_string(AspectMode mode);
 void image_calculate_crop_box(int src_width, int src_height, double target_aspect, 
                               int *out_left, int *out_top, int *out_width, int *out_height);
 
-#endif /* PISSTVPP2_IMAGE_H */
+#endif /* SLOWFRAME_IMAGE_H */
+

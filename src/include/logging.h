@@ -2,10 +2,10 @@
  * @file logging.h
  * @brief Centralized logging utilities for timestamped verbose output
  *
- * Provides consistent timestamped logging across all PiSSTVpp2 modules.
+ * Provides consistent timestamped logging across all SlowFrame modules.
  * Timestamps are only added when verbose AND timestamp_logging are both enabled.
  *
- * @author PiSSTVpp2 Contributors
+ * @author SlowFrame Contributors
  * @date January 2026
  */
 

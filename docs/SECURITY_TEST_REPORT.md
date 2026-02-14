@@ -28,7 +28,7 @@ The callsign field (`-C` option) is accepting special characters that should be 
 | Spaces | REJECT | ACCEPT | MEDIUM - Parsing ambiguity |
 | Unicode/Non-ASCII | REJECT | ACCEPT | LOW - Locale dependency |
 
-**Root Cause:** Callsign validation in `pisstvpp2_config.c` likely only checks length, not character content.
+**Root Cause:** Callsign validation in `slowframe_config.c` likely only checks length, not character content.
 
 **Expected Callsign Format:** 
 - ASCII characters A-Z, 0-9, `/` only (amateur radio standard)
@@ -36,7 +36,7 @@ The callsign field (`-C` option) is accepting special characters that should be 
 - Maximum 31 characters
 - Must be alphanumeric + `/` only
 
-**Affected Code Location:** `src/pisstvpp2_config.c` - `_validate_callsign()` function
+**Affected Code Location:** `src/slowframe_config.c` - `_validate_callsign()` function
 
 **Fix Priority:** CRITICAL
 
@@ -131,7 +131,7 @@ CW WPM parameter accepts octal notation when it should only accept decimal:
 
 **Callsign Validation Enhancement**
 ```
-File: src/pisstvpp2_config.c
+File: src/slowframe_config.c
 Function: _validate_callsign()
 
 Current Logic (Suspected):
@@ -158,7 +158,7 @@ Implementation:
 
 **Numeric Parameter Parsing**
 ```
-File: src/pisstvpp2_config.c
+File: src/slowframe_config.c
 Functions: _parse_sample_rate(), _parse_cw_wpm(), _parse_cw_tone()
 
 Current Logic (Suspected):
@@ -180,7 +180,7 @@ Implementation:
 
 **Output Filename Validation**
 ```
-File: src/pisstvpp2_config.c
+File: src/slowframe_config.c
 Function: _validate_output_file()
 
 Required Changes:
@@ -231,7 +231,7 @@ The application has good foundational security (no shell execution, buffer prote
 
 ### V1: Octal Number Interpretation (CW WPM)
 - **CVSS Score:** 3.3 (Low)
-- **Test:** `./pisstvpp2 -i test.ppm -C N0CALL -W 017`
+- **Test:** `./slowframe -i test.ppm -C N0CALL -W 017`
 - **Expected:** Reject as invalid (should only accept decimal digits)
 - **Actual:** Accepts as 15 WPM (octal 017 = decimal 15)
 - **Impact:** Potential for user confusion if they enter numbers with leading zeros
@@ -272,7 +272,7 @@ The application has good foundational security (no shell execution, buffer prote
 ### Scenario 1: Metadata Injection
 ```bash
 # Inject format string in callsign
-./pisstvpp2 -i image.ppm -C "%x%x%x" -o output.wav
+./slowframe -i image.ppm -C "%x%x%x" -o output.wav
 
 # Result: %x%x%x is embedded in audio metadata/CW identifier
 # Risk: Confusing to users, may break parsing tools
@@ -282,7 +282,7 @@ The application has good foundational security (no shell execution, buffer prote
 ### Scenario 2: Control Character Injection
 ```bash
 # Inject tab character
-./pisstvpp2 -i image.ppm -C "N0\tCALL" -o output.wav
+./slowframe -i image.ppm -C "N0\tCALL" -o output.wav
 
 # Result: Tab character in output may confuse text-based tools
 # Risk: Low, only affects metadata
@@ -292,7 +292,7 @@ The application has good foundational security (no shell execution, buffer prote
 ### Scenario 3: Octal Confusion
 ```bash
 # User intends 15 WPM, enters with leading zero
-./pisstvpp2 -i image.ppm -C N0CALL -W 015
+./slowframe -i image.ppm -C N0CALL -W 015
 
 # Result: 015 octal = 13 decimal (different speed!)
 # Risk: Unintended behavior

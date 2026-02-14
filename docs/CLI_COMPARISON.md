@@ -3,7 +3,7 @@
 **Document Date**: February 9, 2026  
 **Binary Locations**: 
 - Original v1: `bin/pisstvpp` (35 KB, built in 2014)
-- v2.0: `bin/pisstvpp2` (137 KB, built Jan 23 2026)
+- v2.0: `bin/slowframe` (137 KB, built Jan 23 2026)
 
 ---
 
@@ -42,10 +42,10 @@ zsh: segmentation fault
 
 #### v2.0
 ```
-$ bin/pisstvpp2
+$ bin/slowframe
 Error: Input file (-i) is required
 
-Usage: ./pisstvpp2 -i <input_file> [OPTIONS]
+Usage: ./slowframe -i <input_file> [OPTIONS]
 
 PiSSTVpp v2.1.0 (built Jan 23 2026)
 Convert an image (PNG/JPEG/GIF/BMP) to SSTV audio format.
@@ -78,13 +78,13 @@ CW SIGNATURE OPTIONS (optional):
   -T <freq>       Set CW signature tone frequency in Hz, range 400-2000 (default: 800)
 
 EXAMPLES:
-  ./pisstvpp2 -i image.jpg -o out.aiff
-  ./pisstvpp2 -i image.jpg -f wav -p s2 -r 11025 -v
-  ./pisstvpp2 -i image.png -o output.wav -p r36
+  ./slowframe -i image.jpg -o out.aiff
+  ./slowframe -i image.jpg -f wav -p s2 -r 11025 -v
+  ./slowframe -i image.png -o output.wav -p r36
 
-  ./pisstvpp2 -i image.jpg -v -Z                          # Verbose with timestamps
-  ./pisstvpp2 -i image.jpg -C N0CALL -K                   # Keep intermediate, add CW
-  ./pisstvpp2 -i image.jpg -v -Z > processing.log         # Log with timestamps
+  ./slowframe -i image.jpg -v -Z                          # Verbose with timestamps
+  ./slowframe -i image.jpg -C N0CALL -K                   # Keep intermediate, add CW
+  ./slowframe -i image.jpg -v -Z > processing.log         # Log with timestamps
 ```
 
 **Improvement**: Comprehensive help showing all options, protocols, and examples. Graceful error message instead of crash.
@@ -136,7 +136,7 @@ Output file: tests/images/test_pattern_320x240.jpg.wav (2.5 MB @ 11025 Hz)
 
 #### v2.0
 ```
-$ bin/pisstvpp2 -i tests/images/test_pattern_320x240.jpg -v
+$ bin/slowframe -i tests/images/test_pattern_320x240.jpg -v
 
 --------------------------------------------------------------
 PiSSTVpp v2.1.0 - SSTV Audio Encoder
@@ -216,7 +216,7 @@ ISSUE: No -f flag support! Only supports WAV or AIFF via #ifdef
 
 #### v2.0
 ```
-$ bin/pisstvpp2 -i tests/images/test_pattern_320x240.jpg -p r36 -f aiff -r 44100
+$ bin/slowframe -i tests/images/test_pattern_320x240.jpg -p r36 -f aiff -r 44100
 
 Configuration Summary:
   Output file:      tests/images/test_pattern_320x240.jpg.aiff
@@ -246,7 +246,7 @@ Source code: No CW signature generation implemented in original v1.
 
 #### v2.0
 ```
-$ bin/pisstvpp2 -i tests/images/test_pattern_320x240.jpg -C N0CALL -W 25 -T 600 -v
+$ bin/slowframe -i tests/images/test_pattern_320x240.jpg -C N0CALL -W 25 -T 600 -v
 
 Configuration Summary:
   [standard config]
@@ -280,9 +280,9 @@ Unrecognized protocol option  badmode, defaulting to Martin 1...
 
 #### v2.0
 ```
-$ bin/pisstvpp2 -i tests/images/test_pattern_320x240.jpg -p badmode
+$ bin/slowframe -i tests/images/test_pattern_320x240.jpg -p badmode
 Error: Unrecognized protocol 'badmode'
-Usage: ./pisstvpp2 -i <input_file> [OPTIONS]
+Usage: ./slowframe -i <input_file> [OPTIONS]
 
 [shows help with protocol list]
 ```
@@ -404,10 +404,10 @@ The original v1 is a **single-file monolithic program**:
 ### v2.0 Modular Architecture
 
 v2.0 is a **multi-file modular system**:
-- Main: `pisstvpp2.c` (~811 lines)
-- Image processing: `pisstvpp2_image.c` (~400 lines)
-- SSTV encoding: `pisstvpp2_sstv.c` (~768 lines)
-- Audio output abstraction: `pisstvpp2_audio_encoder.c` (+3 format-specific files)
+- Main: `slowframe.c` (~811 lines)
+- Image processing: `slowframe_image.c` (~400 lines)
+- SSTV encoding: `slowframe_sstv.c` (~768 lines)
+- Audio output abstraction: `slowframe_audio_encoder.c` (+3 format-specific files)
 - Cleaner separation of concerns
 - Easier to extend and maintain
 
@@ -417,7 +417,7 @@ v2.0 is a **multi-file modular system**:
 
 ```
 bin/pisstvpp   (35 KB)  - Original v1 from 2014 (single file, libgd/libmagic)
-bin/pisstvpp2  (137 KB) - v2.0 from 2026 (modular, libvips/glib)
+bin/slowframe  (137 KB) - v2.0 from 2026 (modular, libvips/glib)
 ```
 
 Both binaries are fully functional and ready for side-by-side testing.
@@ -441,16 +441,16 @@ Both binaries are fully functional and ready for side-by-side testing.
 ### Run v2.0
 ```bash
 # Full help
-./bin/pisstvpp2 -h
+./bin/slowframe -h
 
 # Basic encoding with auto settings
-./bin/pisstvpp2 -i input.jpg
+./bin/slowframe -i input.jpg
 
 # With all options
-./bin/pisstvpp2 -i input.jpg -p r72 -f ogg -r 44100 -C MYCALL -v
+./bin/slowframe -i input.jpg -p r72 -f ogg -r 44100 -C MYCALL -v
 
 # Verbose with timestamps (for logging)
-./bin/pisstvpp2 -i input.jpg -v -Z > log.txt
+./bin/slowframe -i input.jpg -v -Z > log.txt
 ```
 
 ---

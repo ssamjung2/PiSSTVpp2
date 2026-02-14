@@ -1,7 +1,7 @@
 /*
  * image_loader.h
  *
- * Image file loading and format detection for PiSSTVpp2
+ * Image file loading and format detection for SlowFrame
  * 
  * Handles loading images from disk using libvips with support for:
  * - PNG, JPEG, GIF, BMP, TIFF, WebP, PPM, and other libvips-supported formats
@@ -53,13 +53,13 @@ typedef struct {
  * @param debug_output_dir If non-NULL, save loaded image to this directory
  * 
  * @return Error code:
- *   - PISSTVPP2_OK: Successfully loaded
- *   - PISSTVPP2_ERR_ARG_FILENAME_INVALID: filename is NULL
- *   - PISSTVPP2_ERR_FILE_NOT_FOUND: File does not exist or is not readable
- *   - PISSTVPP2_ERR_IMAGE_LOAD: libvips failed to load (format issue, corrupt, etc.)
- *   - PISSTVPP2_ERR_IMAGE_DIMENSIONS_INVALID: Width or height is zero/negative
- *   - PISSTVPP2_ERR_IMAGE_PROCESS: Colorspace conversion or buffering failed
- *   - PISSTVPP2_ERR_MEMORY_ALLOC: Failed to allocate space for pixel data
+ *   - SLOWFRAME_OK: Successfully loaded
+ *   - SLOWFRAME_ERR_ARG_FILENAME_INVALID: filename is NULL
+ *   - SLOWFRAME_ERR_FILE_NOT_FOUND: File does not exist or is not readable
+ *   - SLOWFRAME_ERR_IMAGE_LOAD: libvips failed to load (format issue, corrupt, etc.)
+ *   - SLOWFRAME_ERR_IMAGE_DIMENSIONS_INVALID: Width or height is zero/negative
+ *   - SLOWFRAME_ERR_IMAGE_PROCESS: Colorspace conversion or buffering failed
+ *   - SLOWFRAME_ERR_MEMORY_ALLOC: Failed to allocate space for pixel data
  * 
  * Effects:
  * - Loads image internally in global state
@@ -113,7 +113,7 @@ void image_loader_free_buffer(void);
  * @param width Output: pointer to receive width in pixels (may be NULL)
  * @param height Output: pointer to receive height in pixels (may be NULL)
  * 
- * @return PISSTVPP2_OK if image is loaded, PISSTVPP2_ERR_IMAGE_LOAD otherwise
+ * @return SLOWFRAME_OK if image is loaded, SLOWFRAME_ERR_IMAGE_LOAD otherwise
  */
 int image_loader_get_dimensions(int *width, int *height);
 

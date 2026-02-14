@@ -5,7 +5,7 @@
 **Date:** February 11, 2026  
 **Time:** 17:34:45 - 17:37:49 (3 minutes 4 seconds)  
 **Test Suite:** `tests/test_suite.py`  
-**Executable:** `../bin/pisstvpp2`  
+**Executable:** `../bin/slowframe`  
 
 ---
 
@@ -135,7 +135,7 @@ test_outputs/text_overlay/
 
 ### Test 1: Single Callsign
 ```bash
-pisstvpp2 -i test_image.jpg -S "W5ZZZ" -o output.wav -v -Z
+slowframe -i test_image.jpg -S "W5ZZZ" -o output.wav -v -Z
 ```
 - **Result:** ✓ PASSED
 - **Specs Created:** 1 overlay spec
@@ -143,7 +143,7 @@ pisstvpp2 -i test_image.jpg -S "W5ZZZ" -o output.wav -v -Z
 
 ### Test 2: Callsign with Grid Square
 ```bash
-pisstvpp2 -i test_image.jpg -S "N0CALL" -G "EM97" -o output.wav -v -Z
+slowframe -i test_image.jpg -S "N0CALL" -G "EM97" -o output.wav -v -Z
 ```
 - **Result:** ✓ PASSED
 - **Specs Created:** 2 overlay specs (callsign + grid)
@@ -151,7 +151,7 @@ pisstvpp2 -i test_image.jpg -S "N0CALL" -G "EM97" -o output.wav -v -Z
 
 ### Test 3: Grid Square Only
 ```bash
-pisstvpp2 -i test_image.jpg -G "CM97bj" -o output.wav -v -Z
+slowframe -i test_image.jpg -G "CM97bj" -o output.wav -v -Z
 ```
 - **Result:** ✓ PASSED
 - **Specs Created:** 1 overlay spec
@@ -159,7 +159,7 @@ pisstvpp2 -i test_image.jpg -G "CM97bj" -o output.wav -v -Z
 
 ### Test 4: Enable Overlay Flag Only
 ```bash
-pisstvpp2 -i test_image.jpg -O -o output.wav
+slowframe -i test_image.jpg -O -o output.wav
 ```
 - **Result:** ✓ PASSED
 - **Specs Created:** None (flag only)

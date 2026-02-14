@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-File I/O and System Error Testing for PiSSTVpp2
+File I/O and System Error Testing for SlowFrame
 Tests file operations, permissions, and system error handling
 """
 
@@ -30,7 +30,7 @@ class FileIOTestSuite:
                  test_image=None):
         if executable_path is None:
             script_dir = Path(__file__).parent.parent.parent
-            executable_path = str(script_dir / "bin" / "pisstvpp2")
+            executable_path = str(script_dir / "bin" / "slowframe")
         if test_image is None:
             script_dir = Path(__file__).parent.parent
             test_image = str(script_dir / "images" / "test_320x240.png")
@@ -38,7 +38,7 @@ class FileIOTestSuite:
         self.test_image = test_image
         self.passed = 0
         self.failed = 0
-        self.temp_dir = tempfile.mkdtemp(prefix="pisstvpp2_fileio_")
+        self.temp_dir = tempfile.mkdtemp(prefix="slowframe_fileio_")
         self.results = []
         
         if not os.path.exists(self.exe):
@@ -562,7 +562,7 @@ class FileIOTestSuite:
     def run_all_tests(self):
         """Execute all file I/O tests"""
         print(f"\n{Colors.BOLD}{Colors.CYAN}╔════════════════════════════════════════════════════════╗{Colors.RESET}")
-        print(f"{Colors.BOLD}{Colors.CYAN}║  PiSSTVpp2 - File I/O & System Error Tests            ║{Colors.RESET}")
+        print(f"{Colors.BOLD}{Colors.CYAN}║  SlowFrame - File I/O & System Error Tests            ║{Colors.RESET}")
         print(f"{Colors.BOLD}{Colors.CYAN}║  Testing file operations and error handling            ║{Colors.RESET}")
         print(f"{Colors.BOLD}{Colors.CYAN}╚════════════════════════════════════════════════════════╝{Colors.RESET}")
         
@@ -633,7 +633,7 @@ if __name__ == "__main__":
         exe = sys.argv[1]
     else:
         script_dir = Path(__file__).parent.parent.parent
-        exe = str(script_dir / "bin" / "pisstvpp2")
+        exe = str(script_dir / "bin" / "slowframe")
     img = None
     if len(sys.argv) > 2:
         img = sys.argv[2]

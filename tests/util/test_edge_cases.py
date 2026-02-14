@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Edge case and error condition testing for PiSSTVpp2
+Edge case and error condition testing for SlowFrame
 Tests boundary values, empty inputs, interdependencies, and error code accuracy
 """
 
@@ -38,7 +38,7 @@ class EdgeCaseTestSuite:
     def __init__(self, executable_path=None):
         if executable_path is None:
             script_dir = Path(__file__).parent.parent.parent
-            executable_path = str(script_dir / "bin" / "pisstvpp2")
+            executable_path = str(script_dir / "bin" / "slowframe")
         self.exe = executable_path
         self.passed = 0
         self.failed = 0
@@ -54,7 +54,7 @@ class EdgeCaseTestSuite:
     def _create_test_image(self) -> str:
         """Create a minimal PPM test image for testing"""
         temp_dir = tempfile.gettempdir()
-        test_image = os.path.join(temp_dir, "pisstvpp2_test_image.ppm")
+        test_image = os.path.join(temp_dir, "slowframe_test_image.ppm")
         
         # Create minimal 320x256 PPM (simplest valid image format)
         # PPM format: P6 (raw), width height, maxval, then raw RGB data
@@ -575,7 +575,7 @@ class EdgeCaseTestSuite:
     def run_all_tests(self):
         """Run all test groups"""
         print(f"\n{Colors.BOLD}{Colors.CYAN}╔═══════════════════════════════════════════════════════════════╗{Colors.RESET}")
-        print(f"{Colors.BOLD}{Colors.CYAN}║  PiSSTVpp2 - Comprehensive Edge Case Test Suite                ║{Colors.RESET}")
+        print(f"{Colors.BOLD}{Colors.CYAN}║  SlowFrame - Comprehensive Edge Case Test Suite                ║{Colors.RESET}")
         print(f"{Colors.BOLD}{Colors.CYAN}╚═══════════════════════════════════════════════════════════════╝{Colors.RESET}")
         
         try:
@@ -616,7 +616,7 @@ class EdgeCaseTestSuite:
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         script_dir = Path(__file__).parent.parent.parent
-        exe_path = str(script_dir / "bin" / "pisstvpp2")
+        exe_path = str(script_dir / "bin" / "slowframe")
     else:
         exe_path = sys.argv[1]
     

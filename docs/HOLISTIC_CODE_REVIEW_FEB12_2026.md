@@ -1,4 +1,4 @@
-# PiSSTVpp2 v2.1 - COMPREHENSIVE PROJECT HOLISTIC REVIEW
+# SlowFrame v2.1 - COMPREHENSIVE PROJECT HOLISTIC REVIEW
 ## February 12, 2026
 
 ---
@@ -39,22 +39,22 @@
 
 ```
 /src
-├── pisstvpp2.c                          ← Main entry point
-├── pisstvpp2_image.c                    ← OLD: Image handling (to refactor)
-├── pisstvpp2_sstv.c                     ← Audio tone synthesis (unchanged)
-├── pisstvpp2_audio_encoder.c            ← Unified audio format handler
+├── slowframe.c                          ← Main entry point
+├── slowframe_image.c                    ← OLD: Image handling (to refactor)
+├── slowframe_sstv.c                     ← Audio tone synthesis (unchanged)
+├── slowframe_audio_encoder.c            ← Unified audio format handler
 ├── audio_encoder_*.c                    ← Format-specific implementations
-├── pisstvpp2_config.c                   ← ✅ NEW: Config management
-├── pisstvpp2_context.c                  ← ✅ NEW: State management
-├── pisstvpp2_mmsstv_adapter.c           ← Stub: MMSSTV integration (incomplete)
+├── slowframe_config.c                   ← ✅ NEW: Config management
+├── slowframe_context.c                  ← ✅ NEW: State management
+├── slowframe_mmsstv_adapter.c           ← Stub: MMSSTV integration (incomplete)
 ├── overlay_spec.c                       ← ✅ Text overlay specifications
 │
 ├── include/
-│   ├── pisstvpp2_image.h                ← Image API (consolidated)
-│   ├── pisstvpp2_config.h               ← Config API
-│   ├── pisstvpp2_context.h              ← Context API
-│   ├── pisstvpp2_sstv.h                 ← SSTV API
-│   ├── pisstvpp2_audio_encoder.h        ← Audio encoder API
+│   ├── slowframe_image.h                ← Image API (consolidated)
+│   ├── slowframe_config.h               ← Config API
+│   ├── slowframe_context.h              ← Context API
+│   ├── slowframe_sstv.h                 ← SSTV API
+│   ├── slowframe_audio_encoder.h        ← Audio encoder API
 │   ├── overlay_spec.h                   ← Overlay spec API
 │   ├── mmsstv_stub.h                    ← Stub for MMSSTV API
 │   ├── logging.h                        ← Logging utilities
@@ -75,19 +75,19 @@
 ### 1.2 Module Dependencies
 
 ```
-Main Program (pisstvpp2.c)
-    ├── Config Management → pisstvpp2_config.c → error.h
+Main Program (slowframe.c)
+    ├── Config Management → slowframe_config.c → error.h
     ├── Image Loading → image_loader.c → error.h
     ├── Image Processing → image_processor.c → error.h
     ├── Aspect Ratio → image_aspect.c → error.h
     ├── Text Overlay → image_text_overlay.c ⚠️ BROKEN CHAIN
-    ├── SSTV Encoding → pisstvpp2_sstv.c
+    ├── SSTV Encoding → slowframe_sstv.c
     │   └── Audio Tone Synthesis (tone generation)
-    ├── Audio Encoding → pisstvpp2_audio_encoder.c
+    ├── Audio Encoding → slowframe_audio_encoder.c
     │   ├── audio_encoder_wav.c
     │   ├── audio_encoder_aiff.c
     │   └── audio_encoder_ogg.c
-    ├── MMSSTV Adapter → pisstvpp2_mmsstv_adapter.c (incomplete)
+    ├── MMSSTV Adapter → slowframe_mmsstv_adapter.c (incomplete)
     └── Error Handling → error.c (throughout)
 ```
 
@@ -137,24 +137,24 @@ Main Program (pisstvpp2.c)
 
 #### Mixed in main codebase:
 
-**In pisstvpp2.c:**
+**In slowframe.c:**
 - Many hardcoded constants that could be in config
 - Protocol mapping (m1/m2/s1/s2/sdx/r36/r72) hardcoded instead of registry-based
 - No mode registry system (Phase 3 still pending)
 
-**In pisstvpp2_image.c:**
+**In slowframe_image.c:**
 - `image_calculate_crop_box()` - Utility function used only once
 - `aspect_mode_to_string()` - Debug utility, not part of main flow
 - Manual image format detection code
 
-**In pisstvpp2_sstv.c:**
+**In slowframe_sstv.c:**
 - Hard-coded protocol dispatching in `sstv_encode_frame()` - should use registry
 - Build audio functions (`buildaudio_m`, `buildaudio_s`, etc.) - needed but not modularized
 
 ### 2.2 Unused or Dead Code
 
 **Partially Implemented:**
-- `pisstvpp2_mmsstv_adapter.c` - Stub only, no actual MMSSTV support
+- `slowframe_mmsstv_adapter.c` - Stub only, no actual MMSSTV support
 - Mode registry system - Designed but not implemented
 - Dynamic mode loading - Planned but not coded
 
@@ -170,8 +170,8 @@ Main Program (pisstvpp2.c)
 
 **Completed:**
 - ✅ Error code system (error.h/c) - 347 lines, 50+ error codes
-- ✅ Config management (pisstvpp2_config.h/c) - 373 lines, full parsing
-- ✅ Context management (pisstvpp2_context.h/c) - 278 lines, state encapsulation
+- ✅ Config management (slowframe_config.h/c) - 373 lines, full parsing
+- ✅ Context management (slowframe_context.h/c) - 278 lines, state encapsulation
 - ✅ Error codes integrated into image module
 - ✅ Error codes integrated into config module
 - ✅ Error codes integrated into SSTV module
@@ -243,7 +243,7 @@ Main Program (pisstvpp2.c)
 **Files:**
 - `src/image/image_text_overlay.h/c` - 1000+ lines
 - `src/include/overlay_spec.h/c` - 300 lines (complete)
-- `src/include/pisstvpp2_config.h` - Modified to include overlay_specs field
+- `src/include/slowframe_config.h` - Modified to include overlay_specs field
 
 **What's Working:**
 - ✅ Configuration structure (TextOverlaySpec) - 95% complete
@@ -307,7 +307,7 @@ Main Program (pisstvpp2.c)
 - Implement mode dispatcher
 
 **Current State:**
-- Protocol mapping still hardcoded in pisstvpp2.c main()
+- Protocol mapping still hardcoded in slowframe.c main()
 - Mode encoding functions exist but not registered in any system
 - No mode discovery mechanism
 - No dynamic mode addition capability
@@ -331,7 +331,7 @@ Main Program (pisstvpp2.c)
 
 **Current State:**
 - `src/include/mmsstv_stub.h` exists but empty
-- `src/pisstvpp2_mmsstv_adapter.c` exists but is stub only
+- `src/slowframe_mmsstv_adapter.c` exists but is stub only
 - No library detection code
 - No dynamic loading capability
 
@@ -606,7 +606,7 @@ Effort: 1-2 hours
 **Priority 6: Implement Phase 3 (Mode Registry)**
 ```
 1. Design mode registry system
-2. Extract mode definitions from pisstvpp2_sstv.c
+2. Extract mode definitions from slowframe_sstv.c
 3. Implement mode discovery
 4. Create dispatcher system  
 Effort: 13-17 hours (can work in parallel with above)
@@ -779,7 +779,7 @@ Option C: Release v2.1.0 (Phases 1-2), then v2.1.1 (Phase 3), then v2.1.2 (Phase
 
 ## CONCLUSION
 
-PiSSTVpp2 v2.1 is **45% complete** toward its stated master plan:
+SlowFrame v2.1 is **45% complete** toward its stated master plan:
 - Core functionality (error handling, config, image processing) is solid
 - Major feature (text overlay) is broken despite apparent completeness
 - Major systems (mode registry, MMSSTV) not yet implemented

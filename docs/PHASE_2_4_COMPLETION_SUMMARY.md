@@ -122,7 +122,7 @@ image_processor (geometric transformations)
     ↓
 image_text_overlay (station ID, color bars)
     ↓
-pisstvpp2_sstv (SSTV encoding)
+slowframe_sstv (SSTV encoding)
 ```
 
 ### Integration Points
@@ -133,7 +133,7 @@ pisstvpp2_sstv (SSTV encoding)
 - Called before SSTV encoding
 
 **Future Integration:**
-- [src/pisstvpp2_image.c](src/pisstvpp2_image.c) - Will call image_text_overlay functions
+- [src/slowframe_image.c](src/slowframe_image.c) - Will call image_text_overlay functions
 - Phase 2 integration testing will fully integrate this module
 
 ---

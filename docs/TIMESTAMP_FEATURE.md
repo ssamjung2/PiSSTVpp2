@@ -19,7 +19,7 @@ When enabled, the overlay displays the current time in a user-specified format i
 ### Basic Syntax
 
 ```bash
-bin/pisstvpp2 -i image.png -T "|timestamp-format=%Y-%m-%d %H:%M:%S" -o output.wav -K
+bin/slowframe -i image.png -T "|timestamp-format=%Y-%m-%d %H:%M:%S" -o output.wav -K
 ```
 
 To use timestamp AND display text, timestamp takes precedence when the format is specified:
@@ -94,7 +94,7 @@ border=0-10       # Border width in pixels
 ### Example 1: Simple Date Overlay
 
 ```bash
-bin/pisstvpp2 -i image.png \
+bin/slowframe -i image.png \
   -T "|size=18|color=white|mode=transparent|timestamp-format=%Y-%m-%d|pos=top" \
   -o output.wav -K
 ```
@@ -105,7 +105,7 @@ bin/pisstvpp2 -i image.png \
 ### Example 2: ISO 8601 Timestamp with Background Bar
 
 ```bash
-bin/pisstvpp2 -i image.png \
+bin/slowframe -i image.png \
   -T "|size=16|color=black|bgbar=1|bgbar-color=yellow|timestamp-format=%Y-%m-%dT%H:%M:%S|pos=top" \
   -o output.wav -K
 ```
@@ -116,7 +116,7 @@ bin/pisstvpp2 -i image.png \
 ### Example 3: Multiple Time Formats on Single Image
 
 ```bash
-bin/pisstvpp2 -i image.png \
+bin/slowframe -i image.png \
   -T "|size=18|color=white|mode=transparent|timestamp-format=%d-%b-%Y|pos=top" \
   -T "|size=16|color=yellow|mode=transparent|timestamp-format=%H:%M:%S|pos=bottom" \
   -T "|size=14|color=cyan|mode=transparent|timestamp-format=%A, %B %d|pos=left" \
@@ -132,7 +132,7 @@ bin/pisstvpp2 -i image.png \
 ### Example 4: Vertical Timestamp with Background Bar
 
 ```bash
-bin/pisstvpp2 -i image.png \
+bin/slowframe -i image.png \
   -T "|size=20|color=white|bgbar=1|bgbar-orient=vertical-stacked|bgbar-color=navy|timestamp-format=%Y-%m-%d|pos=left" \
   -o output.wav -K
 ```
@@ -155,7 +155,7 @@ bin/pisstvpp2 -i image.png \
 ### Example 5: HF Radio Contact with Timestamp
 
 ```bash
-bin/pisstvpp2 -i image.png \
+bin/slowframe -i image.png \
   -T "W5ABC|size=16|color=white|bg=black|bgbar=1|pos=top" \
   -T "|size=14|color=yellow|mode=transparent|timestamp-format=%H:%M UTC|bgbar=1|bgbar-color=darkblue|pos=bottom" \
   -o output.wav -K
@@ -273,7 +273,7 @@ Displays timestamp at pixel position (100, 150) with white 20-point font.
 **Solutions**:
 1. Set system clock via `date` command: `date 020313552026` (MMDDHHmm[[CC]YY])
 2. Check system timezone: `date +%Z`
-3. For UTC: Run with `TZ=UTC bin/pisstvpp2 ...` in shell
+3. For UTC: Run with `TZ=UTC bin/slowframe ...` in shell
 
 ---
 

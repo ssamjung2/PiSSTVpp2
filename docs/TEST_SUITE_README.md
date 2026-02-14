@@ -23,7 +23,7 @@ Two test suites are available:
 ### Requirements
 
 - Python 3.6+
-- `pisstvpp2` executable in current directory or specified path
+- `slowframe` executable in current directory or specified path
 - Test images in current directory
 
 ### Usage
@@ -33,7 +33,7 @@ Two test suites are available:
 python3 test_suite.py
 
 # Specify custom executable path
-python3 test_suite.py --exe ./pisstvpp2_custom
+python3 test_suite.py --exe ./slowframe_custom
 
 # Verbose output
 python3 test_suite.py --verbose
@@ -154,7 +154,7 @@ chmod +x test_suite_bash.sh
 ./test_suite_bash.sh
 
 # Specify custom executable
-./test_suite_bash.sh ./pisstvpp2_custom
+./test_suite_bash.sh ./slowframe_custom
 ```
 
 ### Test Groups
@@ -248,7 +248,7 @@ jobs:
           sudo apt-get install -y gcc libvips-dev
       
       - name: Build
-        run: make pisstvpp2
+        run: make slowframe
       
       - name: Run Python test suite
         run: python3 test_suite.py
@@ -273,10 +273,10 @@ build:
   script:
     - sudo apt-get update
     - sudo apt-get install -y gcc libvips-dev
-    - make pisstvpp2
+    - make slowframe
   artifacts:
     paths:
-      - pisstvpp2
+      - slowframe
 
 test:python:
   stage: test
@@ -300,8 +300,8 @@ convert -size 320x256 gradient: test_320x256.png
 
 ### Executable not found
 ```bash
-# Make sure pisstvpp2 is compiled and in PATH
-./pisstvpp2 -h  # Should display help
+# Make sure slowframe is compiled and in PATH
+./slowframe -h  # Should display help
 ```
 
 ### Python test suite fails to find output files
@@ -394,7 +394,7 @@ These test suites are provided under the same license as PiSSTVpp.
 ## Support
 
 For issues with the test suite:
-1. Verify `pisstvpp2` compiles and runs
+1. Verify `slowframe` compiles and runs
 2. Ensure test images exist and are valid
 3. Check Python version (3.6+)
 4. Review test output in `test_outputs/`

@@ -24,7 +24,7 @@ The legacy components directory contains two original SSTV transmission tools:
 | **pisstvpp** | Convert images to SSTV audio | Linux, macOS, RPi | C |
 | **pifm** | Transmit on RPi FM with audio | Raspberry Pi only | C++ |
 
-Both are self-contained and independent of the main pisstvpp2 codebase.
+Both are self-contained and independent of the main slowframe codebase.
 
 ---
 
@@ -117,7 +117,7 @@ sudo apt-get install libgd-dev libmagic-dev
 #### Building
 
 ```bash
-cd /path/to/PiSSTVpp2/src/legacy
+cd /path/to/SlowFrame/src/legacy
 make -f Makefile.legacy all
 ```
 
@@ -148,7 +148,7 @@ sudo apt-get install libgd-dev libmagic-dev
 #### Building
 
 ```bash
-cd /path/to/PiSSTVpp2/src/legacy
+cd /path/to/SlowFrame/src/legacy
 make -f Makefile.legacy pisstvpp
 ```
 
@@ -186,7 +186,7 @@ pkg-config --list-all | grep -E 'gd|magic'
 #### Building
 
 ```bash
-cd /path/to/PiSSTVpp2/src/legacy
+cd /path/to/SlowFrame/src/legacy
 make -f Makefile.legacy pisstvpp
 ```
 
@@ -495,5 +495,5 @@ See [LEGACY_CODE_ANALYSIS.md](../LEGACY_CODE_ANALYSIS.md) for detailed informati
 
 - [LEGACY_CODE_ANALYSIS.md](../LEGACY_CODE_ANALYSIS.md) - Code issues and fixes
 - [LEGACY_COMPONENTS.md](./LEGACY_COMPONENTS.md) - Component overview
-- [USER_GUIDE.md](../USER_GUIDE.md) - Main PiSSTVpp2 documentation
+- [USER_GUIDE.md](../USER_GUIDE.md) - Main SlowFrame documentation
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # test_aspect_modes.sh
-# Test script for aspect ratio correction modes in PiSSTVpp2
+# Test script for aspect ratio correction modes in SlowFrame
 #
 # Tests three modes with various image sizes:
 # - CENTER: Center-crop to exact target dimensions (320x256 for Martin 1)
@@ -15,7 +15,7 @@ set -e
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$( dirname "$SCRIPT_DIR" )"
-BIN="$PROJECT_ROOT/bin/pisstvpp2"
+BIN="$PROJECT_ROOT/bin/slowframe"
 TEST_RESULTS_DIR="$PROJECT_ROOT/tests/test_results"
 TEST_DIR="${1:-$TEST_RESULTS_DIR}"
 
@@ -32,7 +32,7 @@ if [ ! -f "$BIN" ]; then
 fi
 
 echo "=========================================="
-echo "PiSSTVpp2 Aspect Ratio Mode Tests"
+echo "SlowFrame Aspect Ratio Mode Tests"
 echo "=========================================="
 echo "Binary: $BIN"
 echo "Results directory: $TEST_DIR"

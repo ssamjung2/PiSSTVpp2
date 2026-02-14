@@ -1,6 +1,6 @@
-# PiSSTVpp2 Architecture Documentation
+# SlowFrame Architecture Documentation
 
-**Internal design and structure of PiSSTVpp2 v2.0**
+**Internal design and structure of SlowFrame v2.0**
 
 ---
 
@@ -22,7 +22,7 @@
 
 ### Design Philosophy
 
-PiSSTVpp2 v2.0 follows these principles:
+SlowFrame v2.0 follows these principles:
 
 **Modularity**: Clear separation of concerns (image, SSTV, audio)
 
@@ -38,7 +38,7 @@ PiSSTVpp2 v2.0 follows these principles:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    pisstvpp2 (main)                     │
+│                    slowframe (main)                     │
 │  - Argument parsing                                     │
 │  - Module coordination                                  │
 │  - CW identification                                    │
@@ -47,7 +47,7 @@ PiSSTVpp2 v2.0 follows these principles:
         ▼                             ▼
 ┌──────────────────┐         ┌────────────────────┐
 │  Image Module    │         │   SSTV Module      │
-│  (pisstvpp2_     │────────▶│   (pisstvpp2_      │
+│  (slowframe_     │────────▶│   (slowframe_      │
 │   image.c/.h)    │         │    sstv.c/.h)      │
 │                  │         │                    │
 │ - Load image     │         │ - VIS generation   │
@@ -58,7 +58,7 @@ PiSSTVpp2 v2.0 follows these principles:
                                         ▼
                              ┌────────────────────┐
                              │  Audio Encoder     │
-                             │  (pisstvpp2_audio_ │
+                             │  (slowframe_audio_ │
                              │   encoder.c/.h)    │
                              │                    │
                              │ - Format handling  │
@@ -79,7 +79,7 @@ PiSSTVpp2 v2.0 follows these principles:
 
 ### Core Components
 
-#### 1. Main Program (`pisstvpp2.c`)
+#### 1. Main Program (`slowframe.c`)
 
 **Responsibilities:**
 - Parse command-line arguments
@@ -111,7 +111,7 @@ typedef struct {
 } config_t;
 ```
 
-#### 2. Image Processing Module (`pisstvpp2_image.c/.h`)
+#### 2. Image Processing Module (`slowframe_image.c/.h`)
 
 **Responsibilities:**
 - Load images via libvips
@@ -143,7 +143,7 @@ void apply_aspect_correction(
 - `pad`: Add black bars (letterbox/pillarbox)
 - `stretch`: Force resize (may distort)
 
-#### 3. SSTV Encoding Module (`pisstvpp2_sstv.c/.h`)
+#### 3. SSTV Encoding Module (`slowframe_sstv.c/.h`)
 
 **Responsibilities:**
 - SSTV mode configuration
@@ -196,7 +196,7 @@ static const sstv_mode_t sstv_modes[] = {
 };
 ```
 
-#### 4. Audio Encoder Module (`pisstvpp2_audio_encoder.c/.h`)
+#### 4. Audio Encoder Module (`slowframe_audio_encoder.c/.h`)
 
 **Responsibilities:**
 - Abstract audio format handling
@@ -280,7 +280,7 @@ int ogg_encoder_close(audio_encoder_t *encoder);
 
 ## Module Descriptions
 
-### pisstvpp2_image Module
+### slowframe_image Module
 
 **Purpose:** Handle all image processing operations
 
@@ -325,7 +325,7 @@ int ogg_encoder_close(audio_encoder_t *encoder);
 - Verifies color space support
 - Reports libvips errors
 
-### pisstvpp2_sstv Module
+### slowframe_sstv Module
 
 **Purpose:** Encode SSTV transmissions
 
@@ -387,7 +387,7 @@ For each line:
     Cb (blue chroma) scan
 ```
 
-### pisstvpp2_audio_encoder Module
+### slowframe_audio_encoder Module
 
 **Purpose:** Abstract audio format differences
 
@@ -802,10 +802,10 @@ ifeq ($(OGG_AVAILABLE),yes)
 endif
 
 # Source files
-SRCS = src/pisstvpp2.c \
-       src/pisstvpp2_image.c \
-       src/pisstvpp2_sstv.c \
-       src/pisstvpp2_audio_encoder.c \
+SRCS = src/slowframe.c \
+       src/slowframe_image.c \
+       src/slowframe_sstv.c \
+       src/slowframe_audio_encoder.c \
        src/audio_encoder_wav.c \
        src/audio_encoder_aiff.c
 
@@ -818,7 +818,7 @@ endif
 OBJS = $(SRCS:.c=.o)
 
 # Target binary
-TARGET = bin/pisstvpp2
+TARGET = bin/slowframe
 
 # Build rules
 all: $(TARGET)
@@ -840,7 +840,7 @@ clean:
 
 **all** (default):
 - Compiles all source files
-- Links binary to `bin/pisstvpp2`
+- Links binary to `bin/slowframe`
 
 **clean**:
 - Removes object files
@@ -882,7 +882,7 @@ fi
 
 ### Adding New SSTV Modes
 
-**Step 1: Define Mode in `pisstvpp2_sstv.c`**
+**Step 1: Define Mode in `slowframe_sstv.c`**
 
 ```c
 static const sstv_mode_t sstv_modes[] = {
@@ -934,7 +934,7 @@ void print_help()
 ```bash
 # tests/test_suite.sh
 test_new_mode() {
-    ./bin/pisstvpp2 -i tests/images/test.jpg -o /tmp/new_mode.wav -p new_mode
+    ./bin/slowframe -i tests/images/test.jpg -o /tmp/new_mode.wav -p new_mode
     check_success "New mode encoding"
 }
 ```
@@ -981,7 +981,7 @@ int newformat_encoder_close(audio_encoder_t *encoder)
 }
 ```
 
-**Step 2: Register Format in `pisstvpp2_audio_encoder.c`**
+**Step 2: Register Format in `slowframe_audio_encoder.c`**
 
 ```c
 audio_encoder_t* audio_encoder_create(const char *filename,
@@ -1025,7 +1025,7 @@ printf("  -f, --format FORMAT   Audio format (wav, aiff, ogg, newformat)\n");
 
 ### Adding New Aspect Correction Modes
 
-**In `pisstvpp2_image.c`:**
+**In `slowframe_image.c`:**
 
 ```c
 void apply_aspect_correction(VipsImage *input, 
@@ -1093,7 +1093,7 @@ tests/
 **1. Mode Tests**
 ```bash
 test_martin1() {
-    ./bin/pisstvpp2 -i tests/images/test.jpg -o /tmp/m1.wav -p m1
+    ./bin/slowframe -i tests/images/test.jpg -o /tmp/m1.wav -p m1
     check_exit_code $?
     check_file_exists /tmp/m1.wav
     check_file_size /tmp/m1.wav "4800000:5200000"  # Expected range
@@ -1103,12 +1103,12 @@ test_martin1() {
 **2. Format Tests**
 ```bash
 test_wav_format() {
-    ./bin/pisstvpp2 -i tests/images/test.jpg -o /tmp/test.wav -f wav
+    ./bin/slowframe -i tests/images/test.jpg -o /tmp/test.wav -f wav
     check_file_magic /tmp/test.wav "RIFF.*WAVE"
 }
 
 test_ogg_format() {
-    ./bin/pisstvpp2 -i tests/images/test.jpg -o /tmp/test.ogg -f ogg
+    ./bin/slowframe -i tests/images/test.jpg -o /tmp/test.ogg -f ogg
     check_file_magic /tmp/test.ogg "OggS"
 }
 ```
@@ -1116,12 +1116,12 @@ test_ogg_format() {
 **3. Aspect Tests**
 ```bash
 test_aspect_center() {
-    ./bin/pisstvpp2 -i tests/images/portrait.jpg -o /tmp/out.wav -a center
+    ./bin/slowframe -i tests/images/portrait.jpg -o /tmp/out.wav -a center
     # Verify no errors
 }
 
 test_aspect_pad() {
-    ./bin/pisstvpp2 -i tests/images/portrait.jpg -o /tmp/out.wav -a pad
+    ./bin/slowframe -i tests/images/portrait.jpg -o /tmp/out.wav -a pad
     # Check output has expected duration (black bars don't change time)
 }
 ```
@@ -1129,7 +1129,7 @@ test_aspect_pad() {
 **4. CW Tests**
 ```bash
 test_cw_id() {
-    ./bin/pisstvpp2 -i tests/images/test.jpg -o /tmp/cw.wav -C "N0CALL"
+    ./bin/slowframe -i tests/images/test.jpg -o /tmp/cw.wav -C "N0CALL"
     # Check file is longer than SSTV-only version
     # Verify CW added
 }
@@ -1138,12 +1138,12 @@ test_cw_id() {
 **5. Edge Cases**
 ```bash
 test_invalid_mode() {
-    ./bin/pisstvpp2 -i tests/images/test.jpg -o /tmp/out.wav -p invalid
+    ./bin/slowframe -i tests/images/test.jpg -o /tmp/out.wav -p invalid
     check_exit_code_nonzero $?
 }
 
 test_missing_file() {
-    ./bin/pisstvpp2 -i /nonexistent.jpg -o /tmp/out.wav
+    ./bin/slowframe -i /nonexistent.jpg -o /tmp/out.wav
     check_exit_code_nonzero $?
 }
 ```
@@ -1201,7 +1201,7 @@ cd tests
 - Float sample support
 
 **Files to Add:**
-- `pisstvpp2_mmsstv_adapter.c/.h` (already stubbed)
+- `slowframe_mmsstv_adapter.c/.h` (already stubbed)
 - Link to `libsstv_encoder.so`
 
 ### Possible for v2.2+
@@ -1227,7 +1227,7 @@ cd tests
 
 ## Conclusion
 
-PiSSTVpp2 v2.0 architecture is:
+SlowFrame v2.0 architecture is:
 
 ✅ **Modular**: Clear separation of image, SSTV, audio concerns
 

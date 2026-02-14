@@ -114,7 +114,7 @@ Comprehensive test suite executed **successfully** with all overlay functionalit
 
 ##### Test 6.1: Single Callsign Overlay
 ```bash
-pisstvpp2 -i test_image.jpg -S "W5ZZZ" -o output.wav -v -Z
+slowframe -i test_image.jpg -S "W5ZZZ" -o output.wav -v -Z
 ```
 - **Result:** ✅ PASSED
 - **Expected:** "1 overlay(s) ready for Phase 2.5"
@@ -123,7 +123,7 @@ pisstvpp2 -i test_image.jpg -S "W5ZZZ" -o output.wav -v -Z
 
 ##### Test 6.2: Callsign with Grid Square
 ```bash
-pisstvpp2 -i test_image.jpg -S "N0CALL" -G "EM97" -o output.wav -v -Z
+slowframe -i test_image.jpg -S "N0CALL" -G "EM97" -o output.wav -v -Z
 ```
 - **Result:** ✅ PASSED
 - **Expected:** "2 overlay(s) ready for Phase 2.5"
@@ -132,7 +132,7 @@ pisstvpp2 -i test_image.jpg -S "N0CALL" -G "EM97" -o output.wav -v -Z
 
 ##### Test 6.3: Grid Square Overlay Only
 ```bash
-pisstvpp2 -i test_image.jpg -G "CM97bj" -o output.wav -v -Z
+slowframe -i test_image.jpg -G "CM97bj" -o output.wav -v -Z
 ```
 - **Result:** ✅ PASSED
 - **Expected:** "1 overlay(s) ready for Phase 2.5"
@@ -141,7 +141,7 @@ pisstvpp2 -i test_image.jpg -G "CM97bj" -o output.wav -v -Z
 
 ##### Test 6.4: Enable Overlay Flag Only
 ```bash
-pisstvpp2 -i test_image.jpg -O -o output.wav
+slowframe -i test_image.jpg -O -o output.wav
 ```
 - **Result:** ✅ PASSED
 - **Expected:** Command executes (no specs created without -S/-G)

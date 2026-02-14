@@ -1,5 +1,5 @@
 
-# PiSSTVpp2 v2.1 - Complete Planning Documentation Index
+# SlowFrame v2.1 - Complete Planning Documentation Index
 
 **Master Guide to Understanding the v2.1 Modernization Strategy**
 

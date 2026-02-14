@@ -55,10 +55,10 @@ Phase 1 (Unified Error Handling & Configuration) is largely complete with strong
 
 **Evidence of Use:**
 ```c
-// From pisstvpp2.c
+// From slowframe.c
 error_log(PISSTVPP2_ERR_ARG_INVALID_PROTOCOL, "Unknown option or missing argument");
 
-// From pisstvpp2_config.c
+// From slowframe_config.c
 if (result != PISSTVPP2_OK) {
     error_log(result, "Failed to initialize config");
     return result;
@@ -81,8 +81,8 @@ if (result != PISSTVPP2_OK) {
 
 **Status:** Fully implemented and in active use
 
-**Headers:** `/src/include/pisstvpp2_config.h` (336 lines)  
-**Implementation:** `/src/pisstvpp2_config.c` (638 lines)
+**Headers:** `/src/include/slowframe_config.h` (336 lines)  
+**Implementation:** `/src/slowframe_config.c` (638 lines)
 
 **What's Implemented:**
 
@@ -145,8 +145,8 @@ typedef struct {
 
 **Status:** Fully implemented and in active use
 
-**Headers:** `/src/include/pisstvpp2_context.h` (278 lines)  
-**Implementation:** `/src/pisstvpp2_context.c` (286 lines)
+**Headers:** `/src/include/slowframe_context.h` (278 lines)  
+**Implementation:** `/src/slowframe_context.c` (286 lines)
 
 **What's Implemented:**
 
@@ -217,7 +217,7 @@ typedef struct {
 
 #### Breakdown by Module
 
-**1. pisstvpp2.c (MAIN PROGRAM)**
+**1. slowframe.c (MAIN PROGRAM)**
 
 **Status:** ⚠️ Needs refactoring (CRITICAL PATH)
 
@@ -249,7 +249,7 @@ typedef struct {
 
 ---
 
-**2. pisstvpp2_image.c (IMAGE PROCESSING)**
+**2. slowframe_image.c (IMAGE PROCESSING)**
 
 **Status:** ⚠️ 40% complete - Mixed patterns
 
@@ -285,7 +285,7 @@ return -1;                             // ← Should be PISSTVPP2_ERR_IMAGE_*
 
 ---
 
-**3. pisstvpp2_sstv.c (SSTV ENCODING)**
+**3. slowframe_sstv.c (SSTV ENCODING)**
 
 **Status:** ⚠️ 50% complete - Mixed patterns
 
@@ -316,7 +316,7 @@ fprintf(stderr, "[WARNING] Audio buffer overflow at sample %u\n", g_sstv.samples
 
 ---
 
-**4. pisstvpp2_audio_encoder.c (AUDIO BASE)**
+**4. slowframe_audio_encoder.c (AUDIO BASE)**
 
 **Status:** ⚠️ Minimal use of error codes
 
@@ -418,7 +418,7 @@ fprintf(stderr, "[ERROR] OGG Vorbis support not compiled in...");
 
 ---
 
-**8. pisstvpp2_mmsstv_adapter.c (MMSSTV LIBRARY ADAPTER)**
+**8. slowframe_mmsstv_adapter.c (MMSSTV LIBRARY ADAPTER)**
 
 **Status:** ❌ Not updated - 100% return -1
 
@@ -452,14 +452,14 @@ if (dlopen(...) == NULL) return -1;                 // Line 149
 
 | Module | Status | Lines to Change | Issues | Est. Hours |
 |--------|--------|-----------------|--------|-----------|
-| **pisstvpp2.c** | ⚠️ CRITICAL | ~30 | VIPS_CALL macro, goto cleanup | 4-5 |
-| **pisstvpp2_image.c** | ⚠️ Mixed | ~15 | return -1 + fprintf | 2-3 |
-| **pisstvpp2_sstv.c** | ⚠️ Mixed | ~10 | Error handling consistency | 2-3 |
-| **pisstvpp2_audio_encoder.c** | ⚠️ Limited | ~5 | Factory patterns | 1-2 |
+| **slowframe.c** | ⚠️ CRITICAL | ~30 | VIPS_CALL macro, goto cleanup | 4-5 |
+| **slowframe_image.c** | ⚠️ Mixed | ~15 | return -1 + fprintf | 2-3 |
+| **slowframe_sstv.c** | ⚠️ Mixed | ~10 | Error handling consistency | 2-3 |
+| **slowframe_audio_encoder.c** | ⚠️ Limited | ~5 | Factory patterns | 1-2 |
 | **audio_encoder_wav.c** | ❌ Not started | ~30 | All return -1 | 2-3 |
 | **audio_encoder_aiff.c** | ❌ Not started | ~40 | All return -1 | 2-3 |
 | **audio_encoder_ogg.c** | ❌ Not started | ~5 | Early returns | 1-2 |
-| **pisstvpp2_mmsstv_adapter.c** | ❌ Not started | ~20 | All return -1 | 2-3 |
+| **slowframe_mmsstv_adapter.c** | ❌ Not started | ~20 | All return -1 | 2-3 |
 | | | | | |
 | **TOTAL** | ⚠️ 70% | ~155 lines | 8 modules | **18-24 hours** |
 
@@ -484,12 +484,12 @@ if (dlopen(...) == NULL) return -1;                 // Line 149
 
 ### Option A: Focused Sprint (Recommended)
 Complete Task 1.4 in dedicated 2-3 day effort:
-- **Day 1 (6 hrs):** Complete pisstvpp2.c, pisstvpp2_image.c, pisstvpp2_sstv.c
+- **Day 1 (6 hrs):** Complete slowframe.c, slowframe_image.c, slowframe_sstv.c
 - **Day 2 (9 hrs):** Complete all audio encoders + MMSSTV adapter
 - **Day 3 (3-6 hrs):** Run full test suite, fix any integration issues
 
 ### Option B: Incremental Completion
-- Complete critical modules first (pisstvpp2.c, image.c)
+- Complete critical modules first (slowframe.c, image.c)
 - Run tests to verify no regressions
 - Continue with optional modules (audio encoders)
 - MMSSTV can be deferred if Phase 4 isn't immediate
@@ -510,10 +510,10 @@ make clean && make all           # Verify compilation
 ./tests/test_suite.py            # Run all 249 tests
 
 # Specific validation:
-./bin/pisstvpp2 -i test_image.png              # Basic operation
-./bin/pisstvpp2 -i test_image.png -f aiff     # AIFF encoding
-./bin/pisstvpp2 -i test_image.png -p s2       # Different protocols
-./bin/pisstvpp2 -i missing.jpg                 # Error code propagation
+./bin/slowframe -i test_image.png              # Basic operation
+./bin/slowframe -i test_image.png -f aiff     # AIFF encoding
+./bin/slowframe -i test_image.png -p s2       # Different protocols
+./bin/slowframe -i missing.jpg                 # Error code propagation
 ```
 
 **Success Criteria:**
@@ -565,8 +565,8 @@ make clean && make all           # Verify compilation
 To complete Phase 1:
 
 1. **Read this document** - Understand current state
-2. **Update pisstvpp2.c** - Refactor VIPS_CALL macro
-3. **Update pisstvpp2_image.c** - Replace return -1 with error codes
+2. **Update slowframe.c** - Refactor VIPS_CALL macro
+3. **Update slowframe_image.c** - Replace return -1 with error codes
 4. **Update audio encoders** - WAV, AIFF, OGG consistently
 5. **Update SSTV module** - Consolidate error handling
 6. **Update MMSSTV adapter** - Full error code adoption

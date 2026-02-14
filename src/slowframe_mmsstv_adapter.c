@@ -1,11 +1,11 @@
 /*
- * pisstvpp2_mmsstv_adapter.c
+ * slowframe_mmsstv_adapter.c
  *
  * MMSSTV Library Integration Adapter Implementation
  *
- * This module implements the integration between PiSSTVpp2 and mmsstv-portable.
+ * This module implements the integration between SlowFrame and mmsstv-portable.
  * It provides a unified interface that can use either:
- * - Legacy SSTV module (pisstvpp2_sstv.c) for 7 basic modes
+ * - Legacy SSTV module (slowframe_sstv.c) for 7 basic modes
  * - MMSSTV library for 100+ extended modes
  *
  * The adapter automatically routes encoding requests to the appropriate backend
@@ -16,9 +16,9 @@
  * Status: STUB IMPLEMENTATION - Replace with actual logic when mmsstv-portable is ready
  */
 
-#include "pisstvpp2_mmsstv_adapter.h"
-#include "pisstvpp2_image.h"
-#include "pisstvpp2_sstv.h"
+#include "slowframe_mmsstv_adapter.h"
+#include "slowframe_image.h"
+#include "slowframe_sstv.h"
 #include "logging.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -134,7 +134,7 @@ const char* mmsstv_adapter_get_error(void) {
 int mmsstv_adapter_init(uint32_t sample_rate, bool verbose) {
     if (g_adapter_initialized) {
         set_error("Adapter already initialized");
-        return PISSTVPP2_ERR_MMSSTV_INIT;
+        return SLOWFRAME_ERR_MMSSTV_INIT;
     }
     
     g_verbose = verbose;
@@ -146,7 +146,7 @@ int mmsstv_adapter_init(uint32_t sample_rate, bool verbose) {
 #ifdef HAVE_MMSSTV_SUPPORT
     if (mmsstv_init() != 0) {
         set_error("Failed to initialize MMSSTV library");
-        return PISSTVPP2_ERR_MMSSTV_INIT;
+        return SLOWFRAME_ERR_MMSSTV_INIT;
     }
     
     if (g_verbose) {
@@ -159,7 +159,7 @@ int mmsstv_adapter_init(uint32_t sample_rate, bool verbose) {
 #endif
     
     g_adapter_initialized = true;
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 void mmsstv_adapter_cleanup(void) {

@@ -141,23 +141,23 @@ tests/
 
 ```bash
 # Test 1: Single callsign overlay
-./bin/pisstvpp2 -i tests/images/test_pattern_320x240.jpg \
+./bin/slowframe -i tests/images/test_pattern_320x240.jpg \
   -S "W5ZZZ" -o /tmp/overlay_test1.wav
 
 # Test 2: Callsign with grid square
-./bin/pisstvpp2 -i tests/images/test_pattern_320x240.jpg \
+./bin/slowframe -i tests/images/test_pattern_320x240.jpg \
   -S "N0CALL" -G "EM97" -o /tmp/overlay_test2.wav
 
 # Test 3: Grid square only
-./bin/pisstvpp2 -i tests/images/test_pattern_320x240.jpg \
+./bin/slowframe -i tests/images/test_pattern_320x240.jpg \
   -G "CM97bj" -o /tmp/overlay_test3.wav
 
 # Test 4: Enable overlay flag
-./bin/pisstvpp2 -i tests/images/test_pattern_320x240.jpg \
+./bin/slowframe -i tests/images/test_pattern_320x240.jpg \
   -O -o /tmp/overlay_test4.wav
 
 # With verbose output to see overlay specs being prepared
-./bin/pisstvpp2 -i tests/images/test_pattern_320x240.jpg \
+./bin/slowframe -i tests/images/test_pattern_320x240.jpg \
   -S "W5ZZZ" -G "EM12ab" -o /tmp/overlay_verbose.wav -v -Z
 ```
 

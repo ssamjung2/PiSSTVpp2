@@ -1,12 +1,12 @@
-# PiSSTVpp2 v2.0 SSTV Mode Reference
+# SlowFrame v2.0 SSTV Mode Reference
 
-**Complete reference for all SSTV modes supported in PiSSTVpp2 v2.0**
+**Complete reference for all SSTV modes supported in SlowFrame v2.0**
 
 ---
 
 ## Overview
 
-PiSSTVpp2 v2.0 supports 7 SSTV modes across three families:
+SlowFrame v2.0 supports 7 SSTV modes across three families:
 - **Martin family** (2 modes): Classic RGB sequential scan
 - **Scottie family** (3 modes): Enhanced RGB sequential scan with better sync
 - **Robot family** (2 modes): Modern YUV color-subsampled encoding
@@ -57,7 +57,7 @@ Martin modes use **RGB sequential scan**: each line is encoded as Green, then Bl
 
 **CLI Example:**
 ```bash
-./bin/pisstvpp2 -i photo.jpg -p m1 -o transmission.wav
+./bin/slowframe -i photo.jpg -p m1 -o transmission.wav
 ```
 
 ---
@@ -87,7 +87,7 @@ Martin modes use **RGB sequential scan**: each line is encoded as Green, then Bl
 
 **CLI Example:**
 ```bash
-./bin/pisstvpp2 -i photo.jpg -p m2 -o fast_transmission.wav
+./bin/slowframe -i photo.jpg -p m2 -o fast_transmission.wav
 ```
 
 ---
@@ -124,7 +124,7 @@ Scottie modes enhance the Martin family design with **improved sync pulse design
 
 **CLI Example:**
 ```bash
-./bin/pisstvpp2 -i photo.jpg -p s1 -o transmission.wav
+./bin/slowframe -i photo.jpg -p s1 -o transmission.wav
 ```
 
 ---
@@ -153,7 +153,7 @@ Scottie modes enhance the Martin family design with **improved sync pulse design
 
 **CLI Example:**
 ```bash
-./bin/pisstvpp2 -i photo.jpg -p s2 -o transmission.wav
+./bin/slowframe -i photo.jpg -p s2 -o transmission.wav
 ```
 
 ---
@@ -184,7 +184,7 @@ Scottie modes enhance the Martin family design with **improved sync pulse design
 
 **CLI Example:**
 ```bash
-./bin/pisstvpp2 -i photo.jpg -p sdx -o highest_quality.wav
+./bin/slowframe -i photo.jpg -p sdx -o highest_quality.wav
 ```
 
 ---
@@ -230,7 +230,7 @@ Robot modes use **YUV color encoding with chroma subsampling**, a more efficient
 
 **CLI Example:**
 ```bash
-./bin/pisstvpp2 -i photo.jpg -p r36 -o quick.wav
+./bin/slowframe -i photo.jpg -p r36 -o quick.wav
 ```
 
 ---
@@ -268,7 +268,7 @@ Robot modes use **YUV color encoding with chroma subsampling**, a more efficient
 
 **CLI Example:**
 ```bash
-./bin/pisstvpp2 -i photo.jpg -p r72 -o high_quality.wav
+./bin/slowframe -i photo.jpg -p r72 -o high_quality.wav
 ```
 
 ---
@@ -324,32 +324,32 @@ Quick reference for all 7 modes:
 
 **General Use / Default**
 ```bash
-./bin/pisstvpp2 -i photo.jpg -p s2              # Scottie 2 - best general choice
+./bin/slowframe -i photo.jpg -p s2              # Scottie 2 - best general choice
 ```
 
 **Fastest Possible**
 ```bash
-./bin/pisstvpp2 -i photo.jpg -p r36             # Robot 36 - 36 seconds
+./bin/slowframe -i photo.jpg -p r36             # Robot 36 - 36 seconds
 ```
 
 **Best Compatibility**
 ```bash
-./bin/pisstvpp2 -i photo.jpg -p m1              # Martin 1 - most receivers
+./bin/slowframe -i photo.jpg -p m1              # Martin 1 - most receivers
 ```
 
 **Highest Quality**
 ```bash
-./bin/pisstvpp2 -i photo.jpg -p sdx             # Scottie DX - best detail
+./bin/slowframe -i photo.jpg -p sdx             # Scottie DX - best detail
 ```
 
 **Professional / Noisy Channels**
 ```bash
-./bin/pisstvpp2 -i photo.jpg -p s1              # Scottie 1 - better sync
+./bin/slowframe -i photo.jpg -p s1              # Scottie 1 - better sync
 ```
 
 **YUV Preference (Modern**
 ```bash
-./bin/pisstvpp2 -i photo.jpg -p r72             # Robot 72 - YUV 4:2:2
+./bin/slowframe -i photo.jpg -p r72             # Robot 72 - YUV 4:2:2
 ```
 
 ---
@@ -394,11 +394,11 @@ Aspect ratio correction options (via `-a` flag):
 
 ### Audio Sample Rates
 
-PiSSTVpp2 supports sample rates from 8,000 to 48,000 Hz:
+SlowFrame supports sample rates from 8,000 to 48,000 Hz:
 ```bash
-./bin/pisstvpp2 -i photo.jpg -r 44100          # High fidelity (44.1 kHz)
-./bin/pisstvpp2 -i photo.jpg -r 22050          # Default (22.05 kHz)
-./bin/pisstvpp2 -i photo.jpg -r 8000           # Low bandwidth (8 kHz)
+./bin/slowframe -i photo.jpg -r 44100          # High fidelity (44.1 kHz)
+./bin/slowframe -i photo.jpg -r 22050          # Default (22.05 kHz)
+./bin/slowframe -i photo.jpg -r 8000           # Low bandwidth (8 kHz)
 ```
 
 ---
@@ -430,7 +430,7 @@ Luminance (Y) encoded at full resolution; chroma (Cr/Cb) subsampled:
 All modes support optional CW (Morse code) identification appended after transmission:
 
 ```bash
-./bin/pisstvpp2 -i photo.jpg -p m1 -C "N0CALL" -o transmission.wav
+./bin/slowframe -i photo.jpg -p m1 -C "N0CALL" -o transmission.wav
 ```
 
 This appends: "SSTV DE N0CALL" in Morse code at the end of the audio transmission.
@@ -443,7 +443,7 @@ This appends: "SSTV DE N0CALL" in Morse code at the end of the audio transmissio
 
 ## Version Information
 
-- **PiSSTVpp2 Version**: 2.0.0
+- **SlowFrame Version**: 2.0.0
 - **SSTV Modes**: 7 (Martin: 2, Scottie: 3, Robot: 2)
 - **Audio Formats**: WAV, AIFF, OGG Vorbis
 - **Sample Rates**: 8,000 - 48,000 Hz

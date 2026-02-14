@@ -14,7 +14,7 @@
 #### [src/image/image_aspect.c](src/image/image_aspect.c) (362 lines)
 
 **Module Overview:**
-Implements aspect ratio correction using three independent transformation strategies for adapting images to target SSTV dimensions. Extracted from [src/pisstvpp2_image.c](src/pisstvpp2_image.c) lines 252-572 and refactored as modular functions.
+Implements aspect ratio correction using three independent transformation strategies for adapting images to target SSTV dimensions. Extracted from [src/slowframe_image.c](src/slowframe_image.c) lines 252-572 and refactored as modular functions.
 
 **Core Functions:**
 
@@ -130,7 +130,7 @@ image_aspect (corrects aspect ratio)
     ↓
 image_processor (access pixels for SSTV encoding)
     ↓
-pisstvpp2_sstv (SSTV encoding: Martin/Scottie/R36/R72)
+slowframe_sstv (SSTV encoding: Martin/Scottie/R36/R72)
 ```
 
 ### Key Design Decisions
@@ -161,7 +161,7 @@ pisstvpp2_sstv (SSTV encoding: Martin/Scottie/R36/R72)
 ## 3. Extracted Algorithms
 
 ### Original Code Location
-**Source:** [src/pisstvpp2_image.c](src/pisstvpp2_image.c)
+**Source:** [src/slowframe_image.c](src/slowframe_image.c)
 
 ### Extracted Functions
 
@@ -303,7 +303,7 @@ image_aspect.c
 ### Public API Usage Points
 
 **Current:**
-- [src/pisstvpp2_image.c](src/pisstvpp2_image.c) - Will integrate in Phase 2 integration step
+- [src/slowframe_image.c](src/slowframe_image.c) - Will integrate in Phase 2 integration step
 
 **Future (Phase 2.4+):**
 - Text overlay module (for placement before/after aspect correction)
@@ -383,7 +383,7 @@ image_aspect.c
 - Integration point: After aspect correction, before SSTV encoding
 
 **Phase 2 Integration:**
-- Integrate image_aspect into [src/pisstvpp2_image.c](src/pisstvpp2_image.c) pipeline
+- Integrate image_aspect into [src/slowframe_image.c](src/slowframe_image.c) pipeline
 - Full end-to-end testing with aspect ratio modes
 - Performance profiling across all SSTV modes
 

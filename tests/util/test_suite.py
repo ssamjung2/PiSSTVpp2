@@ -22,12 +22,12 @@ class TestSuite:
         """Initialize test suite
         
         Args:
-            executable_path: Path to pisstvpp2 executable
+            executable_path: Path to slowframe executable
             verbose: Enable verbose output
         """
         if executable_path is None:
             script_dir = Path(__file__).parent.parent.parent
-            executable_path = str(script_dir / "bin" / "pisstvpp2")
+            executable_path = str(script_dir / "bin" / "slowframe")
         self.exe = executable_path
         self.verbose = verbose
         self.test_dir = Path(__file__).parent.parent / "test_outputs"
@@ -80,7 +80,7 @@ class TestSuite:
         return images
     
     def _run_command(self, args):
-        """Execute pisstvpp2 with given arguments
+        """Execute slowframe with given arguments
         
         Returns:
             (returncode, stdout, stderr)
@@ -778,7 +778,7 @@ class TestSuite:
             from pathlib import Path
             
             # Try to load the compiled library
-            lib_names = ['libpisstvpp2.so', 'libpisstvpp2.dylib', 'pisstvpp2.dll']
+            lib_names = ['libslowframe.so', 'libslowframe.dylib', 'slowframe.dll']
             lib_loaded = False
             
             for lib_name in lib_names:
@@ -1226,7 +1226,7 @@ if __name__ == "__main__":
     import argparse
     
     parser = argparse.ArgumentParser(description="PiSSTVpp Test Suite")
-    parser.add_argument("--exe", default=None, help="Path to pisstvpp2 executable")
+    parser.add_argument("--exe", default=None, help="Path to slowframe executable")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
     parser.add_argument("--keep-outputs", action="store_true", help="Keep test output files")
     
@@ -1235,7 +1235,7 @@ if __name__ == "__main__":
     # Set default executable path if not provided
     if args.exe is None:
         script_dir = Path(__file__).parent.parent.parent
-        args.exe = str(script_dir / "bin" / "pisstvpp2")
+        args.exe = str(script_dir / "bin" / "slowframe")
     
     try:
         suite = TestSuite(executable_path=args.exe, verbose=args.verbose)

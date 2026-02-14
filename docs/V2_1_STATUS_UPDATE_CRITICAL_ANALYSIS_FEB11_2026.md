@@ -1,4 +1,4 @@
-# PiSSTVpp2 v2.1 - CURRENT STATUS UPDATE
+# SlowFrame v2.1 - CURRENT STATUS UPDATE
 ## February 11, 2026 - Critical Analysis Complete
 
 **Document Type:** Status Revision  
@@ -26,7 +26,7 @@
 The implementation reached "infrastructure complete" but **critical rendering pipeline is broken**:
 
 ```c
-// In src/pisstvpp2_image.c, apply_single_overlay() lines 590-640:
+// In src/slowframe_image.c, apply_single_overlay() lines 590-640:
 VipsImage *text_image = NULL;
 if (vips_text(&text_image, spec->text, ...)) { /* render text */ }
 // ... calculate position ...
@@ -42,8 +42,8 @@ return PISSTVPP2_OK;
 
 ### ✅ Configuration System (90%)
 - `overlay_spec.c/h` - Complete list management system
-- `pisstvpp2_config.h` - Config struct with overlay_specs field
-- `pisstvpp2_config.c` - CLI parsing for -O, -S flags
+- `slowframe_config.h` - Config struct with overlay_specs field
+- `slowframe_config.c` - CLI parsing for -O, -S flags
 - **Issue:** No -G flag handler, no grid_square field in config
 
 ### ✅ CLI Integration (80%)
@@ -89,7 +89,7 @@ return PISSTVPP2_OK;
 
 ### Reality Check ❌
 ```bash
-$ ./pisstvpp2 -i photo.jpg -S W5ZZZ -G EM12ab -o test.wav
+$ ./slowframe -i photo.jpg -S W5ZZZ -G EM12ab -o test.wav
 # Command completes successfully
 # Audio file created ✅
 # Config parsed ✅
@@ -178,7 +178,7 @@ From tests and examples:
 ## Detailed Issue List
 
 ### Issue #1: Text Compositing Missing (CRITICAL)
-**File:** `src/pisstvpp2_image.c`  
+**File:** `src/slowframe_image.c`  
 **Function:** `apply_single_overlay()`  
 **Lines:** 590-640  
 **Severity:** CRITICAL - Blocks all functionality  
@@ -187,7 +187,7 @@ From tests and examples:
 **Testing:** Visual verification in images  
 
 ### Issue #2: Grid Square Config Field Missing (HIGH)
-**File:** `src/include/pisstvpp2_config.h`  
+**File:** `src/include/slowframe_config.h`  
 **Field:** `station_grid_square`  
 **Severity:** HIGH - Required for FCC compliance  
 **Fix:** Add field to struct  
@@ -195,7 +195,7 @@ From tests and examples:
 **Testing:** CLI parsing tests  
 
 ### Issue #3: -G Flag Handler Missing (HIGH)
-**File:** `src/pisstvpp2_config.c`  
+**File:** `src/slowframe_config.c`  
 **Function:** `pisstvpp_config_parse()`  
 **Severity:** HIGH - Feature unusable without it  
 **Fix:** Add case 'G' handler in getopt loop  
@@ -203,7 +203,7 @@ From tests and examples:
 **Testing:** CLI flag tests  
 
 ### Issue #4: No Overlay Spec Creation from CLI (HIGH)
-**File:** `src/pisstvpp2_config.c`  
+**File:** `src/slowframe_config.c`  
 **Function:** Need new helper function  
 **Severity:** HIGH - Spec list stays empty despite flags  
 **Fix:** Create `create_station_overlay_spec()` helper  
@@ -211,7 +211,7 @@ From tests and examples:
 **Testing:** Integration tests  
 
 ### Issue #5: Color Rendering Not Implemented (HIGH)
-**File:** `src/pisstvpp2_image.c`  
+**File:** `src/slowframe_image.c`  
 **Function:** `apply_single_overlay()`  
 **Severity:** HIGH - Overlays always black/white  
 **Fix:** Use spec->text_color, implement vips color operations  
@@ -219,7 +219,7 @@ From tests and examples:
 **Testing:** Visual verification of colors  
 
 ### Issue #6: Background Box Rendering Missing (MEDIUM)
-**File:** `src/pisstvpp2_image.c`  
+**File:** `src/slowframe_image.c`  
 **Function:** `apply_single_overlay()`  
 **Severity:** MEDIUM - Nice-to-have for readability  
 **Fix:** Implement background rectangle before text  
@@ -271,7 +271,7 @@ src/overlay_spec.c/h
   - TextOverlaySpec structure
   - overlay_spec_create_station_id()
   - overlay_spec_list_* functions
-  Plus: apply_single_overlay() in pisstvpp2_image.c
+  Plus: apply_single_overlay() in slowframe_image.c
   Problem: Text compositing not implemented
 ```
 

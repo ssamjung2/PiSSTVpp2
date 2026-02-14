@@ -1,5 +1,5 @@
 /**
- * @file pisstvpp2_audio_encoder.h
+ * @file slowframe_audio_encoder.h
  * @brief Audio encoder abstraction layer for pluggable format writers
  *
  * This module provides a clean, pluggable interface for audio encoding
@@ -15,14 +15,14 @@
  * Usage:
  *   AudioEncoder *encoder = audio_encoder_create("ogg");
  *   int ret = audio_encoder_init(encoder, sample_rate, bits, channels, output_path);
- *   if (ret != PISSTVPP2_OK) { error_log(ret, ...); return ret; }
+ *   if (ret != SLOWFRAME_OK) { error_log(ret, ...); return ret; }
  *   audio_encoder_encode(encoder, audio_samples, sample_count);
  *   audio_encoder_finish(encoder);
  *   audio_encoder_destroy(encoder);
  */
 
-#ifndef PISSTVPP2_AUDIO_ENCODER_H
-#define PISSTVPP2_AUDIO_ENCODER_H
+#ifndef SLOWFRAME_AUDIO_ENCODER_H
+#define SLOWFRAME_AUDIO_ENCODER_H
 
 #include <stdint.h>
 #include <stdio.h>
@@ -186,13 +186,13 @@ int audio_encoder_is_format_supported(const char *format);
  * @param channels     Number of channels
  * @param filename     Output filename
  *
- * @return Error code: PISSTVPP2_OK on success, or audio/file error codes
+ * @return Error code: SLOWFRAME_OK on success, or audio/file error codes
  */
 static inline int audio_encoder_init(AudioEncoder *encoder, uint16_t sample_rate,
                                      uint16_t bit_depth, uint8_t channels,
                                      const char *filename)
 {
-    if (!encoder || !encoder->init) return PISSTVPP2_ERR_AUDIO_ENCODE;
+    if (!encoder || !encoder->init) return SLOWFRAME_ERR_AUDIO_ENCODE;
     return encoder->init(encoder->state, sample_rate, bit_depth, channels, filename);
 }
 
@@ -203,13 +203,13 @@ static inline int audio_encoder_init(AudioEncoder *encoder, uint16_t sample_rate
  * @param samples       PCM audio samples
  * @param sample_count  Number of samples
  *
- * @return Error code: PISSTVPP2_OK on success, or PISSTVPP2_ERR_AUDIO_ENCODE on error
+ * @return Error code: SLOWFRAME_OK on success, or SLOWFRAME_ERR_AUDIO_ENCODE on error
  */
 static inline int audio_encoder_encode(AudioEncoder *encoder,
                                       const uint16_t *samples,
                                       uint32_t sample_count)
 {
-    if (!encoder || !encoder->encode) return PISSTVPP2_ERR_AUDIO_ENCODE;
+    if (!encoder || !encoder->encode) return SLOWFRAME_ERR_AUDIO_ENCODE;
     return encoder->encode(encoder->state, samples, sample_count);
 }
 
@@ -218,11 +218,11 @@ static inline int audio_encoder_encode(AudioEncoder *encoder,
  *
  * @param encoder Encoder instance
  *
- * @return Error code: PISSTVPP2_OK on success, or PISSTVPP2_ERR_AUDIO_ENCODE on error
+ * @return Error code: SLOWFRAME_OK on success, or SLOWFRAME_ERR_AUDIO_ENCODE on error
  */
 static inline int audio_encoder_finish(AudioEncoder *encoder)
 {
-    if (!encoder || !encoder->finish) return PISSTVPP2_ERR_AUDIO_ENCODE;
+    if (!encoder || !encoder->finish) return SLOWFRAME_ERR_AUDIO_ENCODE;
     return encoder->finish(encoder->state);
 }
 
@@ -242,4 +242,5 @@ static inline void audio_encoder_destroy(AudioEncoder *encoder)
 
 /** @} */
 
-#endif /* PISSTVPP2_AUDIO_ENCODER_H */
+#endif /* SLOWFRAME_AUDIO_ENCODER_H */
+

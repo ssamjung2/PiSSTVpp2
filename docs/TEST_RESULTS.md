@@ -1,10 +1,10 @@
-# PiSSTVpp2 v2.0 Test Results Report
+# SlowFrame v2.0 Test Results Report
 
 **Comprehensive Test Execution Results**
 
 Date: February 9, 2026 (Final - corrected Robot 72 YUV encoding)
 Test Suite: Python Test Suite v2.0
-Executable: PiSSTVpp2 v2.1.0 (rebuilt Feb 9 2026)
+Executable: SlowFrame v2.1.0 (rebuilt Feb 9 2026)
 Platform: macOS
 
 ---
@@ -13,7 +13,7 @@ Platform: macOS
 
 ✅ **ALL TESTS PASSED: 55/55 (100%)**
 
-The comprehensive test suite for PiSSTVpp2 v2.0 completed successfully with a perfect pass rate. All 7 SSTV modes, 3 audio formats, 6 sample rates, 3 aspect modes, and extended CW functionality were tested and validated.
+The comprehensive test suite for SlowFrame v2.0 completed successfully with a perfect pass rate. All 7 SSTV modes, 3 audio formats, 6 sample rates, 3 aspect modes, and extended CW functionality were tested and validated.
 
 ### Test Execution Summary
 
@@ -676,7 +676,7 @@ cat test_results_20260209_213714.json | python3 -m json.tool
 
 ## Conclusion
 
-The comprehensive test suite for PiSSTVpp2 v2.0 was executed successfully with excellent results:
+The comprehensive test suite for SlowFrame v2.0 was executed successfully with excellent results:
 
 ### Summary
 
@@ -709,7 +709,7 @@ The project is stable, well-tested, and ready for production use.
 - **Report Version**: 1.0
 - **Date Generated**: February 9, 2026
 - **Test Suite**: Python Test Suite v2.0
-- **Executable**: PiSSTVpp2 v2.1.0
+- **Executable**: SlowFrame v2.1.0
 - **Platform**: macOS (Darwin)
 - **Total Testing Time**: ~8 minutes
 - **Lines of Code Tested**: 2000+
@@ -730,4 +730,4 @@ The project is stable, well-tested, and ready for production use.
 
 **Test Report Complete** ✅
 
-All PiSSTVpp2 v2.0 features have been validated and verified to be working correctly.
+All SlowFrame v2.0 features have been validated and verified to be working correctly.

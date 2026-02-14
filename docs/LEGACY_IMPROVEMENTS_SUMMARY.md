@@ -70,9 +70,9 @@ The legacy components (PiSSTVpp v1.0 and pifm_sstv) have been comprehensively an
 
 3. **LEGACY_COMPONENTS.md** (~300 lines)
    - High-level component overview
-   - Architecture and separation from PiSSTVpp2
+   - Architecture and separation from SlowFrame
    - Typical work workflows
-   - Comparison with modern PiSSTVpp2
+   - Comparison with modern SlowFrame
    - Maintenance status and recommendations
 
 ### 4. Build Verification ✓
@@ -97,7 +97,7 @@ The legacy components (PiSSTVpp v1.0 and pifm_sstv) have been comprehensively an
 **Legacy components are now clearly separated:**
 - Independent build system (Makefile.legacy)
 - Separate documentation
-- No dependencies on PiSSTVpp2 libraries
+- No dependencies on SlowFrame libraries
 - Different compilation process from main application
 - Clear identification as legacy code
 
@@ -250,12 +250,12 @@ All documentation is available in `/docs/`:
 
 ---
 
-## Integration with PiSSTVpp2
+## Integration with SlowFrame
 
-The legacy components are now **strictly separated** from PiSSTVpp2:
+The legacy components are now **strictly separated** from SlowFrame:
 
 ```
-PiSSTVpp2 (v2.0)
+SlowFrame (v2.0)
 ├── Modern libvips-based image processing
 ├── Multiple audio codec support
 └── Active development
@@ -277,7 +277,7 @@ src/legacy/ (v1.0)
 ## Recommendations
 
 ### For New Projects
-Use **PiSSTVpp2 (v2.0)** which offers:
+Use **SlowFrame (v2.0)** which offers:
 - Modern libraries (libvips)
 - Better performance
 - More features
@@ -323,11 +323,11 @@ The legacy components have been successfully analyzed, improved, and documented.
 - ✓ **Buildable** on modern platforms
 - ✓ **Portable** across macOS, Linux, Raspberry Pi
 - ✓ **Documented** with comprehensive guides
-- ✓ **Separated** from main PiSSTVpp2 codebase
+- ✓ **Separated** from main SlowFrame codebase
 - ✓ **Tested** and verified working
 - ✓ **Secure** with fixes for identified issues
 
-Users can now build, use, and maintain the legacy tools with confidence, while new projects should use the modern PiSSTVpp2 tools.
+Users can now build, use, and maintain the legacy tools with confidence, while new projects should use the modern SlowFrame tools.
 
 ---
 

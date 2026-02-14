@@ -1,7 +1,7 @@
 /*
  * image_processor.c
  *
- * Image processing module for PiSSTVpp2
+ * Image processing module for SlowFrame
  * 
  * Implements basic image transformations (scaling, cropping, padding, color conversion)
  * using libvips for efficient in-memory operations. These operations build on the
@@ -33,23 +33,23 @@
 
 int image_processor_to_rgb(VipsImage *image, VipsImage **out_rgb) {
     if (!image) {
-        error_log(PISSTVPP2_ERR_ARG_INVALID, "Cannot convert NULL VipsImage to RGB");
-        return PISSTVPP2_ERR_ARG_INVALID;
+        error_log(SLOWFRAME_ERR_ARG_INVALID, "Cannot convert NULL VipsImage to RGB");
+        return SLOWFRAME_ERR_ARG_INVALID;
     }
 
     if (!out_rgb) {
-        error_log(PISSTVPP2_ERR_ARG_INVALID, "Output VipsImage pointer is NULL");
-        return PISSTVPP2_ERR_ARG_INVALID;
+        error_log(SLOWFRAME_ERR_ARG_INVALID, "Output VipsImage pointer is NULL");
+        return SLOWFRAME_ERR_ARG_INVALID;
     }
 
     /* Ensure image is in sRGB format */
     VipsImage *rgb_image = NULL;
     
     if (vips_colourspace(image, &rgb_image, VIPS_INTERPRETATION_sRGB, NULL)) {
-        error_log(PISSTVPP2_ERR_IMAGE_PROCESS,
+        error_log(SLOWFRAME_ERR_IMAGE_PROCESS,
                  "Failed to convert image colorspace to sRGB: %s", vips_error_buffer());
         vips_error_clear();
-        return PISSTVPP2_ERR_IMAGE_PROCESS;
+        return SLOWFRAME_ERR_IMAGE_PROCESS;
     }
 
     /* If conversion created a new image, use it; otherwise passthrough */
@@ -59,7 +59,7 @@ int image_processor_to_rgb(VipsImage *image, VipsImage **out_rgb) {
         *out_rgb = image;
     }
 
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 /* ============================================================================
@@ -69,19 +69,19 @@ int image_processor_to_rgb(VipsImage *image, VipsImage **out_rgb) {
 int image_processor_scale(VipsImage *image, int new_width, int new_height,
                          VipsImage **out_scaled, int verbose) {
     if (!image) {
-        error_log(PISSTVPP2_ERR_ARG_INVALID, "Cannot scale NULL VipsImage");
-        return PISSTVPP2_ERR_ARG_INVALID;
+        error_log(SLOWFRAME_ERR_ARG_INVALID, "Cannot scale NULL VipsImage");
+        return SLOWFRAME_ERR_ARG_INVALID;
     }
 
     if (!out_scaled) {
-        error_log(PISSTVPP2_ERR_ARG_INVALID, "Output VipsImage pointer is NULL");
-        return PISSTVPP2_ERR_ARG_INVALID;
+        error_log(SLOWFRAME_ERR_ARG_INVALID, "Output VipsImage pointer is NULL");
+        return SLOWFRAME_ERR_ARG_INVALID;
     }
 
     if (new_width <= 0 || new_height <= 0) {
-        error_log(PISSTVPP2_ERR_IMAGE_DIMENSIONS_INVALID,
+        error_log(SLOWFRAME_ERR_IMAGE_DIMENSIONS_INVALID,
                  "Invalid target dimensions for scaling: %dx%d", new_width, new_height);
-        return PISSTVPP2_ERR_IMAGE_DIMENSIONS_INVALID;
+        return SLOWFRAME_ERR_IMAGE_DIMENSIONS_INVALID;
     }
 
     /* Calculate scale factors for non-uniform resize */
@@ -93,17 +93,17 @@ int image_processor_scale(VipsImage *image, int new_width, int new_height,
 
     VipsImage *resized = NULL;
     if (vips_resize(image, &resized, scale_x, "vscale", scale_y, NULL)) {
-        error_log(PISSTVPP2_ERR_IMAGE_PROCESS,
+        error_log(SLOWFRAME_ERR_IMAGE_PROCESS,
                  "Image resize failed (%dx%d → %dx%d): %s",
                  image->Xsize, image->Ysize, new_width, new_height, vips_error_buffer());
         vips_error_clear();
-        return PISSTVPP2_ERR_IMAGE_PROCESS;
+        return SLOWFRAME_ERR_IMAGE_PROCESS;
     }
 
     *out_scaled = resized;
     log_verbose(verbose, 0, "   [OK] Scaled to %dx%d\n", resized->Xsize, resized->Ysize);
 
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 /* ============================================================================
@@ -113,27 +113,27 @@ int image_processor_scale(VipsImage *image, int new_width, int new_height,
 int image_processor_crop(VipsImage *image, int left, int top, int width, int height,
                         VipsImage **out_cropped, int verbose) {
     if (!image) {
-        error_log(PISSTVPP2_ERR_ARG_INVALID, "Cannot crop NULL VipsImage");
-        return PISSTVPP2_ERR_ARG_INVALID;
+        error_log(SLOWFRAME_ERR_ARG_INVALID, "Cannot crop NULL VipsImage");
+        return SLOWFRAME_ERR_ARG_INVALID;
     }
 
     if (!out_cropped) {
-        error_log(PISSTVPP2_ERR_ARG_INVALID, "Output VipsImage pointer is NULL");
-        return PISSTVPP2_ERR_ARG_INVALID;
+        error_log(SLOWFRAME_ERR_ARG_INVALID, "Output VipsImage pointer is NULL");
+        return SLOWFRAME_ERR_ARG_INVALID;
     }
 
     if (width <= 0 || height <= 0) {
-        error_log(PISSTVPP2_ERR_IMAGE_DIMENSIONS_INVALID,
+        error_log(SLOWFRAME_ERR_IMAGE_DIMENSIONS_INVALID,
                  "Invalid crop dimensions: %dx%d", width, height);
-        return PISSTVPP2_ERR_IMAGE_DIMENSIONS_INVALID;
+        return SLOWFRAME_ERR_IMAGE_DIMENSIONS_INVALID;
     }
 
     /* Validate crop box is within image bounds */
     if (left < 0 || top < 0 || left + width > image->Xsize || top + height > image->Ysize) {
-        error_log(PISSTVPP2_ERR_IMAGE_PROCESS,
+        error_log(SLOWFRAME_ERR_IMAGE_PROCESS,
                  "Crop box out of bounds: image %dx%d, crop at (%d,%d) size %dx%d",
                  image->Xsize, image->Ysize, left, top, width, height);
-        return PISSTVPP2_ERR_IMAGE_PROCESS;
+        return SLOWFRAME_ERR_IMAGE_PROCESS;
     }
 
     log_verbose(verbose, 0, "   --> Cropping at (%d,%d) size %dx%d from %dx%d image\n",
@@ -141,17 +141,17 @@ int image_processor_crop(VipsImage *image, int left, int top, int width, int hei
 
     VipsImage *cropped = NULL;
     if (vips_crop(image, &cropped, left, top, width, height, NULL)) {
-        error_log(PISSTVPP2_ERR_IMAGE_PROCESS,
+        error_log(SLOWFRAME_ERR_IMAGE_PROCESS,
                  "Image crop failed at (%d,%d) size %dx%d: %s",
                  left, top, width, height, vips_error_buffer());
         vips_error_clear();
-        return PISSTVPP2_ERR_IMAGE_PROCESS;
+        return SLOWFRAME_ERR_IMAGE_PROCESS;
     }
 
     *out_cropped = cropped;
     log_verbose(verbose, 0, "   [OK] Cropped to %dx%d\n", cropped->Xsize, cropped->Ysize);
 
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 /* ============================================================================
@@ -161,27 +161,27 @@ int image_processor_crop(VipsImage *image, int left, int top, int width, int hei
 int image_processor_embed(VipsImage *image, int left, int top, int canvas_width, int canvas_height,
                          VipsImage **out_padded, int verbose) {
     if (!image) {
-        error_log(PISSTVPP2_ERR_ARG_INVALID, "Cannot embed NULL VipsImage");
-        return PISSTVPP2_ERR_ARG_INVALID;
+        error_log(SLOWFRAME_ERR_ARG_INVALID, "Cannot embed NULL VipsImage");
+        return SLOWFRAME_ERR_ARG_INVALID;
     }
 
     if (!out_padded) {
-        error_log(PISSTVPP2_ERR_ARG_INVALID, "Output VipsImage pointer is NULL");
-        return PISSTVPP2_ERR_ARG_INVALID;
+        error_log(SLOWFRAME_ERR_ARG_INVALID, "Output VipsImage pointer is NULL");
+        return SLOWFRAME_ERR_ARG_INVALID;
     }
 
     if (canvas_width <= 0 || canvas_height <= 0) {
-        error_log(PISSTVPP2_ERR_IMAGE_DIMENSIONS_INVALID,
+        error_log(SLOWFRAME_ERR_IMAGE_DIMENSIONS_INVALID,
                  "Invalid canvas dimensions: %dx%d", canvas_width, canvas_height);
-        return PISSTVPP2_ERR_IMAGE_DIMENSIONS_INVALID;
+        return SLOWFRAME_ERR_IMAGE_DIMENSIONS_INVALID;
     }
 
     /* Validate image fits in canvas */
     if (left < 0 || top < 0 || left + image->Xsize > canvas_width || top + image->Ysize > canvas_height) {
-        error_log(PISSTVPP2_ERR_IMAGE_PROCESS,
+        error_log(SLOWFRAME_ERR_IMAGE_PROCESS,
                  "Image does not fit in canvas: %dx%d image at (%d,%d) in %dx%d canvas",
                  image->Xsize, image->Ysize, left, top, canvas_width, canvas_height);
-        return PISSTVPP2_ERR_IMAGE_PROCESS;
+        return SLOWFRAME_ERR_IMAGE_PROCESS;
     }
 
     log_verbose(verbose, 0, "   --> Embedding %dx%d at offset (%d,%d) in %dx%d canvas\n",
@@ -190,18 +190,18 @@ int image_processor_embed(VipsImage *image, int left, int top, int canvas_width,
     VipsImage *padded = NULL;
     if (vips_embed(image, &padded, left, top, canvas_width, canvas_height,
                    "extend", VIPS_EXTEND_BLACK, NULL)) {
-        error_log(PISSTVPP2_ERR_IMAGE_PROCESS,
+        error_log(SLOWFRAME_ERR_IMAGE_PROCESS,
                  "Image embed failed to canvas %dx%d: %s",
                  canvas_width, canvas_height, vips_error_buffer());
         vips_error_clear();
-        return PISSTVPP2_ERR_IMAGE_PROCESS;
+        return SLOWFRAME_ERR_IMAGE_PROCESS;
     }
 
     *out_padded = padded;
     log_verbose(verbose, 0, "   [OK] Embedded to %dx%d with black padding\n",
                padded->Xsize, padded->Ysize);
 
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 /* ============================================================================

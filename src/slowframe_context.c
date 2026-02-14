@@ -1,17 +1,17 @@
 /**
- * @file pisstvpp2_context.c
+ * @file slowframe_context.c
  * @brief Implementation of application context and state management
  *
  * Provides initialization, cleanup, and state management for the complete
  * application. Orchestrates subsystem initialization and ensures proper
  * resource lifecycle.
  *
- * @author PiSSTVpp2 Contributors
+ * @author SlowFrame Contributors
  * @version 2.1.0
  * @date February 2026
  */
 
-#include "pisstvpp2_context.h"
+#include "slowframe_context.h"
 #include "error.h"
 #include <stdlib.h>
 #include <string.h>
@@ -30,7 +30,7 @@
  * - Intermediate image buffers
  * - Processing statistics
  */
-struct PisstvppImageState {
+struct SlowframeImageState {
     int initialized;  /**< Dummy field for now; will expand in Task 1.4 */
 };
 
@@ -43,7 +43,7 @@ struct PisstvppImageState {
  * - Audio sample buffer
  * - Encoding statistics
  */
-struct PisstvppSSTVState {
+struct SlowframeSSTVState {
     int initialized;  /**< Dummy field for now; will expand in Task 1.4 */
 };
 
@@ -56,7 +56,7 @@ struct PisstvppSSTVState {
  * - Sample rate and bit depth configuration
  * - Encoding progress tracking
  */
-struct PisstvppAudioState {
+struct SlowframeAudioState {
     int initialized;  /**< Dummy field for now; will expand in Task 1.4 */
 };
 
@@ -67,81 +67,81 @@ struct PisstvppAudioState {
 /**
  * @brief Initialize application context from configuration
  */
-int pisstvpp_context_init(PisstvppContext *ctx, PisstvppConfig *config) {
+int slowframe_context_init(SlowframeContext *ctx, SlowframeConfig *config) {
     if (!ctx || !config) {
-        error_log(PISSTVPP2_ERR_ARG_INVALID_PROTOCOL, 
+        error_log(SLOWFRAME_ERR_ARG_INVALID_PROTOCOL, 
                 "Invalid context or config pointer");
-        return PISSTVPP2_ERR_ARG_INVALID_PROTOCOL;
+        return SLOWFRAME_ERR_ARG_INVALID_PROTOCOL;
     }
 
     // Initialize context structure
-    memset(ctx, 0, sizeof(PisstvppContext));
+    memset(ctx, 0, sizeof(SlowframeContext));
 
     // =====================================================================
     // COPY CONFIGURATION
     // =====================================================================
-    memcpy(&ctx->config, config, sizeof(PisstvppConfig));
+    memcpy(&ctx->config, config, sizeof(SlowframeConfig));
     ctx->config_initialized = 1;
 
     // =====================================================================
     // INITIALIZE LIBVIPS
     // =====================================================================
-    if (VIPS_INIT("pisstvpp2")) {
-        error_log(PISSTVPP2_ERR_SSTV_INIT, 
+    if (VIPS_INIT("slowframe")) {
+        error_log(SLOWFRAME_ERR_SSTV_INIT, 
                 "Failed to initialize libvips: %s", vips_error_buffer());
-        return PISSTVPP2_ERR_SSTV_INIT;
+        return SLOWFRAME_ERR_SSTV_INIT;
     }
     ctx->vips_initialized = 1;
 
     // =====================================================================
     // INITIALIZE IMAGE PROCESSING MODULE
     // =====================================================================
-    ctx->image_state = (PisstvppImageState *)malloc(sizeof(PisstvppImageState));
+    ctx->image_state = (SlowframeImageState *)malloc(sizeof(SlowframeImageState));
     if (!ctx->image_state) {
-        error_log(PISSTVPP2_ERR_MEMORY_ALLOC, 
+        error_log(SLOWFRAME_ERR_MEMORY_ALLOC, 
                 "Failed to allocate image module state");
-        pisstvpp_context_cleanup(ctx);
-        return PISSTVPP2_ERR_MEMORY_ALLOC;
+        slowframe_context_cleanup(ctx);
+        return SLOWFRAME_ERR_MEMORY_ALLOC;
     }
-    memset(ctx->image_state, 0, sizeof(PisstvppImageState));
+    memset(ctx->image_state, 0, sizeof(SlowframeImageState));
     ctx->image_state->initialized = 1;
     ctx->image_initialized = 1;
 
     // =====================================================================
     // INITIALIZE SSTV ENCODING MODULE
     // =====================================================================
-    ctx->sstv_state = (PisstvppSSTVState *)malloc(sizeof(PisstvppSSTVState));
+    ctx->sstv_state = (SlowframeSSTVState *)malloc(sizeof(SlowframeSSTVState));
     if (!ctx->sstv_state) {
-        error_log(PISSTVPP2_ERR_MEMORY_ALLOC,
+        error_log(SLOWFRAME_ERR_MEMORY_ALLOC,
                 "Failed to allocate SSTV module state");
-        pisstvpp_context_cleanup(ctx);
-        return PISSTVPP2_ERR_MEMORY_ALLOC;
+        slowframe_context_cleanup(ctx);
+        return SLOWFRAME_ERR_MEMORY_ALLOC;
     }
-    memset(ctx->sstv_state, 0, sizeof(PisstvppSSTVState));
+    memset(ctx->sstv_state, 0, sizeof(SlowframeSSTVState));
     ctx->sstv_state->initialized = 1;
     ctx->sstv_initialized = 1;
 
     // =====================================================================
     // INITIALIZE AUDIO ENCODER MODULE
     // =====================================================================
-    ctx->audio_state = (PisstvppAudioState *)malloc(sizeof(PisstvppAudioState));
+    ctx->audio_state = (SlowframeAudioState *)malloc(sizeof(SlowframeAudioState));
     if (!ctx->audio_state) {
-        error_log(PISSTVPP2_ERR_MEMORY_ALLOC,
+        error_log(SLOWFRAME_ERR_MEMORY_ALLOC,
                 "Failed to allocate audio encoder state");
-        pisstvpp_context_cleanup(ctx);
-        return PISSTVPP2_ERR_MEMORY_ALLOC;
+        slowframe_context_cleanup(ctx);
+        return SLOWFRAME_ERR_MEMORY_ALLOC;
     }
-    memset(ctx->audio_state, 0, sizeof(PisstvppAudioState));
+    memset(ctx->audio_state, 0, sizeof(SlowframeAudioState));
     ctx->audio_state->initialized = 1;
     ctx->audio_initialized = 1;
 
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 /**
  * @brief Clean up application context and release all resources
  */
-void pisstvpp_context_cleanup(PisstvppContext *ctx) {
+void slowframe_context_cleanup(SlowframeContext *ctx) {
     if (!ctx) {
         return;  // Safe to call with NULL
     }
@@ -185,16 +185,16 @@ void pisstvpp_context_cleanup(PisstvppContext *ctx) {
     // CLEAR CONFIGURATION
     // =====================================================================
     ctx->config_initialized = 0;
-    memset(&ctx->config, 0, sizeof(PisstvppConfig));
+    memset(&ctx->config, 0, sizeof(SlowframeConfig));
 
     // Zero out the entire context for safety
-    memset(ctx, 0, sizeof(PisstvppContext));
+    memset(ctx, 0, sizeof(SlowframeContext));
 }
 
 /**
  * @brief Check if all required subsystems are initialized
  */
-int pisstvpp_context_is_valid(const PisstvppContext *ctx) {
+int slowframe_context_is_valid(const SlowframeContext *ctx) {
     if (!ctx) {
         return 0;
     }
@@ -213,7 +213,7 @@ int pisstvpp_context_is_valid(const PisstvppContext *ctx) {
 /**
  * @brief Get configuration from context (const access)
  */
-const PisstvppConfig* pisstvpp_context_get_config(const PisstvppContext *ctx) {
+const SlowframeConfig* slowframe_context_get_config(const SlowframeContext *ctx) {
     if (!ctx) {
         return NULL;
     }
@@ -223,7 +223,7 @@ const PisstvppConfig* pisstvpp_context_get_config(const PisstvppContext *ctx) {
 /**
  * @brief Print context state to output for debugging
  */
-void pisstvpp_context_print_state(const PisstvppContext *ctx) {
+void slowframe_context_print_state(const SlowframeContext *ctx) {
     if (!ctx) {
         return;
     }
@@ -240,7 +240,7 @@ void pisstvpp_context_print_state(const PisstvppContext *ctx) {
     printf("Audio module initialized:  %s\n",
            ctx->audio_initialized ? "Yes" : "No");
     printf("Context valid:             %s\n",
-           pisstvpp_context_is_valid(ctx) ? "Yes" : "No");
+           slowframe_context_is_valid(ctx) ? "Yes" : "No");
     printf("==================================\n");
 
     if (ctx->config_initialized) {
@@ -257,7 +257,7 @@ void pisstvpp_context_print_state(const PisstvppContext *ctx) {
 /**
  * @brief Get opaque pointer to image module state
  */
-PisstvppImageState* pisstvpp_context_get_image_state(PisstvppContext *ctx) {
+SlowframeImageState* slowframe_context_get_image_state(SlowframeContext *ctx) {
     if (!ctx) {
         return NULL;
     }
@@ -267,7 +267,7 @@ PisstvppImageState* pisstvpp_context_get_image_state(PisstvppContext *ctx) {
 /**
  * @brief Get opaque pointer to SSTV module state
  */
-PisstvppSSTVState* pisstvpp_context_get_sstv_state(PisstvppContext *ctx) {
+SlowframeSSTVState* slowframe_context_get_sstv_state(SlowframeContext *ctx) {
     if (!ctx) {
         return NULL;
     }
@@ -277,7 +277,7 @@ PisstvppSSTVState* pisstvpp_context_get_sstv_state(PisstvppContext *ctx) {
 /**
  * @brief Get opaque pointer to audio encoder state
  */
-PisstvppAudioState* pisstvpp_context_get_audio_state(PisstvppContext *ctx) {
+SlowframeAudioState* slowframe_context_get_audio_state(SlowframeContext *ctx) {
     if (!ctx) {
         return NULL;
     }

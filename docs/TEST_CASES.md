@@ -1,6 +1,6 @@
-# PiSSTVpp2 Test Cases Reference
+# SlowFrame Test Cases Reference
 
-**Detailed specification of all test cases in the PiSSTVpp2 test suite**
+**Detailed specification of all test cases in the SlowFrame test suite**
 
 ---
 
@@ -31,7 +31,7 @@ Each test case follows this structure:
 **Description**: What is being tested and why
 
 **Prerequisites**: 
-- Compiled binary in bin/pisstvpp2
+- Compiled binary in bin/slowframe
 - Test image(s) available
 - [Other requirements]
 
@@ -70,7 +70,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -h
+./bin/slowframe -h
 ```
 
 **Expected Result**:
@@ -102,7 +102,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2
+./bin/slowframe
 ```
 
 **Expected Result**:
@@ -133,7 +133,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -o output.wav
+./bin/slowframe -o output.wav
 ```
 
 **Expected Result**:
@@ -161,7 +161,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i /nonexistent/path/image.jpg -o output.wav
+./bin/slowframe -i /nonexistent/path/image.jpg -o output.wav
 ```
 
 **Expected Result**:
@@ -190,7 +190,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -p invalid_mode -o output.wav
+./bin/slowframe -i test_image.jpg -p invalid_mode -o output.wav
 ```
 
 **Expected Result**:
@@ -219,7 +219,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -f mp3 -o output.mp3
+./bin/slowframe -i test_image.jpg -f mp3 -o output.mp3
 ```
 
 **Expected Result**:
@@ -248,7 +248,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -r 4000 -o output.wav
+./bin/slowframe -i test_image.jpg -r 4000 -o output.wav
 ```
 
 **Expected Result**:
@@ -278,7 +278,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -r 96000 -o output.wav
+./bin/slowframe -i test_image.jpg -r 96000 -o output.wav
 ```
 
 **Expected Result**:
@@ -308,7 +308,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -W 20 -o output.wav
+./bin/slowframe -i test_image.jpg -W 20 -o output.wav
 ```
 
 **Expected Result**:
@@ -337,7 +337,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -T 1000 -o output.wav
+./bin/slowframe -i test_image.jpg -T 1000 -o output.wav
 ```
 
 **Expected Result**:
@@ -366,7 +366,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -C "N0CALL" -W 0 -o output.wav
+./bin/slowframe -i test_image.jpg -C "N0CALL" -W 0 -o output.wav
 ```
 
 **Expected Result**:
@@ -396,7 +396,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -C "N0CALL" -W 51 -o output.wav
+./bin/slowframe -i test_image.jpg -C "N0CALL" -W 51 -o output.wav
 ```
 
 **Expected Result**:
@@ -426,7 +426,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -C "N0CALL" -T 300 -o output.wav
+./bin/slowframe -i test_image.jpg -C "N0CALL" -T 300 -o output.wav
 ```
 
 **Expected Result**:
@@ -456,7 +456,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -C "N0CALL" -T 2500 -o output.wav
+./bin/slowframe -i test_image.jpg -C "N0CALL" -T 2500 -o output.wav
 ```
 
 **Expected Result**:
@@ -489,7 +489,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -p m1 -o m1_output.wav
+./bin/slowframe -i test_image.jpg -p m1 -o m1_output.wav
 ```
 
 **Expected Result**:
@@ -521,7 +521,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -p m2 -o m2_output.wav
+./bin/slowframe -i test_image.jpg -p m2 -o m2_output.wav
 ```
 
 **Expected Result**:
@@ -553,7 +553,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -p s1 -o s1_output.wav
+./bin/slowframe -i test_image.jpg -p s1 -o s1_output.wav
 ```
 
 **Expected Result**:
@@ -585,7 +585,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -p s2 -o s2_output.wav
+./bin/slowframe -i test_image.jpg -p s2 -o s2_output.wav
 ```
 
 **Expected Result**:
@@ -617,7 +617,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -p sdx -o sdx_output.wav
+./bin/slowframe -i test_image.jpg -p sdx -o sdx_output.wav
 ```
 
 **Expected Result**:
@@ -649,7 +649,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -p r36 -o r36_output.wav
+./bin/slowframe -i test_image.jpg -p r36 -o r36_output.wav
 ```
 
 **Expected Result**:
@@ -681,7 +681,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -p r72 -o r72_output.wav
+./bin/slowframe -i test_image.jpg -p r72 -o r72_output.wav
 ```
 
 **Expected Result**:
@@ -715,7 +715,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -f wav -o test_output.wav
+./bin/slowframe -i test_image.jpg -f wav -o test_output.wav
 ```
 
 **Expected Result**:
@@ -746,7 +746,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -f aiff -o test_output.aiff
+./bin/slowframe -i test_image.jpg -f aiff -o test_output.aiff
 ```
 
 **Expected Result**:
@@ -778,7 +778,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -f ogg -o test_output.ogg
+./bin/slowframe -i test_image.jpg -f ogg -o test_output.ogg
 ```
 
 **Expected Result**:
@@ -812,7 +812,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -r 8000 -o test_8k.wav
+./bin/slowframe -i test_image.jpg -r 8000 -o test_8k.wav
 ```
 
 **Expected Result**:
@@ -842,7 +842,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -r 11025 -o test_11k.wav
+./bin/slowframe -i test_image.jpg -r 11025 -o test_11k.wav
 ```
 
 **Expected Result**:
@@ -872,7 +872,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -o test_default.wav
+./bin/slowframe -i test_image.jpg -o test_default.wav
 ```
 
 **Expected Result**:
@@ -903,7 +903,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -r 32000 -o test_32k.wav
+./bin/slowframe -i test_image.jpg -r 32000 -o test_32k.wav
 ```
 
 **Expected Result**:
@@ -933,7 +933,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -r 44100 -o test_44k.wav
+./bin/slowframe -i test_image.jpg -r 44100 -o test_44k.wav
 ```
 
 **Expected Result**:
@@ -963,7 +963,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -r 48000 -o test_48k.wav
+./bin/slowframe -i test_image.jpg -r 48000 -o test_48k.wav
 ```
 
 **Expected Result**:
@@ -995,7 +995,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i portrait.jpg -a center -o center_output.wav
+./bin/slowframe -i portrait.jpg -a center -o center_output.wav
 ```
 
 **Expected Result**:
@@ -1027,7 +1027,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i wide.jpg -a pad -o padded_output.wav
+./bin/slowframe -i wide.jpg -a pad -o padded_output.wav
 ```
 
 **Expected Result**:
@@ -1060,7 +1060,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i square.jpg -a stretch -o stretched_output.wav
+./bin/slowframe -i square.jpg -a stretch -o stretched_output.wav
 ```
 
 **Expected Result**:
@@ -1095,7 +1095,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -C "N0CALL" -o cw_output.wav
+./bin/slowframe -i test_image.jpg -C "N0CALL" -o cw_output.wav
 ```
 
 **Expected Result**:
@@ -1128,7 +1128,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -C "W1AW" -W 15 -o cw_15wpm.wav
+./bin/slowframe -i test_image.jpg -C "W1AW" -W 15 -o cw_15wpm.wav
 ```
 
 **Expected Result**:
@@ -1159,7 +1159,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -C "N0CALL" -W 5 -o cw_5wpm.wav
+./bin/slowframe -i test_image.jpg -C "N0CALL" -W 5 -o cw_5wpm.wav
 ```
 
 **Expected Result**:
@@ -1191,7 +1191,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -C "K5ABC" -W 25 -o cw_25wpm.wav
+./bin/slowframe -i test_image.jpg -C "K5ABC" -W 25 -o cw_25wpm.wav
 ```
 
 **Expected Result**:
@@ -1223,7 +1223,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -C "N0CALL" -T 1000 -o cw_1k.wav
+./bin/slowframe -i test_image.jpg -C "N0CALL" -T 1000 -o cw_1k.wav
 ```
 
 **Expected Result**:
@@ -1254,7 +1254,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -C "W5XYZ" -W 20 -T 700 -o cw_custom.wav
+./bin/slowframe -i test_image.jpg -C "W5XYZ" -W 20 -T 700 -o cw_custom.wav
 ```
 
 **Expected Result**:
@@ -1286,7 +1286,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -C "W5ABC/4" -o cw_portable.wav
+./bin/slowframe -i test_image.jpg -C "W5ABC/4" -o cw_portable.wav
 ```
 
 **Expected Result**:
@@ -1317,7 +1317,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -C "W5ABCD/PORTABLE/EXTRA" -o cw_long.wav
+./bin/slowframe -i test_image.jpg -C "W5ABCD/PORTABLE/EXTRA" -o cw_long.wav
 # Callsign: 21 chars = within 31 char limit
 ```
 
@@ -1351,7 +1351,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.png -o output.wav
+./bin/slowframe -i test_image.png -o output.wav
 ```
 
 **Expected Result**:
@@ -1382,7 +1382,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -o output.wav
+./bin/slowframe -i test_image.jpg -o output.wav
 ```
 
 **Expected Result**:
@@ -1413,7 +1413,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.gif -o output.wav
+./bin/slowframe -i test_image.gif -o output.wav
 ```
 
 **Expected Result**:
@@ -1443,7 +1443,7 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.bmp -o output.wav
+./bin/slowframe -i test_image.bmp -o output.wav
 ```
 
 **Expected Result**:
@@ -1473,8 +1473,8 @@ Each test case follows this structure:
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i large_image_2048x1536.jpg -p m1 -o scaled.wav
-./bin/pisstvpp2 -i tiny_image_80x60.jpg -p m1 -o upscaled.wav
+./bin/slowframe -i large_image_2048x1536.jpg -p m1 -o scaled.wav
+./bin/slowframe -i tiny_image_80x60.jpg -p m1 -o upscaled.wav
 ```
 
 **Expected Result**:
@@ -1508,7 +1508,7 @@ Each test case follows this structure:
 **Test Steps**:
 ```bash
 for mode in m1 m2 s1 s2 sdx r36 r72; do
-  ./bin/pisstvpp2 -i test_image.jpg -p $mode -o test_${mode}.wav
+  ./bin/slowframe -i test_image.jpg -p $mode -o test_${mode}.wav
 done
 ```
 
@@ -1542,7 +1542,7 @@ done
 ```bash
 for mode in m1 s2 r36; do
   for fmt in wav aiff ogg; do
-    ./bin/pisstvpp2 -i test_image.jpg -p $mode -f $fmt -o test_${mode}_${fmt}.${fmt}
+    ./bin/slowframe -i test_image.jpg -p $mode -f $fmt -o test_${mode}_${fmt}.${fmt}
   done
 done
 ```
@@ -1578,7 +1578,7 @@ done
 ```bash
 for rate in 8000 22050 44100; do
   for mode in m1 s2 r72; do
-    ./bin/pisstvpp2 -i test_image.jpg -p $mode -r $rate -o test_${mode}_${rate}.wav
+    ./bin/slowframe -i test_image.jpg -p $mode -r $rate -o test_${mode}_${rate}.wav
   done
 done
 ```
@@ -1612,8 +1612,8 @@ done
 **Test Steps**:
 ```bash
 for aspect in center pad stretch; do
-  ./bin/pisstvpp2 -i portrait.jpg -a $aspect -o portrait_${aspect}.wav
-  ./bin/pisstvpp2 -i landscape.jpg -a $aspect -o landscape_${aspect}.wav
+  ./bin/slowframe -i portrait.jpg -a $aspect -o portrait_${aspect}.wav
+  ./bin/slowframe -i landscape.jpg -a $aspect -o landscape_${aspect}.wav
 done
 ```
 
@@ -1646,9 +1646,9 @@ done
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i test_image.jpg -C "N0CALL" -f wav -o cw_test.wav
-./bin/pisstvpp2 -i test_image.jpg -C "N0CALL" -f aiff -o cw_test.aiff
-./bin/pisstvpp2 -i test_image.jpg -C "N0CALL" -f ogg -o cw_test.ogg
+./bin/slowframe -i test_image.jpg -C "N0CALL" -f wav -o cw_test.wav
+./bin/slowframe -i test_image.jpg -C "N0CALL" -f aiff -o cw_test.aiff
+./bin/slowframe -i test_image.jpg -C "N0CALL" -f ogg -o cw_test.ogg
 ```
 
 **Expected Result**:
@@ -1679,7 +1679,7 @@ done
 
 **Test Steps**:
 ```bash
-./bin/pisstvpp2 -i large_image.jpg -p sdx -r 8000 -a pad -o stress_test.wav
+./bin/slowframe -i large_image.jpg -p sdx -r 8000 -a pad -o stress_test.wav
 ```
 
 **Expected Result**:

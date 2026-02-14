@@ -38,13 +38,13 @@
 **Change pattern:**
 ```python
 # OLD:
-executable_path="/Users/ssamjung/Desktop/WIP/PiSSTVpp2/bin/pisstvpp2",
-images_dir="/Users/ssamjung/Desktop/WIP/PiSSTVpp2/tests/images"
+executable_path="/Users/ssamjung/Desktop/WIP/SlowFrame/bin/slowframe",
+images_dir="/Users/ssamjung/Desktop/WIP/SlowFrame/tests/images"
 
 # NEW:
 from pathlib import Path
 script_dir = Path(__file__).parent
-executable_path=str(script_dir.parent / "bin" / "pisstvpp2"),
+executable_path=str(script_dir.parent / "bin" / "slowframe"),
 images_dir=str(script_dir / "images")
 ```
 

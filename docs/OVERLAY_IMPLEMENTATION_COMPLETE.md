@@ -72,7 +72,7 @@ The text overlay rendering is now **fully integrated** into the pipeline:
 
 ### Test Case 1: Single Callsign
 ```bash
-./bin/pisstvpp2 -i image.jpg -S "W5ZZZ" -o output.wav
+./bin/slowframe -i image.jpg -S "W5ZZZ" -o output.wav
 ```
 - **Result:** Successfully renders "W5ZZZ" in blue text (32pt)
 - **Position:** Top center
@@ -81,7 +81,7 @@ The text overlay rendering is now **fully integrated** into the pipeline:
 
 ### Test Case 2: Callsign + Grid Square
 ```bash
-./bin/pisstvpp2 -i image.jpg -S "N0CALL" -G "EM97" -o output.wav
+./bin/slowframe -i image.jpg -S "N0CALL" -G "EM97" -o output.wav
 ```
 - **Result:** Two overlays rendered:
   - "N0CALL" at top center in blue
@@ -90,7 +90,7 @@ The text overlay rendering is now **fully integrated** into the pipeline:
 
 ### Test Case 3: With Verbose Output
 ```bash
-./bin/pisstvpp2 -i image.jpg -S "W5ZZZ" -G "EM12ab" -o output.wav -v
+./bin/slowframe -i image.jpg -S "W5ZZZ" -G "EM12ab" -o output.wav -v
 ```
 - **Console Output:**
   ```
@@ -158,13 +158,13 @@ tests/test_outputs/text_overlay/
    - Updated background color: black → white
    - Added blue border styling
 
-2. **src/pisstvpp2_image.c**
+2. **src/slowframe_image.c**
    - Implemented `image_apply_overlay_list()` with actual text rendering
    - Added `apply_single_overlay()` helper function
    - Text is rendered with `vips_text()` and positioned correctly
    - Integration with image pipeline complete
 
-3. **src/pisstvpp2.c**
+3. **src/slowframe.c**
    - Updated pipeline to call `image_apply_overlay_list()`
    - Changed from "ready for Phase 2.5" to actual rendering
    - Proper error handling for overlay rendering
@@ -177,8 +177,8 @@ To verify the blue text overlays are working:
 
 1. **Run a test with overlays:**
    ```bash
-   cd /Users/ssamjung/Desktop/WIP/PiSSTVpp2
-   ./bin/pisstvpp2 -i tests/images/test_pattern_320x240.jpg \
+   cd /Users/ssamjung/Desktop/WIP/SlowFrame
+   ./bin/slowframe -i tests/images/test_pattern_320x240.jpg \
                    -S "TEST" -G "AB12cd" \
                    -o /tmp/verify.wav -v
    ```

@@ -56,19 +56,19 @@ CFLAGS ?= $(CFLAGS_COMMON) $(CFLAGS_PKG) $(CFLAGS_PI) -I$(SRC_DIR) -I$(INC_DIR) 
 LDFLAGS ?= $(LDFLAGS_PKG) -lm
 
 # Target configuration
-TARGET = $(BIN_DIR)/pisstvpp2
-TARGET_LIBGD = $(BIN_DIR)/pisstvpp2_libgd
-TARGET_SAN = $(BIN_DIR)/pisstvpp2_san
+TARGET = $(BIN_DIR)/slowframe
+TARGET_LIBGD = $(BIN_DIR)/slowframe_libgd
+TARGET_SAN = $(BIN_DIR)/slowframe_san
 TARGET_VIPS_TEST = $(BIN_DIR)/vips_test
-SRC_FILES = $(SRC_DIR)/pisstvpp2.c $(SRC_DIR)/pisstvpp2_image.c $(SRC_DIR)/pisstvpp2_sstv.c \
-            $(SRC_DIR)/pisstvpp2_audio_encoder.c $(SRC_DIR)/audio_encoder_wav.c \
+SRC_FILES = $(SRC_DIR)/slowframe.c $(SRC_DIR)/slowframe_image.c $(SRC_DIR)/slowframe_sstv.c \
+            $(SRC_DIR)/slowframe_audio_encoder.c $(SRC_DIR)/audio_encoder_wav.c \
             $(SRC_DIR)/audio_encoder_aiff.c $(SRC_DIR)/audio_encoder_ogg.c \
-            $(SRC_DIR)/pisstvpp2_config.c $(SRC_DIR)/pisstvpp2_context.c $(SRC_DIR)/overlay_spec.c \
+            $(SRC_DIR)/slowframe_config.c $(SRC_DIR)/slowframe_context.c $(SRC_DIR)/overlay_spec.c \
             $(IMG_DIR)/image_loader.c $(IMG_DIR)/image_processor.c $(IMG_DIR)/image_aspect.c $(UTIL_DIR)/error.c
-OBJ_FILES = $(BIN_DIR)/pisstvpp2.o $(BIN_DIR)/pisstvpp2_image.o $(BIN_DIR)/pisstvpp2_sstv.o \
-            $(BIN_DIR)/pisstvpp2_audio_encoder.o $(BIN_DIR)/audio_encoder_wav.o \
+OBJ_FILES = $(BIN_DIR)/slowframe.o $(BIN_DIR)/slowframe_image.o $(BIN_DIR)/slowframe_sstv.o \
+            $(BIN_DIR)/slowframe_audio_encoder.o $(BIN_DIR)/audio_encoder_wav.o \
             $(BIN_DIR)/audio_encoder_aiff.o $(BIN_DIR)/audio_encoder_ogg.o \
-            $(BIN_DIR)/pisstvpp2_config.o $(BIN_DIR)/pisstvpp2_context.o $(BIN_DIR)/overlay_spec.o \
+            $(BIN_DIR)/slowframe_config.o $(BIN_DIR)/slowframe_context.o $(BIN_DIR)/overlay_spec.o \
             $(BIN_DIR)/image_loader.o $(BIN_DIR)/image_processor.o $(BIN_DIR)/image_aspect.o $(BIN_DIR)/error.o
 
 all: $(TARGET)
@@ -113,7 +113,7 @@ test-ci: $(TARGET)
 	@if [ $$? -eq 0 ]; then echo "All tests passed!"; else echo "Some tests failed!"; exit 1; fi
 
 clean:
-	rm -f $(BIN_DIR)/pisstvpp2* $(BIN_DIR)/*.o $(BIN_DIR)/*.dSYM
+	rm -f $(BIN_DIR)/slowframe* $(BIN_DIR)/*.o $(BIN_DIR)/*.dSYM
 	rm -rf $(BIN_DIR)/*.dSYM
 
 .PHONY: all debug test test-python test-bash test-quick test-full test-clean test-ci clean

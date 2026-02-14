@@ -1,7 +1,7 @@
-# Error Handling and Edge Case Audit for PiSSTVpp2
+# Error Handling and Edge Case Audit for SlowFrame
 
 ## Overview
-This document comprehensively audits all error conditions and edge cases in the PiSSTVpp2 application, particularly focusing on the newly refactored config module and error handling system.
+This document comprehensively audits all error conditions and edge cases in the SlowFrame application, particularly focusing on the newly refactored config module and error handling system.
 
 ## Error Code System Reference
 
@@ -16,7 +16,7 @@ This document comprehensively audits all error conditions and edge cases in the 
 
 ---
 
-## SECTION 1: Configuration Module Error Conditions (`pisstvpp2_config.c`)
+## SECTION 1: Configuration Module Error Conditions (`slowframe_config.c`)
 
 ### 1.1 Input File Validation (`-i` option)
 

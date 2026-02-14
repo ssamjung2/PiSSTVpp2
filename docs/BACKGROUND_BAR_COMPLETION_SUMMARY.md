@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**Successfully implemented a comprehensive background bar feature** for text overlays in PiSSTVpp2, enabling solid-color bars behind text for maximum visibility on weak or degraded signals (especially important for HF SSTV transmission).
+**Successfully implemented a comprehensive background bar feature** for text overlays in SlowFrame, enabling solid-color bars behind text for maximum visibility on weak or degraded signals (especially important for HF SSTV transmission).
 
 ## Implementation Status
 
@@ -22,7 +22,7 @@
 **Files Modified:**
 - [src/include/overlay_spec.h](src/include/overlay_spec.h) - Added structure fields
 - [src/overlay_spec.c](src/overlay_spec.c) - Added parameter parsing
-- [src/pisstvpp2_image.c](src/pisstvpp2_image.c) - Implemented rendering logic
+- [src/slowframe_image.c](src/slowframe_image.c) - Implemented rendering logic
 
 **Key Components:**
 - Background bar enable/disable toggle
@@ -122,7 +122,7 @@ Text Styling:   size=16|align=center
 
 ### Rendering Changes
 
-**File:** `src/pisstvpp2_image.c` (lines ~627-680)
+**File:** `src/slowframe_image.c` (lines ~627-680)
 ```c
 // Create background bar using VIPS drawing operations
 if (spec->bg_bar_enable && spec->bg_mode != BG_TRANSPARENT) {
@@ -234,7 +234,7 @@ Total Tests:              42
 ### Example 1: HF 80m Contact
 
 ```bash
-bin/pisstvpp2 -i image.png \
+bin/slowframe -i image.png \
   -T "W5ABC|size=16|color=white|bg=black|bgbar=true|bgbar-margin=6|pos=top" \
   -T "EM12AB|size=14|color=white|bg=black|bgbar=true|bgbar-margin=4|pos=center" \
   -T "RST 559|size=12|color=yellow|bg=navy|bgbar=true|bgbar-margin=3|pos=bottom" \
@@ -246,7 +246,7 @@ Creates three overlays with high-contrast background bars optimized for weak HF 
 ### Example 2: Contest Format
 
 ```bash
-bin/pisstvpp2 -i image.png \
+bin/slowframe -i image.png \
   -T "N0ABC|size=14|color=white|bg=#000080|bgbar=true|bgbar-margin=4|pad=8" \
   -T "FN25AE|size=14|color=white|bg=#000080|bgbar=true|bgbar-margin=4|pad=8" \
   -T "1:32pm|size=12|color=yellow|bg=#004020|bgbar=true|bgbar-margin=4|pad=8" \
@@ -339,7 +339,7 @@ Professional contest submission with consistent styling and margins.
 
 ## Conclusion
 
-The background bar feature has been successfully implemented, tested, and integrated into the PiSSTVpp2 text overlay system. The feature provides users with an easy-to-use option for creating high-contrast text overlays on SSTV images, particularly beneficial for weak signal scenarios common in HF operation.
+The background bar feature has been successfully implemented, tested, and integrated into the SlowFrame text overlay system. The feature provides users with an easy-to-use option for creating high-contrast text overlays on SSTV images, particularly beneficial for weak signal scenarios common in HF operation.
 
 **All objectives met:**
 - ✅ Feature fully implemented

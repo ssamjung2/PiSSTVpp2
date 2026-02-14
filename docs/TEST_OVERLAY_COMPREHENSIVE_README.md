@@ -55,7 +55,7 @@ All tests save intermediate debug images (`-K` flag) for visual verification.
 
 ```bash
 cd tests
-python3 test_text_overlay_comprehensive.py --exe ../bin/pisstvpp2
+python3 test_text_overlay_comprehensive.py --exe ../bin/slowframe
 ```
 
 ### Expected Output Structure
@@ -441,7 +441,7 @@ If a test fails:
 3. Check `comprehensive_results_*.json` for error details
 4. Run command manually to see full stderr output:
    ```bash
-   ./pisstvpp2 -i images/test_color_bars.png -T "Text|..." -o /tmp/test.wav -K -v
+   ./slowframe -i images/test_color_bars.png -T "Text|..." -o /tmp/test.wav -K -v
    ```
 5. Compare with passing test to identify differences
 
@@ -460,6 +460,6 @@ Possible additions to test suite:
 ## References
 
 - [Overlay Specification Header](../src/include/overlay_spec.h)
-- [Image Rendering Implementation](../src/pisstvpp2_image.c)
+- [Image Rendering Implementation](../src/slowframe_image.c)
 - [Parser Implementation](../src/overlay_spec.c)
 - [Main Test Suite](test_suite.py)

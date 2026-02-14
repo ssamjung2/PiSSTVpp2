@@ -4,7 +4,7 @@ echo "Running CW Audio Fix Test Suite..."
 echo "=================================="
 
 # Get the path to the executable
-EXECUTABLE="../bin/pisstvpp2"
+EXECUTABLE="../bin/slowframe"
 
 # Test 1: Standard callsign at 13 WPM
 echo -e "\n[Test 1/3] Standard callsign - K4ABC at 13 WPM"

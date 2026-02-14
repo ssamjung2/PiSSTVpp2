@@ -30,16 +30,16 @@ Text overlays now support **absolute x,y coordinate positioning** in addition to
 
 ```bash
 # X,Y with color
-bin/pisstvpp2 -i image.png -T "Text|x=150|y=100|color=red" -o output.wav
+bin/slowframe -i image.png -T "Text|x=150|y=100|color=red" -o output.wav
 
 # X,Y with alignment
-bin/pisstvpp2 -i image.png -T "Text|x=150|y=100|align=center|color=blue|size=18" -o output.wav
+bin/slowframe -i image.png -T "Text|x=150|y=100|align=center|color=blue|size=18" -o output.wav
 
 # X,Y with background and padding
-bin/pisstvpp2 -i image.png -T "Text|x=100|y=50|bg=navy|color=white|pad=4" -o output.wav
+bin/slowframe -i image.png -T "Text|x=100|y=50|bg=navy|color=white|pad=4" -o output.wav
 
 # Multiple overlays with x,y positioning
-bin/pisstvpp2 -i image.png \
+bin/slowframe -i image.png \
   -T "TopLeft|x=10|y=10|color=red" \
   -T "Center|x=150|y=120|color=white|align=center" \
   -T "BottomRight|x=300|y=230|color=green|align=right" \
@@ -107,7 +107,7 @@ Generated debug image: `xy_align_stress_*.png`
 
 ```bash
 # Single overlay at coordinates
-bin/pisstvpp2 -i test_color_bars.png \
+bin/slowframe -i test_color_bars.png \
   -T "W5ZZZ|x=50|y=30|size=18|color=white" \
   -o output.wav -K
 
@@ -118,7 +118,7 @@ bin/pisstvpp2 -i test_color_bars.png \
 
 ```bash
 # Professional operator stats display
-bin/pisstvpp2 -i image.png \
+bin/slowframe -i image.png \
   -T "W5ZZZ|x=10|y=10|size=16|color=white|bg=navy" \
   -T "EM12ab|x=10|y=35|size=14|color=yellow" \
   -T "100W|x=10|y=55|size=12|color=lime" \
@@ -135,7 +135,7 @@ for x in 50 150 250; do
   for y in 50 120 190; do
     echo "-T \"($x,$y)|x=$x|y=$y|size=10|color=white\"" 
   done
-done | xargs bin/pisstvpp2 -i image.png -o output.wav -K
+done | xargs bin/slowframe -i image.png -o output.wav -K
 ```
 
 ## Coordinate System
@@ -176,13 +176,13 @@ If both placement and x,y are specified:
 
 ```bash
 # Placement-based (original system)
-bin/pisstvpp2 -i image.png -T "Text|pos=top|align=center" -o output.wav
+bin/slowframe -i image.png -T "Text|pos=top|align=center" -o output.wav
 
 # Absolute x,y coordinates (new feature)
-bin/pisstvpp2 -i image.png -T "Text|x=150|y=50" -o output.wav
+bin/slowframe -i image.png -T "Text|x=150|y=50" -o output.wav
 
 # Mixed approach (placement with offset)
-bin/pisstvpp2 -i image.png -T "Text|pos=center|x=10|y=5" -o output.wav
+bin/slowframe -i image.png -T "Text|pos=center|x=10|y=5" -o output.wav
 ```
 
 ## Test Results Summary
@@ -214,7 +214,7 @@ Test Execution Time:   ~150 seconds
 ✅ **100% backward compatible** - All existing tests and placement methods still work:
 ```bash
 # Original placement-based method still works
-bin/pisstvpp2 -i image.png -T "Text|pos=top|align=center|color=red" -o output.wav
+bin/slowframe -i image.png -T "Text|pos=top|align=center|color=red" -o output.wav
 
 # Still produces same results as before
 ```
@@ -223,7 +223,7 @@ bin/pisstvpp2 -i image.png -T "Text|pos=top|align=center|color=red" -o output.wa
 
 ### QSO Recording Overlay
 ```bash
-bin/pisstvpp2 -i qso_image.png \
+bin/slowframe -i qso_image.png \
   -T "W5ZZZ|x=20|y=20|size=16|color=yellow|bg=navy" \
   -T "EM12ab|x=20|y=45|size=14|color=white" \
   -T "RST:579|x=20|y=65|size=12|color=lime" \
@@ -232,7 +232,7 @@ bin/pisstvpp2 -i qso_image.png \
 
 ### Station Information Panel
 ```bash
-bin/pisstvpp2 -i image.png \
+bin/slowframe -i image.png \
   -T "STATION|x=10|y=10|size=18|color=white" \
   -T "W5ZZZ|x=10|y=35|size=20|color=yellow" \
   -T "Power: 100W|x=150|y=10|size=12|color=cyan" \
@@ -242,7 +242,7 @@ bin/pisstvpp2 -i image.png \
 
 ### Contest Exchange
 ```bash
-bin/pisstvpp2 -i image.png \
+bin/slowframe -i image.png \
   -T "Call|x=10|y=10|color=white" \
   -T "W5ZZZ|x=50|y=10|size=14|color=yellow" \
   -T "Grid|x=10|y=35|color=white" \

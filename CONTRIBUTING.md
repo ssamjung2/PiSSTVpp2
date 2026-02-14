@@ -1,6 +1,6 @@
-# Contributing to PiSSTVpp2
+# Contributing to SlowFrame
 
-**Thank you for your interest in contributing to PiSSTVpp2!**
+**Thank you for your interest in contributing to SlowFrame!**
 
 We welcome contributions of all kinds: bug reports, feature requests, documentation improvements, and code contributions.
 
@@ -42,8 +42,8 @@ Before contributing, ensure you have:
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/PiSSTVpp2.git
-cd PiSSTVpp2
+git clone https://github.com/yourusername/SlowFrame.git
+cd SlowFrame
 
 # Install dependencies (Debian/Ubuntu example)
 sudo apt-get update
@@ -75,7 +75,7 @@ cd tests
 
 **Bug report should include:**
 - OS and version
-- PiSSTVpp2 version
+- SlowFrame version
 - Steps to reproduce
 - Expected behavior
 - Actual behavior
@@ -86,11 +86,11 @@ cd tests
 ```
 **Environment:**
 - OS: Raspberry Pi OS 11 (Bullseye)
-- PiSSTVpp2: v2.0
+- SlowFrame: v2.0
 - libvips: 8.12.2
 
 **Steps to Reproduce:**
-1. Run: ./bin/pisstvpp2 -i test.jpg -o output.wav -p r72
+1. Run: ./bin/slowframe -i test.jpg -o output.wav -p r72
 2. Observe error message
 
 **Expected:** WAV file created successfully
@@ -117,7 +117,7 @@ cd tests
 **Use Case:** FAX480 is used in weather satellite reception
 
 **Example Usage:**
-./bin/pisstvpp2 -i weather.jpg -p fax480 -o output.wav
+./bin/slowframe -i weather.jpg -p fax480 -o output.wav
 
 **Implementation Notes:**
 - VIS code: TBD
@@ -151,11 +151,11 @@ Documentation improvements are always welcome!
 ```bash
 # Fork repository on GitHub
 # Clone your fork
-git clone https://github.com/yourusername/PiSSTVpp2.git
-cd PiSSTVpp2
+git clone https://github.com/yourusername/SlowFrame.git
+cd SlowFrame
 
 # Add upstream remote
-git remote add upstream https://github.com/original/PiSSTVpp2.git
+git remote add upstream https://github.com/original/SlowFrame.git
 
 # Create feature branch
 git checkout -b feature/your-feature-name
@@ -303,12 +303,12 @@ int sample_rate = 22050;
 
 **Header Guards:**
 ```c
-#ifndef PISSTVPP2_MODULE_H
-#define PISSTVPP2_MODULE_H
+#ifndef SLOWFRAME_MODULE_H
+#define SLOWFRAME_MODULE_H
 
 // Header contents
 
-#endif // PISSTVPP2_MODULE_H
+#endif // SLOWFRAME_MODULE_H
 ```
 
 **Comments:**
@@ -365,8 +365,8 @@ g_object_unref(image);
 **File Structure:**
 ```c
 // 1. Header guard
-#ifndef PISSTVPP2_MODULE_H
-#define PISSTVPP2_MODULE_H
+#ifndef SLOWFRAME_MODULE_H
+#define SLOWFRAME_MODULE_H
 
 // 2. Includes
 #include <stdio.h>
@@ -478,7 +478,7 @@ test_your_feature() {
     local output="/tmp/test_output.wav"
     
     # Execute
-    ./bin/pisstvpp2 -i "$input" -o "$output" -p newmode
+    ./bin/slowframe -i "$input" -o "$output" -p newmode
     
     # Verify
     if [ $? -ne 0 ]; then
@@ -526,7 +526,7 @@ cd tests
 
 **Expected results:**
 ```
-Running PiSSTVpp2 Test Suite...
+Running SlowFrame Test Suite...
 [1/56] test_your_feature... PASS
 [2/56] test_martin1... PASS
 ...
@@ -796,31 +796,31 @@ make -j$(nproc)
 
 ```bash
 # Run with gdb
-gdb ./bin/pisstvpp2
+gdb ./bin/slowframe
 (gdb) run -i test.jpg -o output.wav
 (gdb) bt  # Backtrace on crash
 
 # Valgrind for memory issues
-valgrind --leak-check=full ./bin/pisstvpp2 -i test.jpg -o output.wav
+valgrind --leak-check=full ./bin/slowframe -i test.jpg -o output.wav
 
 # Verbose logging
-./bin/pisstvpp2 -i test.jpg -o output.wav -v
+./bin/slowframe -i test.jpg -o output.wav -v
 ```
 
 ### Testing Specific Scenarios
 
 ```bash
 # Test one mode
-./bin/pisstvpp2 -i tests/images/test.jpg -o /tmp/test.wav -p r72 -v
+./bin/slowframe -i tests/images/test.jpg -o /tmp/test.wav -p r72 -v
 
 # Test with different images
 for img in tests/images/*.jpg; do
-    ./bin/pisstvpp2 -i "$img" -o /tmp/out.wav -p s2
+    ./bin/slowframe -i "$img" -o /tmp/out.wav -p s2
 done
 
 # Test all modes
 for mode in m1 m2 s1 s2 sdx r36 r72; do
-    ./bin/pisstvpp2 -i tests/images/test.jpg -o /tmp/$mode.wav -p $mode
+    ./bin/slowframe -i tests/images/test.jpg -o /tmp/$mode.wav -p $mode
 done
 ```
 
@@ -862,7 +862,7 @@ A: WSL works; native Windows needs significant porting effort
 
 ## License
 
-By contributing to PiSSTVpp2, you agree that your contributions will be licensed under the GNU General Public License v3.0.
+By contributing to SlowFrame, you agree that your contributions will be licensed under the GNU General Public License v3.0.
 
 See [LICENSE](LICENSE.md) for full license text.
 
@@ -875,7 +875,7 @@ Contributors are recognized in:
 - Release notes
 - README.md credits section (for significant contributions)
 
-Thank you for contributing to PiSSTVpp2! Your efforts help make amateur radio and SSTV more accessible to everyone.
+Thank you for contributing to SlowFrame! Your efforts help make amateur radio and SSTV more accessible to everyone.
 
 **73!** 📡
 

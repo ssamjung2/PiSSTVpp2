@@ -16,43 +16,43 @@
 
 int overlay_spec_list_init(OverlaySpecList *list, size_t capacity) {
     if (!list) {
-        error_log(PISSTVPP2_ERR_ARG_INVALID_PROTOCOL, "Invalid list pointer");
-        return PISSTVPP2_ERR_ARG_INVALID_PROTOCOL;
+        error_log(SLOWFRAME_ERR_ARG_INVALID_PROTOCOL, "Invalid list pointer");
+        return SLOWFRAME_ERR_ARG_INVALID_PROTOCOL;
     }
 
     if (capacity == 0 || capacity > OVERLAY_MAX_COUNT) {
-        error_log(PISSTVPP2_ERR_ARG_INVALID_PROTOCOL, 
+        error_log(SLOWFRAME_ERR_ARG_INVALID_PROTOCOL, 
                   "Overlay list capacity must be 1-%d", OVERLAY_MAX_COUNT);
-        return PISSTVPP2_ERR_ARG_INVALID_PROTOCOL;
+        return SLOWFRAME_ERR_ARG_INVALID_PROTOCOL;
     }
 
     list->overlays = (TextOverlaySpec *)malloc(capacity * sizeof(TextOverlaySpec));
     if (!list->overlays) {
-        error_log(PISSTVPP2_ERR_MEMORY_ALLOC, "Failed to allocate overlay list");
-        return PISSTVPP2_ERR_MEMORY_ALLOC;
+        error_log(SLOWFRAME_ERR_MEMORY_ALLOC, "Failed to allocate overlay list");
+        return SLOWFRAME_ERR_MEMORY_ALLOC;
     }
 
     list->count = 0;
     list->capacity = capacity;
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 int overlay_spec_list_add(OverlaySpecList *list, const TextOverlaySpec *spec) {
     if (!list || !spec) {
-        error_log(PISSTVPP2_ERR_ARG_INVALID_PROTOCOL, "Invalid list or spec pointer");
-        return PISSTVPP2_ERR_ARG_INVALID_PROTOCOL;
+        error_log(SLOWFRAME_ERR_ARG_INVALID_PROTOCOL, "Invalid list or spec pointer");
+        return SLOWFRAME_ERR_ARG_INVALID_PROTOCOL;
     }
 
     if (list->count >= list->capacity) {
-        error_log(PISSTVPP2_ERR_ARG_INVALID_PROTOCOL, 
+        error_log(SLOWFRAME_ERR_ARG_INVALID_PROTOCOL, 
                   "Overlay list is full (capacity %zu)", list->capacity);
-        return PISSTVPP2_ERR_ARG_INVALID_PROTOCOL;
+        return SLOWFRAME_ERR_ARG_INVALID_PROTOCOL;
     }
 
     // Copy the spec into the list
     memcpy(&list->overlays[list->count], spec, sizeof(TextOverlaySpec));
     list->count++;
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 TextOverlaySpec* overlay_spec_list_get(OverlaySpecList *list, size_t index) {
@@ -64,8 +64,8 @@ TextOverlaySpec* overlay_spec_list_get(OverlaySpecList *list, size_t index) {
 
 int overlay_spec_list_remove(OverlaySpecList *list, size_t index) {
     if (!list || index >= list->count) {
-        error_log(PISSTVPP2_ERR_ARG_INVALID_PROTOCOL, "Invalid list or index");
-        return PISSTVPP2_ERR_ARG_INVALID_PROTOCOL;
+        error_log(SLOWFRAME_ERR_ARG_INVALID_PROTOCOL, "Invalid list or index");
+        return SLOWFRAME_ERR_ARG_INVALID_PROTOCOL;
     }
 
     // Shift remaining elements
@@ -73,7 +73,7 @@ int overlay_spec_list_remove(OverlaySpecList *list, size_t index) {
         memcpy(&list->overlays[i], &list->overlays[i + 1], sizeof(TextOverlaySpec));
     }
     list->count--;
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 size_t overlay_spec_list_count(const OverlaySpecList *list) {
@@ -107,31 +107,38 @@ TextOverlaySpec overlay_spec_create_default(void) {
     spec.text[0] = '\0';
     spec.timestamp_format[0] = '\0';  // Timestamp disabled by default
     
-    // Placement and positioning
-    spec.placement = OVERLAY_PLACE_TOP;
+    // Placement and positioning (SSTV-optimized defaults)
+    spec.placement = OVERLAY_PLACE_BOTTOM_RIGHT;  // Common for callsign in SSTV
     spec.offset_x = 0;
     spec.offset_y = 0;
     
-    // Text styling with sensible defaults
-    spec.font_size = 32;  // Large, visible font
+    // Text styling with SSTV-friendly defaults
+    spec.font_size = 16;  // 16px fits well on 320x240 and larger images
+    strncpy(spec.font_family, "sans", sizeof(spec.font_family) - 1);
     spec.text_align = TEXT_ALIGN_CENTER;
     spec.valign = VALIGN_CENTER;
-    spec.text_color = (RGBAColor){0, 102, 255, 255};    // Blue text
+    spec.text_color = (RGBAColor){255, 255, 255, 255};    // White text (best contrast)
     
-    // Background styling
-    spec.bg_mode = BG_OPAQUE;
-    spec.bg_color = (RGBAColor){255, 255, 255, 255};    // White background
-    spec.padding = 8;
-    spec.border_width = 1;
-    spec.border_color = (RGBAColor){0, 102, 255, 255};  // Blue border
+    // Text wrapping (for multi-line support)
+    spec.text_width = 0;  // No limit by default
+    spec.wrap_mode = WRAP_WORD;  // Wrap at word boundaries
+    spec.line_spacing = 1.0f;  // Single line spacing
     
-    // Background bar styling (disabled by default)
-    spec.bg_bar_enable = 0;
-    spec.bg_bar_margin = 4;
-    spec.bg_bar_width_mode = BGBAR_WIDTH_AUTO;  // Auto-size to text by default
+    // Background styling (SSTV-optimized)
+    spec.bg_mode = BG_SEMI;  // Semi-transparent (50% opacity)
+    spec.bg_color = (RGBAColor){0, 0, 0, 255};     // Black background (standard SSTV)
+    spec.opacity = 50;  // 50% opacity (alternative to bg_mode)
+    spec.padding = 5;  // 5px padding around text
+    spec.border_width = 0;  // No border by default
+    spec.border_color = (RGBAColor){255, 255, 255, 255};  // White border (if enabled)
+    
+    // Background bar styling (enabled for signal protection in weak SSTV)
+    spec.bg_bar_enable = 0;  // User enables when needed
+    spec.bg_bar_margin = 2;  // 2px margin (reduced from 4 for SSTV screens)
+    spec.bg_bar_width_mode = BGBAR_WIDTH_FULL;  // Full width (SSTV protection, user request)
     spec.bg_bar_custom_width = 0;
-    spec.bg_bar_orientation = BGBAR_ORIENT_HORIZONTAL;  // Horizontal by default
-    spec.bg_bar_color = (RGBAColor){0, 0, 0, 255};      // Black bar (opaque)
+    spec.bg_bar_orientation = BGBAR_ORIENT_HORIZONTAL;  // Horizontal (standard)
+    spec.bg_bar_color = (RGBAColor){255, 255, 255, 255};      // White bar (high visibility)
     
     // Sizing constraints (auto by default)
     spec.min_width = 0;
@@ -142,31 +149,6 @@ TextOverlaySpec overlay_spec_create_default(void) {
     // Effects
     spec.enabled = 1;
     spec.rotation = 0;
-    
-    return spec;
-}
-
-TextOverlaySpec overlay_spec_create_station_id(const char *callsign, 
-                                                const char *grid_square,
-                                                OverlayPlacement placement) {
-    TextOverlaySpec spec = overlay_spec_create_default();
-    
-    // Format station ID text
-    snprintf(spec.text, sizeof(spec.text), "%s %s", 
-             callsign ? callsign : "NOCALL",
-             grid_square ? grid_square : "?????");
-    
-    spec.placement = placement;
-    spec.font_size = 32;  // Large, visible font
-    spec.text_color = (RGBAColor){0, 102, 255, 255};    // Blue text
-    spec.bg_color = (RGBAColor){255, 255, 255, 255};    // White background
-    spec.bg_mode = BG_OPAQUE;
-    spec.padding = 8;
-    spec.border_width = 1;
-    spec.border_color = (RGBAColor){0, 102, 255, 255};  // Blue border
-    spec.text_align = TEXT_ALIGN_CENTER;
-    spec.valign = VALIGN_CENTER;
-    spec.enabled = 1;
     
     return spec;
 }
@@ -220,13 +202,13 @@ TextAlignment overlay_parse_alignment(const char *align_str) {
  */
 static int parse_hex_color(const char *hex_str, uint8_t *r, uint8_t *g, uint8_t *b) {
     if (!hex_str || strlen(hex_str) < 6) {
-        return PISSTVPP2_ERR_ARG_INVALID_PROTOCOL;
+        return SLOWFRAME_ERR_ARG_INVALID_PROTOCOL;
     }
     
     // Validate all characters are hex digits
     for (int i = 0; i < 6; i++) {
         if (!isxdigit((unsigned char)hex_str[i])) {
-            return PISSTVPP2_ERR_ARG_INVALID_PROTOCOL;
+            return SLOWFRAME_ERR_ARG_INVALID_PROTOCOL;
         }
     }
     
@@ -239,21 +221,21 @@ static int parse_hex_color(const char *hex_str, uint8_t *r, uint8_t *g, uint8_t 
     long b_val = strtol(b_str, NULL, 16);
     
     if (r_val > 255 || g_val > 255 || b_val > 255) {
-        return PISSTVPP2_ERR_ARG_INVALID_PROTOCOL;
+        return SLOWFRAME_ERR_ARG_INVALID_PROTOCOL;
     }
     
     *r = (uint8_t)r_val;
     *g = (uint8_t)g_val;
     *b = (uint8_t)b_val;
     
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 /**
  * @brief Parse named color (e.g., "red", "white", "black")
  */
 static int parse_named_color(const char *name, uint8_t *r, uint8_t *g, uint8_t *b) {
-    if (!name) return PISSTVPP2_ERR_ARG_INVALID_PROTOCOL;
+    if (!name) return SLOWFRAME_ERR_ARG_INVALID_PROTOCOL;
     
     // Convert to lowercase for comparison
     char lower_name[32];
@@ -310,15 +292,15 @@ static int parse_named_color(const char *name, uint8_t *r, uint8_t *g, uint8_t *
     } else if (strcmp(lower_name, "olive") == 0) {
         *r = 128; *g = 128; *b = 0;
     } else {
-        return PISSTVPP2_ERR_ARG_INVALID_PROTOCOL;
+        return SLOWFRAME_ERR_ARG_INVALID_PROTOCOL;
     }
     
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 int overlay_parse_color(const char *color_str, RGBAColor *out_color) {
     if (!color_str || !out_color) {
-        return PISSTVPP2_ERR_ARG_INVALID_PROTOCOL;
+        return SLOWFRAME_ERR_ARG_INVALID_PROTOCOL;
     }
     
     int result;
@@ -332,22 +314,22 @@ int overlay_parse_color(const char *color_str, RGBAColor *out_color) {
     // Try hex color first (e.g., "FF0000" or "#FF0000")
     if (strlen(hex_start) >= 6 && isxdigit((unsigned char)hex_start[0])) {
         result = parse_hex_color(hex_start, &out_color->r, &out_color->g, &out_color->b);
-        if (result == PISSTVPP2_OK) {
+        if (result == SLOWFRAME_OK) {
             out_color->alpha = 255;  // Fully opaque by default
-            return PISSTVPP2_OK;
+            return SLOWFRAME_OK;
         }
     }
     
     // Try named color (e.g., "red", "white")
     result = parse_named_color(color_str, &out_color->r, &out_color->g, &out_color->b);
-    if (result == PISSTVPP2_OK) {
+    if (result == SLOWFRAME_OK) {
         out_color->alpha = 255;  // Fully opaque by default
-        return PISSTVPP2_OK;
+        return SLOWFRAME_OK;
     }
     
-    error_log(PISSTVPP2_ERR_ARG_INVALID_PROTOCOL, 
+    error_log(SLOWFRAME_ERR_ARG_INVALID_PROTOCOL, 
               "Invalid color format: %s (use hex like FF0000 or #FF0000, or name like red)", color_str);
-    return PISSTVPP2_ERR_ARG_INVALID_PROTOCOL;
+    return SLOWFRAME_ERR_ARG_INVALID_PROTOCOL;
 }
 
 // ===========================================================================
@@ -356,43 +338,43 @@ int overlay_parse_color(const char *color_str, RGBAColor *out_color) {
 
 int colorbar_list_init(ColorBarList *list, size_t capacity) {
     if (!list) {
-        error_log(PISSTVPP2_ERR_ARG_INVALID_PROTOCOL, "Invalid list pointer");
-        return PISSTVPP2_ERR_ARG_INVALID_PROTOCOL;
+        error_log(SLOWFRAME_ERR_ARG_INVALID_PROTOCOL, "Invalid list pointer");
+        return SLOWFRAME_ERR_ARG_INVALID_PROTOCOL;
     }
 
     if (capacity == 0 || capacity > 20) {  // Max 20 color bars
-        error_log(PISSTVPP2_ERR_ARG_INVALID_PROTOCOL, 
+        error_log(SLOWFRAME_ERR_ARG_INVALID_PROTOCOL, 
                   "Color bar list capacity must be 1-20");
-        return PISSTVPP2_ERR_ARG_INVALID_PROTOCOL;
+        return SLOWFRAME_ERR_ARG_INVALID_PROTOCOL;
     }
 
     list->bars = (ColorBar *)malloc(capacity * sizeof(ColorBar));
     if (!list->bars) {
-        error_log(PISSTVPP2_ERR_MEMORY_ALLOC, "Failed to allocate color bar list");
-        return PISSTVPP2_ERR_MEMORY_ALLOC;
+        error_log(SLOWFRAME_ERR_MEMORY_ALLOC, "Failed to allocate color bar list");
+        return SLOWFRAME_ERR_MEMORY_ALLOC;
     }
 
     list->count = 0;
     list->capacity = capacity;
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 int colorbar_list_add(ColorBarList *list, const ColorBar *bar) {
     if (!list || !bar) {
-        error_log(PISSTVPP2_ERR_ARG_INVALID_PROTOCOL, "Invalid list or bar pointer");
-        return PISSTVPP2_ERR_ARG_INVALID_PROTOCOL;
+        error_log(SLOWFRAME_ERR_ARG_INVALID_PROTOCOL, "Invalid list or bar pointer");
+        return SLOWFRAME_ERR_ARG_INVALID_PROTOCOL;
     }
 
     if (list->count >= list->capacity) {
-        error_log(PISSTVPP2_ERR_ARG_INVALID_PROTOCOL, 
+        error_log(SLOWFRAME_ERR_ARG_INVALID_PROTOCOL, 
                   "Color bar list is full (capacity %zu)", list->capacity);
-        return PISSTVPP2_ERR_ARG_INVALID_PROTOCOL;
+        return SLOWFRAME_ERR_ARG_INVALID_PROTOCOL;
     }
 
     // Copy the bar to the list
     list->bars[list->count] = *bar;
     list->count++;
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 ColorBar* colorbar_list_get(ColorBarList *list, size_t index) {
@@ -481,7 +463,7 @@ ColorBarPosition colorbar_parse_position(const char *position_str) {
  */
 int overlay_parse_unified_spec(const char *spec_str, TextOverlaySpec *out_spec) {
     if (!spec_str || !out_spec) {
-        return PISSTVPP2_ERR_ARG_INVALID_PROTOCOL;
+        return SLOWFRAME_ERR_ARG_INVALID_PROTOCOL;
     }
     
     // Initialize output with defaults
@@ -537,7 +519,7 @@ int overlay_parse_unified_spec(const char *spec_str, TextOverlaySpec *out_spec) 
                     char *endptr;
                     errno = 0;
                     long size = strtol(value, &endptr, 10);
-                    if (errno == 0 && size >= 8 && size <= 96) {
+                    if (errno == 0 && size >= 8 && size <= 72) {
                         out_spec->font_size = (uint16_t)size;
                     }
                 } else if (strcmp(lower_key, "align") == 0 || strcmp(lower_key, "a") == 0) {
@@ -560,28 +542,28 @@ int overlay_parse_unified_spec(const char *spec_str, TextOverlaySpec *out_spec) 
                     char *endptr;
                     errno = 0;
                     long pad = strtol(value, &endptr, 10);
-                    if (errno == 0 && pad >= 0 && pad <= 50) {
+                    if (errno == 0 && pad >= 0 && pad <= 30) {
                         out_spec->padding = (uint16_t)pad;
                     }
                 } else if (strcmp(lower_key, "offset-x") == 0 || strcmp(lower_key, "offsetx") == 0 || strcmp(lower_key, "x") == 0) {
                     char *endptr;
                     errno = 0;
                     long offset = strtol(value, &endptr, 10);
-                    if (errno == 0 && offset >= -1000 && offset <= 1000) {
-                        out_spec->offset_x = (uint16_t)(offset >= 0 ? offset : 0);
+                    if (errno == 0 && offset >= -100 && offset <= 100) {
+                        out_spec->offset_x = (int16_t)offset;
                     }
                 } else if (strcmp(lower_key, "offset-y") == 0 || strcmp(lower_key, "offsety") == 0 || strcmp(lower_key, "y") == 0) {
                     char *endptr;
                     errno = 0;
                     long offset = strtol(value, &endptr, 10);
-                    if (errno == 0 && offset >= -1000 && offset <= 1000) {
-                        out_spec->offset_y = (uint16_t)(offset >= 0 ? offset : 0);
+                    if (errno == 0 && offset >= -100 && offset <= 100) {
+                        out_spec->offset_y = (int16_t)offset;
                     }
                 } else if (strcmp(lower_key, "border") == 0 || strcmp(lower_key, "b") == 0 || strcmp(lower_key, "d") == 0) {
                     char *endptr;
                     errno = 0;
                     long border = strtol(value, &endptr, 10);
-                    if (errno == 0 && border >= 0 && border <= 10) {
+                    if (errno == 0 && border >= 0 && border <= 8) {
                         out_spec->border_width = (uint16_t)border;
                     }
                 } else if (strcmp(lower_key, "v-align") == 0 || strcmp(lower_key, "va") == 0 || strcmp(lower_key, "valign") == 0) {
@@ -604,7 +586,7 @@ int overlay_parse_unified_spec(const char *spec_str, TextOverlaySpec *out_spec) 
                     char *endptr;
                     errno = 0;
                     long margin = strtol(value, &endptr, 10);
-                    if (errno == 0 && margin >= 0 && margin <= 30) {
+                    if (errno == 0 && margin >= 0 && margin <= 15) {
                         out_spec->bg_bar_margin = (uint16_t)margin;
                     }
                 } else if (strcmp(lower_key, "bgbar-width") == 0 || strcmp(lower_key, "bgbarwidth") == 0 || strcmp(lower_key, "bgbar_width") == 0) {
@@ -645,6 +627,56 @@ int overlay_parse_unified_spec(const char *spec_str, TextOverlaySpec *out_spec) 
                     // Set timestamp format (strftime format string)
                     strncpy(out_spec->timestamp_format, value, sizeof(out_spec->timestamp_format) - 1);
                     out_spec->timestamp_format[sizeof(out_spec->timestamp_format) - 1] = '\0';
+                } else if (strcmp(lower_key, "border-color") == 0 || strcmp(lower_key, "bordercolor") == 0) {
+                    // Parse border color
+                    if (overlay_parse_color(value, &out_spec->border_color) != 0) {
+                        out_spec->border_color = out_spec->text_color;  // Default to text color
+                    }
+                } else if (strcmp(lower_key, "opacity") == 0 || strcmp(lower_key, "alpha") == 0) {
+                    // Parse opacity as percentage (0-100)
+                    char *endptr;
+                    errno = 0;
+                    long opacity = strtol(value, &endptr, 10);
+                    if (errno == 0 && opacity >= 0 && opacity <= 100) {
+                        out_spec->opacity = (uint8_t)opacity;
+                        // Convert to bg_mode for compatibility
+                        if (opacity == 0) {
+                            out_spec->bg_mode = BG_TRANSPARENT;
+                        } else if (opacity >= 90) {
+                            out_spec->bg_mode = BG_OPAQUE;
+                        } else {
+                            out_spec->bg_mode = BG_SEMI;
+                        }
+                    }
+                } else if (strcmp(lower_key, "font") == 0 || strcmp(lower_key, "font-family") == 0 || strcmp(lower_key, "fontfamily") == 0) {
+                    // Parse font family (fontconfig style)
+                    strncpy(out_spec->font_family, value, sizeof(out_spec->font_family) - 1);
+                    out_spec->font_family[sizeof(out_spec->font_family) - 1] = '\0';
+                } else if (strcmp(lower_key, "width") == 0 || strcmp(lower_key, "text-width") == 0 || strcmp(lower_key, "textwidth") == 0) {
+                    // Parse max text width for wrapping
+                    char *endptr;
+                    errno = 0;
+                    long width = strtol(value, &endptr, 10);
+                    if (errno == 0 && width >= 0 && width <= 2000) {
+                        out_spec->text_width = (uint16_t)width;
+                    }
+                } else if (strcmp(lower_key, "wrap") == 0 || strcmp(lower_key, "text-wrap") == 0 || strcmp(lower_key, "textwrap") == 0) {
+                    // Parse text wrapping mode
+                    if (strcmp(value, "char") == 0 || strcmp(value, "character") == 0) {
+                        out_spec->wrap_mode = WRAP_CHAR;
+                    } else if (strcmp(value, "none") == 0 || strcmp(value, "no") == 0) {
+                        out_spec->wrap_mode = WRAP_NONE;
+                    } else {
+                        out_spec->wrap_mode = WRAP_WORD;  // Default to word wrap
+                    }
+                } else if (strcmp(lower_key, "line-spacing") == 0 || strcmp(lower_key, "linespacing") == 0 || strcmp(lower_key, "spacing") == 0) {
+                    // Parse line spacing as multiplier (0.8-1.5)
+                    char *endptr;
+                    errno = 0;
+                    double spacing = strtod(value, &endptr);
+                    if (errno == 0 && spacing >= 0.5 && spacing <= 2.0) {
+                        out_spec->line_spacing = (float)spacing;
+                    }
                 }
             }
             
@@ -661,5 +693,5 @@ int overlay_parse_unified_spec(const char *spec_str, TextOverlaySpec *out_spec) 
         out_spec->text[OVERLAY_MAX_TEXT_LENGTH - 1] = '\0';
     }
     
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }

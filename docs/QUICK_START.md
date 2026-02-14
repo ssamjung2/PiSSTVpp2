@@ -1,6 +1,6 @@
-# PiSSTVpp2 Quick Start Guide
+# SlowFrame Quick Start Guide
 
-**Get started with PiSSTVpp2 in 5 minutes**
+**Get started with SlowFrame in 5 minutes**
 
 ---
 
@@ -23,13 +23,13 @@ brew install vips libogg libvorbis
 
 ```bash
 # Clone or download repository
-cd /path/to/PiSSTVpp2
+cd /path/to/SlowFrame
 
 # Build
 make clean && make all
 
 # Verify
-./bin/pisstvpp2 -h
+./bin/slowframe -h
 ```
 
 ✅ **Success!** You should see the help message.
@@ -49,7 +49,7 @@ Any image format works (PNG, JPEG, GIF, BMP), but for best results:
 
 ```bash
 # Basic encoding (Martin 1 mode, WAV output)
-./bin/pisstvpp2 -i your-photo.jpg -o first-transmission.wav
+./bin/slowframe -i your-photo.jpg -o first-transmission.wav
 ```
 
 **What happens:**
@@ -94,13 +94,13 @@ You should hear:
 
 ```bash
 # Fast transmission (Robot 36, 36 seconds)
-./bin/pisstvpp2 -i photo.jpg -p r36 -o quick.wav
+./bin/slowframe -i photo.jpg -p r36 -o quick.wav
 
 # Best balance (Scottie 2, 71 seconds)
-./bin/pisstvpp2 -i photo.jpg -p s2 -o balanced.wav
+./bin/slowframe -i photo.jpg -p s2 -o balanced.wav
 
 # Highest quality (Robot 72, 72 seconds)
-./bin/pisstvpp2 -i photo.jpg -p r72 -o hq.wav
+./bin/slowframe -i photo.jpg -p r72 -o hq.wav
 ```
 
 ---
@@ -111,7 +111,7 @@ You should hear:
 
 ```bash
 # Add CW signature with your callsign
-./bin/pisstvpp2 -i photo.jpg -C "N0CALL" -o transmission.wav
+./bin/slowframe -i photo.jpg -C "N0CALL" -o transmission.wav
 ```
 
 **What you'll hear:**
@@ -121,23 +121,23 @@ You should hear:
 **Customize CW:**
 ```bash
 # Faster CW (25 WPM)
-./bin/pisstvpp2 -i photo.jpg -C "W1AW" -W 25 -o output.wav
+./bin/slowframe -i photo.jpg -C "W1AW" -W 25 -o output.wav
 
 # Different tone (1000 Hz)
-./bin/pisstvpp2 -i photo.jpg -C "K0ABC" -T 1000 -o output.wav
+./bin/slowframe -i photo.jpg -C "K0ABC" -T 1000 -o output.wav
 ```
 
 ### Handle Different Image Shapes
 
 ```bash
 # Portrait photo (will add black bars on sides)
-./bin/pisstvpp2 -i portrait.jpg -a pad -o output.wav
+./bin/slowframe -i portrait.jpg -a pad -o output.wav
 
 # Square photo (will crop to 4:3)
-./bin/pisstvpp2 -i square.jpg -a center -o output.wav
+./bin/slowframe -i square.jpg -a center -o output.wav
 
 # Any photo (will stretch to fit - may distort)
-./bin/pisstvpp2 -i any.jpg -a stretch -o output.wav
+./bin/slowframe -i any.jpg -a stretch -o output.wav
 ```
 
 **Aspect modes explained:**
@@ -149,29 +149,29 @@ You should hear:
 
 ```bash
 # OGG format (smaller files, good for storage)
-./bin/pisstvpp2 -i photo.jpg -f ogg -o transmission.ogg
+./bin/slowframe -i photo.jpg -f ogg -o transmission.ogg
 
 # AIFF format (macOS/Apple compatible)
-./bin/pisstvpp2 -i photo.jpg -f aiff -o transmission.aiff
+./bin/slowframe -i photo.jpg -f aiff -o transmission.aiff
 
 # WAV format (default, most compatible)
-./bin/pisstvpp2 -i photo.jpg -f wav -o transmission.wav
+./bin/slowframe -i photo.jpg -f wav -o transmission.wav
 ```
 
 ### Adjust Quality (Sample Rate)
 
 ```bash
 # Lower quality, smaller file (11025 Hz)
-./bin/pisstvpp2 -i photo.jpg -r 11025 -o small.wav
+./bin/slowframe -i photo.jpg -r 11025 -o small.wav
 
 # Standard quality (22050 Hz, default)
-./bin/pisstvpp2 -i photo.jpg -r 22050 -o standard.wav
+./bin/slowframe -i photo.jpg -r 22050 -o standard.wav
 
 # High quality (44100 Hz, CD quality)
-./bin/pisstvpp2 -i photo.jpg -r 44100 -o high.wav
+./bin/slowframe -i photo.jpg -r 44100 -o high.wav
 
 # Maximum quality (48000 Hz)
-./bin/pisstvpp2 -i photo.jpg -r 48000 -o max.wav
+./bin/slowframe -i photo.jpg -r 48000 -o max.wav
 ```
 
 **Recommendation**: Use 22050 Hz (default) unless you need smaller files (11025) or maximum quality (44100+).
@@ -183,7 +183,7 @@ You should hear:
 Let's create a high-quality transmission with all the features:
 
 ```bash
-./bin/pisstvpp2 \
+./bin/slowframe \
   -i my-photo.jpg \
   -o contest-transmission.wav \
   -p s2 \
@@ -215,17 +215,17 @@ Let's create a high-quality transmission with all the features:
 ### "Cannot find image file"
 ```bash
 # Use absolute path
-./bin/pisstvpp2 -i /full/path/to/photo.jpg -o output.wav
+./bin/slowframe -i /full/path/to/photo.jpg -o output.wav
 
 # Or navigate to image directory
 cd /path/to/images
-/path/to/PiSSTVpp2/bin/pisstvpp2 -i photo.jpg -o output.wav
+/path/to/SlowFrame/bin/slowframe -i photo.jpg -o output.wav
 ```
 
 ### "OGG format not supported"
 ```bash
 # OGG libraries not installed, use WAV instead
-./bin/pisstvpp2 -i photo.jpg -f wav -o output.wav
+./bin/slowframe -i photo.jpg -f wav -o output.wav
 
 # Or install OGG support
 sudo apt-get install libogg-dev libvorbis-dev
@@ -235,20 +235,20 @@ make clean && make all
 ### Output file is huge
 ```bash
 # Use lower sample rate
-./bin/pisstvpp2 -i photo.jpg -r 11025 -o output.wav
+./bin/slowframe -i photo.jpg -r 11025 -o output.wav
 
 # Or use OGG compression
-./bin/pisstvpp2 -i photo.jpg -f ogg -o output.ogg
+./bin/slowframe -i photo.jpg -f ogg -o output.ogg
 ```
 
 ### Image looks slanted/distorted when decoded
 ```bash
 # Check image aspect ratio (should be 4:3)
 # Use pad mode to avoid cropping
-./bin/pisstvpp2 -i photo.jpg -a pad -o output.wav
+./bin/slowframe -i photo.jpg -a pad -o output.wav
 
 # Try different modes (Robot modes use 4:3 aspect on 320x240)
-./bin/pisstvpp2 -i photo.jpg -p r72 -o output.wav
+./bin/slowframe -i photo.jpg -p r72 -o output.wav
 ```
 
 ---
@@ -270,16 +270,16 @@ Now that you've created your first SSTV transmission:
 
 ```bash
 # Standard transmission
-./bin/pisstvpp2 -i photo.jpg -p s2 -o output.wav
+./bin/slowframe -i photo.jpg -p s2 -o output.wav
 
 # With callsign
-./bin/pisstvpp2 -i photo.jpg -p s2 -C "N0CALL" -o output.wav
+./bin/slowframe -i photo.jpg -p s2 -C "N0CALL" -o output.wav
 
 # High quality
-./bin/pisstvpp2 -i photo.jpg -p r72 -r 44100 -o output.wav
+./bin/slowframe -i photo.jpg -p r72 -r 44100 -o output.wav
 
 # Quick transmission
-./bin/pisstvpp2 -i photo.jpg -p r36 -o output.wav
+./bin/slowframe -i photo.jpg -p r36 -o output.wav
 ```
 
 ### Mode Cheat Sheet
@@ -294,13 +294,13 @@ Now that you've created your first SSTV transmission:
 
 ## Getting Help
 
-- **Help command**: `./bin/pisstvpp2 -h`
+- **Help command**: `./bin/slowframe -h`
 - **Full documentation**: [User Guide](USER_GUIDE.md)
 - **Mode details**: [Mode Reference](MODE_REFERENCE.md)
-- **Issues**: File a [GitHub Issue](https://github.com/yourusername/PiSSTVpp2/issues)
+- **Issues**: File a [GitHub Issue](https://github.com/yourusername/SlowFrame/issues)
 
 ---
 
 **73!** 📡
 
-*You're now ready to encode SSTV transmissions with PiSSTVpp2!*
+*You're now ready to encode SSTV transmissions with SlowFrame!*

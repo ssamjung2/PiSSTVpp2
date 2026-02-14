@@ -370,7 +370,7 @@ Created `/src/legacy/Makefile.legacy` for standalone builds:
 
 ### Integration Tests
 
-- [ ] Legacy binaries work alongside pisstvpp2
+- [ ] Legacy binaries work alongside slowframe
 - [ ] No symbol conflicts
 - [ ] No shared library conflicts
 
@@ -383,7 +383,7 @@ Created `/src/legacy/Makefile.legacy` for standalone builds:
 1. **Deprecated Dependencies:**
    - `libgd` is unmaintained
    - `libmagic` has security concerns in older versions
-   - Recommendation: Use libvips (as in pisstvpp2) for new projects
+   - Recommendation: Use libvips (as in slowframe) for new projects
 
 2. **Limited Image Support:**
    - Only PNG and JPEG via libgd
@@ -438,7 +438,7 @@ Created `/src/legacy/Makefile.legacy` for standalone builds:
 
 1. Consider deprecation path
 2. Maintain compatibility but discourage new use
-3. Document migration to pisstvpp2
+3. Document migration to slowframe
 4. Archive old code for reference
 
 ---
@@ -447,5 +447,5 @@ Created `/src/legacy/Makefile.legacy` for standalone builds:
 
 The legacy components have been analyzed and improved for better portability and reliability. While they retain their original structure and dependencies, they now build successfully on modern systems with clear documentation of limitations and platform support.
 
-The separation from pisstvpp2 is now clearly established, with dedicated build targets and documentation to prevent accidental interference between components.
+The separation from slowframe is now clearly established, with dedicated build targets and documentation to prevent accidental interference between components.
 

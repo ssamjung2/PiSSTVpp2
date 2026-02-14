@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Error Code Verification Testing for PiSSTVpp2
+Error Code Verification Testing for SlowFrame
 Verifies that error conditions return the exact expected error codes from error.h
 """
 
@@ -35,24 +35,24 @@ class ErrorCodeVerificationSuite:
     
     # Error codes from error.h
     ERROR_CODES = {
-        111: "PISSTVPP2_ERR_NO_INPUT_FILE",
-        112: "PISSTVPP2_ERR_ARG_INVALID_PROTOCOL",
-        113: "PISSTVPP2_ERR_ARG_INVALID_FORMAT",
-        114: "PISSTVPP2_ERR_ARG_INVALID_SAMPLE_RATE",
-        115: "PISSTVPP2_ERR_ARG_INVALID_ASPECT",
-        116: "PISSTVPP2_ERR_ARG_INVALID_CALLSIGN",
-        117: "PISSTVPP2_ERR_ARG_INVALID_WPM",
-        118: "PISSTVPP2_ERR_ARG_INVALID_TONE",
-        119: "PISSTVPP2_ERR_ARG_CW_REQUIRES_CALLSIGN",
-        500: "PISSTVPP2_ERR_FILE_NOT_FOUND",
-        501: "PISSTVPP2_ERR_FILE_OPEN",
-        504: "PISSTVPP2_ERR_FILE_NOT_FOUND",
+        111: "SLOWFRAME_ERR_NO_INPUT_FILE",
+        112: "SLOWFRAME_ERR_ARG_INVALID_PROTOCOL",
+        113: "SLOWFRAME_ERR_ARG_INVALID_FORMAT",
+        114: "SLOWFRAME_ERR_ARG_INVALID_SAMPLE_RATE",
+        115: "SLOWFRAME_ERR_ARG_INVALID_ASPECT",
+        116: "SLOWFRAME_ERR_ARG_INVALID_CALLSIGN",
+        117: "SLOWFRAME_ERR_ARG_INVALID_WPM",
+        118: "SLOWFRAME_ERR_ARG_INVALID_TONE",
+        119: "SLOWFRAME_ERR_ARG_CW_REQUIRES_CALLSIGN",
+        500: "SLOWFRAME_ERR_FILE_NOT_FOUND",
+        501: "SLOWFRAME_ERR_FILE_OPEN",
+        504: "SLOWFRAME_ERR_FILE_NOT_FOUND",
     }
     
     def __init__(self, executable_path=None):
         if executable_path is None:
             script_dir = Path(__file__).parent.parent.parent
-            executable_path = str(script_dir / "bin" / "pisstvpp2")
+            executable_path = str(script_dir / "bin" / "slowframe")
         self.exe = executable_path
         self.passed = 0
         self.failed = 0
@@ -67,7 +67,7 @@ class ErrorCodeVerificationSuite:
     def _create_test_image(self) -> str:
         """Create a minimal PPM test image"""
         temp_dir = tempfile.gettempdir()
-        test_image = os.path.join(temp_dir, "pisstvpp2_errortest_image.ppm")
+        test_image = os.path.join(temp_dir, "slowframe_errortest_image.ppm")
         
         try:
             with open(test_image, 'wb') as f:
@@ -382,7 +382,7 @@ class ErrorCodeVerificationSuite:
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         script_dir = Path(__file__).parent.parent.parent
-        exe_path = str(script_dir / "bin" / "pisstvpp2")
+        exe_path = str(script_dir / "bin" / "slowframe")
     else:
         exe_path = sys.argv[1]
     

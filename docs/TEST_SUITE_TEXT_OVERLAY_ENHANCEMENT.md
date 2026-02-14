@@ -447,14 +447,14 @@ Current tests focus on **infrastructure** rather than **image output verificatio
 ### Prerequisites
 ```bash
 python3 >= 3.7
-pisstvpp2 executable compiled
+slowframe executable compiled
 test images present in tests/images/
 ```
 
 ### Execute Tests
 ```bash
-cd /path/to/PiSSTVpp2
-python3 tests/test_suite.py --exe ./bin/pisstvpp2
+cd /path/to/SlowFrame
+python3 tests/test_suite.py --exe ./bin/slowframe
 ```
 
 ### View Results

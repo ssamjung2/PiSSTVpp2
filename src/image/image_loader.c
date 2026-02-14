@@ -1,7 +1,7 @@
 /*
  * image_loader.c
  *
- * Image loading module for PiSSTVpp2
+ * Image loading module for SlowFrame
  * 
  * Handles loading images from files in multiple formats (PNG, JPEG, GIF, BMP, TIFF, WebP, PPM, etc.)
  * using libvips for format detection and decoding. Supports a wide range of image dimensions
@@ -34,7 +34,7 @@
  * - Format validation with VIPS error messages
  * - Memory allocation failures with size context
  * - Region preparation errors
- * - All errors use standardized PISSTVPP2_ERR_* codes
+ * - All errors use standardized SLOWFRAME_ERR_* codes
  */
 
 #include "../include/image/image_loader.h"
@@ -142,7 +142,7 @@ static const char *get_file_extension(const char *filename) {
  */
 static ImageBuffer *buffer_vips_image_internal(VipsImage *image, int verbose, int timestamp_logging) {
     if (!image) {
-        error_log(PISSTVPP2_ERR_IMAGE_LOAD, "Cannot buffer NULL VipsImage");
+        error_log(SLOWFRAME_ERR_IMAGE_LOAD, "Cannot buffer NULL VipsImage");
         return NULL;
     }
 
@@ -150,7 +150,7 @@ static ImageBuffer *buffer_vips_image_internal(VipsImage *image, int verbose, in
     VipsImage *rgb_image = NULL;
     
     if (vips_colourspace(image, &rgb_image, VIPS_INTERPRETATION_sRGB, NULL)) {
-        error_log(PISSTVPP2_ERR_IMAGE_PROCESS,
+        error_log(SLOWFRAME_ERR_IMAGE_PROCESS,
                  "Failed to convert image colorspace to sRGB: %s", vips_error_buffer());
         vips_error_clear();
         return NULL;
@@ -168,7 +168,7 @@ static ImageBuffer *buffer_vips_image_internal(VipsImage *image, int verbose, in
     /* Allocate buffer structure */
     ImageBuffer *buf = (ImageBuffer *)malloc(sizeof(ImageBuffer));
     if (!buf) {
-        error_log(PISSTVPP2_ERR_MEMORY_ALLOC, "Failed to allocate ImageBuffer structure");
+        error_log(SLOWFRAME_ERR_MEMORY_ALLOC, "Failed to allocate ImageBuffer structure");
         if (rgb_image != image) g_object_unref(image);
         return NULL;
     }
@@ -186,7 +186,7 @@ static ImageBuffer *buffer_vips_image_internal(VipsImage *image, int verbose, in
 
     buf->data = (uint8_t *)malloc(data_size);
     if (!buf->data) {
-        error_log(PISSTVPP2_ERR_MEMORY_ALLOC,
+        error_log(SLOWFRAME_ERR_MEMORY_ALLOC,
                  "Failed to allocate %d bytes for pixel data (image %dx%d, %d bytes/row)",
                  data_size, buf->width, buf->height, buf->rowstride);
         free(buf);
@@ -197,7 +197,7 @@ static ImageBuffer *buffer_vips_image_internal(VipsImage *image, int verbose, in
     /* Create VipsRegion to safely access pixel data */
     VipsRegion *region = vips_region_new(image);
     if (!region) {
-        error_log(PISSTVPP2_ERR_IMAGE_PROCESS,
+        error_log(SLOWFRAME_ERR_IMAGE_PROCESS,
                  "Failed to create VipsRegion for buffering image");
         free(buf->data);
         free(buf);
@@ -208,7 +208,7 @@ static ImageBuffer *buffer_vips_image_internal(VipsImage *image, int verbose, in
     /* Prepare the region for the entire image */
     VipsRect rect = {0, 0, image->Xsize, image->Ysize};
     if (vips_region_prepare(region, &rect)) {
-        error_log(PISSTVPP2_ERR_IMAGE_PROCESS,
+        error_log(SLOWFRAME_ERR_IMAGE_PROCESS,
                  "Failed to prepare VipsRegion for buffering: %s", vips_error_buffer());
         vips_error_clear();
         g_object_unref(region);
@@ -221,7 +221,7 @@ static ImageBuffer *buffer_vips_image_internal(VipsImage *image, int verbose, in
     /* Copy pixel data from region to buffer */
     const uint8_t *src = VIPS_REGION_ADDR(region, 0, 0);
     if (!src) {
-        error_log(PISSTVPP2_ERR_IMAGE_PROCESS,
+        error_log(SLOWFRAME_ERR_IMAGE_PROCESS,
                  "Failed to access pixel data from VipsRegion (region may be out of bounds)");
         g_object_unref(region);
         free(buf->data);
@@ -269,18 +269,18 @@ static void clear_state(void) {
 int image_loader_load_image(const char *filename, int verbose, int timestamp_logging,
                            const char *debug_output_dir) {
     if (!filename) {
-        error_log(PISSTVPP2_ERR_ARG_FILENAME_INVALID, "Filename pointer is NULL");
-        return PISSTVPP2_ERR_ARG_FILENAME_INVALID;
+        error_log(SLOWFRAME_ERR_ARG_FILENAME_INVALID, "Filename pointer is NULL");
+        return SLOWFRAME_ERR_ARG_FILENAME_INVALID;
     }
 
     log_verbose(verbose, timestamp_logging, "   Loading image from: %s\n", filename);
 
     /* Check if file exists before attempting to load */
     if (!file_exists(filename)) {
-        error_log(PISSTVPP2_ERR_FILE_NOT_FOUND,
+        error_log(SLOWFRAME_ERR_FILE_NOT_FOUND,
                  "Image file not found or not readable: %s (errno: %d)",
                  filename, errno);
-        return PISSTVPP2_ERR_FILE_NOT_FOUND;
+        return SLOWFRAME_ERR_FILE_NOT_FOUND;
     }
 
     /* Clear any existing state */
@@ -295,11 +295,11 @@ int image_loader_load_image(const char *filename, int verbose, int timestamp_log
     
     VipsImage *image = vips_image_new_from_file(filename, NULL);
     if (!image) {
-        error_log(PISSTVPP2_ERR_IMAGE_LOAD,
+        error_log(SLOWFRAME_ERR_IMAGE_LOAD,
                  "Failed to load image: %s (Details: %s)",
                  filename, vips_error_buffer());
         vips_error_clear();
-        return PISSTVPP2_ERR_IMAGE_LOAD;
+        return SLOWFRAME_ERR_IMAGE_LOAD;
     }
 
     log_verbose(verbose, timestamp_logging,
@@ -308,11 +308,11 @@ int image_loader_load_image(const char *filename, int verbose, int timestamp_log
 
     /* Validate image dimensions against reasonable limits */
     if (image->Xsize <= 0 || image->Ysize <= 0) {
-        error_log(PISSTVPP2_ERR_IMAGE_DIMENSIONS_INVALID,
+        error_log(SLOWFRAME_ERR_IMAGE_DIMENSIONS_INVALID,
                  "Invalid image dimensions: %dx%d",
                  image->Xsize, image->Ysize);
         g_object_unref(image);
-        return PISSTVPP2_ERR_IMAGE_DIMENSIONS_INVALID;
+        return SLOWFRAME_ERR_IMAGE_DIMENSIONS_INVALID;
     }
 
     /* Buffer the image (includes RGB conversion) */
@@ -320,7 +320,7 @@ int image_loader_load_image(const char *filename, int verbose, int timestamp_log
     if (!buf) {
         /* Error already logged by buffer function */
         g_object_unref(image);
-        return PISSTVPP2_ERR_IMAGE_PROCESS;
+        return SLOWFRAME_ERR_IMAGE_PROCESS;
     }
 
     /* Update global state with successfully loaded image */
@@ -344,7 +344,7 @@ int image_loader_load_image(const char *filename, int verbose, int timestamp_log
         }
     }
 
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 /* ============================================================================
@@ -365,13 +365,13 @@ void image_loader_free_buffer(void) {
 
 int image_loader_get_dimensions(int *width, int *height) {
     if (!g_loader.initialized || !g_loader.buffer.data) {
-        error_log(PISSTVPP2_ERR_IMAGE_LOAD, "No image loaded");
-        return PISSTVPP2_ERR_IMAGE_LOAD;
+        error_log(SLOWFRAME_ERR_IMAGE_LOAD, "No image loaded");
+        return SLOWFRAME_ERR_IMAGE_LOAD;
     }
     
     if (width) *width = g_loader.buffer.width;
     if (height) *height = g_loader.buffer.height;
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 void image_loader_get_pixel_rgb(int x, int y, uint8_t *r, uint8_t *g, uint8_t *b) {
@@ -416,7 +416,7 @@ VipsImage *image_loader_get_vips_image(void) {
 
 ImageBuffer *image_loader_vips_to_buffer(VipsImage *image, int verbose, int timestamp_logging) {
     if (!image) {
-        error_log(PISSTVPP2_ERR_ARG_INVALID, "Cannot buffer NULL VipsImage");
+        error_log(SLOWFRAME_ERR_ARG_INVALID, "Cannot buffer NULL VipsImage");
         return NULL;
     }
 
@@ -453,7 +453,7 @@ void image_loader_print_diagnostics(void) {
  * Must be called before any VIPS operations
  */
 void image_loader_init(void) {
-    if (VIPS_INIT("pisstvpp2")) {
+    if (VIPS_INIT("slowframe")) {
         vips_error_exit("Unable to start VIPS");
     }
     g_loader.initialized = 0;  /* No image loaded yet, but VIPS is ready */

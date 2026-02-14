@@ -79,7 +79,7 @@ All four modular components have fully designed APIs ready for implementation:
 
 ### Task 2.1: Image Loader Extraction (5-6 hours)
 **Status:** 🟡 READY - API designed, waiting implementation  
-**Code source:** Extract from `src/pisstvpp2_image.c` lines:
+**Code source:** Extract from `src/slowframe_image.c` lines:
 - Image loading setup (VIPS_INIT, vips_image_new)
 - Format detection
 - Error handling for missing/corrupt files
@@ -91,7 +91,7 @@ All four modular components have fully designed APIs ready for implementation:
 
 ### Task 2.2: Image Processor Extraction (4-5 hours)
 **Status:** 🟡 READY - API designed, waiting implementation  
-**Code source:** Extract from `src/pisstvpp2_image.c` lines:
+**Code source:** Extract from `src/slowframe_image.c` lines:
 - Color space conversion (vips_colourspace)
 - Scaling operations (vips_resize)
 - Crop extraction (vips_crop)
@@ -103,7 +103,7 @@ All four modular components have fully designed APIs ready for implementation:
 
 ### Task 2.3: Aspect Ratio Extraction (5-6 hours)
 **Status:** 🟡 READY - API designed, waiting implementation  
-**Code source:** Extract from `src/pisstvpp2_image.c` lines:
+**Code source:** Extract from `src/slowframe_image.c` lines:
 - apply_center_crop_transformation() function
 - apply_pad_transformation() function
 - apply_stretch_transformation() function
@@ -167,7 +167,7 @@ All four modular components have fully designed APIs ready for implementation:
 ✅ **Error Logging:** Unified error_log() used throughout  
 
 ### Backward Compatibility
-✅ **API Compatibility:** Current `pisstvpp2_image.h` remains unchanged during refactoring  
+✅ **API Compatibility:** Current `slowframe_image.h` remains unchanged during refactoring  
 ✅ **Behavioral Compatibility:** Same results for all existing operations  
 ✅ **Test Compatibility:** All 55 tests run unchanged  
 
@@ -233,7 +233,7 @@ Phase 5-8: Advanced features
 
 **Header File Chain:**
 ```
-pisstvpp2_image.h (facade)
+slowframe_image.h (facade)
 ├─ image/image_loader.h
 ├─ image/image_processor.h
 ├─ image/image_aspect.h
@@ -299,16 +299,16 @@ find src/image* -type f | sort
 make clean && make all
 
 # Run tests
-python3 tests/test_suite.py --exe ./bin/pisstvpp2
+python3 tests/test_suite.py --exe ./bin/slowframe
 
 # Find code to extract (example)
-grep -n "buffer_vips_image" src/pisstvpp2_image.c
+grep -n "buffer_vips_image" src/slowframe_image.c
 ```
 
 **Documentation:**
 - Master Plan: [PISSTVPP2_v2_1_MASTER_PLAN.md](./PISSTVPP2_v2_1_MASTER_PLAN.md)
 - Quick Start: [PHASE_2_STARTUP.md](./PHASE_2_STARTUP.md)
-- Current Code: [src/pisstvpp2_image.c](../src/pisstvpp2_image.c)
+- Current Code: [src/slowframe_image.c](../src/slowframe_image.c)
 
 ---
 

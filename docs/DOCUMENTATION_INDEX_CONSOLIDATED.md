@@ -1,6 +1,6 @@
-# PiSSTVpp2 Documentation Index - Consolidated
+# SlowFrame Documentation Index - Consolidated
 
-**This is the master navigation guide for all PiSSTVpp2 documentation.**
+**This is the master navigation guide for all SlowFrame documentation.**
 
 Last Updated: February 10, 2026
 
@@ -9,7 +9,7 @@ Last Updated: February 10, 2026
 ## 🎯 START HERE
 
 ### For Everyone
-**[QUICK_START.md](./QUICK_START.md)** - Get pisstvpp2 running in 5 minutes
+**[QUICK_START.md](./QUICK_START.md)** - Get slowframe running in 5 minutes
 - Download/build
 - Basic usage
 - Example commands
@@ -95,7 +95,7 @@ Last Updated: February 10, 2026
 - [CONTRIB_FIXING_BUGS.md](./CONTRIB_FIXING_BUGS.md) *(Phase 7)* - Bug fix workflow
 - [CONTRIB_IMPROVING_CODE.md](./CONTRIB_IMPROVING_CODE.md) *(Phase 7)* - Improve existing code
 
-### Using pisstvpp2
+### Using slowframe
 - [USER_GUIDE.md](./USER_GUIDE.md) - Complete usage reference
 - [MODE_REFERENCE.md](./MODE_REFERENCE.md) - All SSTV modes explained
 - [CLI_COMPARISON.md](./CLI_COMPARISON.md) - Comparison with other tools
@@ -319,5 +319,5 @@ Researcher/Reference               ARCHITECTURE.md or SSTV PDFs
 ---
 
 **Last Updated:** February 10, 2026  
-**Maintained By:** PiSSTVpp2 Project  
+**Maintained By:** SlowFrame Project  
 **Feedback:** Issues and PRs welcome!

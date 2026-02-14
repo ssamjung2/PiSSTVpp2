@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Comprehensive Test Runner for PiSSTVpp2
+Comprehensive Test Runner for SlowFrame
 Executes all test suites and generates aggregated report
 """
 
@@ -28,7 +28,7 @@ class TestRunner:
     def __init__(self, executable_path=None):
         if executable_path is None:
             script_dir = Path(__file__).parent.parent.parent
-            executable_path = str(script_dir / "bin" / "pisstvpp2")
+            executable_path = str(script_dir / "bin" / "slowframe")
         self.exe = executable_path
         self.test_dir = os.path.dirname(os.path.abspath(__file__))
         self.results = {
@@ -98,7 +98,7 @@ class TestRunner:
     def run_all(self):
         """Execute all test suites"""
         print(f"\n{Colors.BOLD}{Colors.BRIGHT_CYAN}╔{'═'*68}╗{Colors.RESET}")
-        print(f"{Colors.BOLD}{Colors.BRIGHT_CYAN}║  PiSSTVpp2 - Comprehensive Test Suite Runner               ║{Colors.RESET}")
+        print(f"{Colors.BOLD}{Colors.BRIGHT_CYAN}║  SlowFrame - Comprehensive Test Suite Runner               ║{Colors.RESET}")
         print(f"{Colors.BOLD}{Colors.BRIGHT_CYAN}╚{'═'*68}╝{Colors.RESET}")
         print(f"\n{Colors.CYAN}Executable: {self.exe}{Colors.RESET}")
         print(f"{Colors.CYAN}Test Directory: {self.test_dir}{Colors.RESET}")
@@ -272,7 +272,7 @@ def main():
         exe_path = sys.argv[1]
     else:
         script_dir = Path(__file__).parent.parent.parent
-        exe_path = str(script_dir / "bin" / "pisstvpp2")
+        exe_path = str(script_dir / "bin" / "slowframe")
     
     try:
         runner = TestRunner(exe_path)

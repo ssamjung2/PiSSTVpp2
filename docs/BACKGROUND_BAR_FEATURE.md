@@ -18,7 +18,7 @@ When enabled, a configurable solid-color bar is rendered behind the text with cu
 ### Basic Syntax
 
 ```bash
-bin/pisstvpp2 -i image.png -T "Text|bgbar=true|bgbar-margin=4" -o output.wav -K
+bin/slowframe -i image.png -T "Text|bgbar=true|bgbar-margin=4" -o output.wav -K
 ```
 
 ### Command-Line Parameters
@@ -61,7 +61,7 @@ border=0-10       # Border width in pixels
 ### Example 1: HF Radio Contact (Weak Signal Visibility)
 
 ```bash
-bin/pisstvpp2 -i image.png \
+bin/slowframe -i image.png \
   -T "W5ABC|size=16|color=white|bg=black|bgbar=true|bgbar-margin=4|pos=top" \
   -T "EM12AB|size=16|color=white|bg=black|bgbar=true|bgbar-margin=4|pos=center" \
   -T "RST 559|size=14|color=yellow|bg=darkblue|bgbar=true|bgbar-margin=3|pos=bottom" \
@@ -73,7 +73,7 @@ bin/pisstvpp2 -i image.png \
 ### Example 2: Contest Format (Professional Display)
 
 ```bash
-bin/pisstvpp2 -i image.png \
+bin/slowframe -i image.png \
   -T "N0ABC|size=14|color=white|bg=navy|bgbar=true|bgbar-margin=4|pos=top" \
   -T "FN25AE|size=14|color=white|bg=navy|bgbar=true|bgbar-margin=4" \
   -T "1:32pm UTC|size=12|color=yellow|bg=darkgreen|bgbar=true|bgbar-margin=3|pos=bottom" \
@@ -85,7 +85,7 @@ bin/pisstvpp2 -i image.png \
 ### Example 3: Multiple Overlays with Varying Bar Margins
 
 ```bash
-bin/pisstvpp2 -i image.png \
+bin/slowframe -i image.png \
   -T "Tight|size=12|color=white|bg=red|bgbar=true|bgbar-margin=2|x=20|y=30" \
   -T "Normal|size=12|color=white|bg=green|bgbar=true|bgbar-margin=4|x=80|y=30" \
   -T "Spacious|size=12|color=white|bg=blue|bgbar=true|bgbar-margin=8|x=140|y=30" \
@@ -235,7 +235,7 @@ Background bar feature has minimal performance impact:
 
 For documenting SSTV transmission mode:
 ```bash
-bin/pisstvpp2 -i image.png \
+bin/slowframe -i image.png \
   -T "VIS 44|size=12|color=white|bg=black|bgbar=true|bgbar-margin=3|pos=top-right" \
   -T "M1 BW|size=12|color=white|bg=black|bgbar=true|bgbar-margin=3|pos=bottom-right" \
   -o output.wav -K
@@ -330,7 +330,7 @@ All background bar functionality is verified by the comprehensive test suite:
 
 ```bash
 # Run background bar tests only
-python3 tests/test_text_overlay_comprehensive.py --exe bin/pisstvpp2 2>&1 | \
+python3 tests/test_text_overlay_comprehensive.py --exe bin/slowframe 2>&1 | \
   grep "bg_bar"
 
 # Expected output:

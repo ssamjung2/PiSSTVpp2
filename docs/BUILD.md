@@ -1,6 +1,6 @@
-# PiSSTVpp2 Build Guide
+# SlowFrame Build Guide
 
-**Complete instructions for building PiSSTVpp2 from source**
+**Complete instructions for building SlowFrame from source**
 
 ---
 
@@ -25,11 +25,11 @@ sudo apt-get update
 sudo apt-get install build-essential libvips-dev libogg-dev libvorbis-dev
 
 # Build
-cd /path/to/PiSSTVpp2
+cd /path/to/SlowFrame
 make clean && make all
 
 # Test
-./bin/pisstvpp2 -h
+./bin/slowframe -h
 ```
 
 Done! Skip to [usage](USER_GUIDE.md) if everything worked.
@@ -78,28 +78,28 @@ sudo apt-get install libogg-dev libvorbis-dev
 
 **OGG support** is optional but recommended for compressed audio output.
 
-**Note:** If you skip this step, PiSSTVpp2 will build without OGG support (WAV and AIFF only).
+**Note:** If you skip this step, SlowFrame will build without OGG support (WAV and AIFF only).
 
 #### Step 5: Build
 
 ```bash
-cd /path/to/PiSSTVpp2
+cd /path/to/SlowFrame
 make clean
 make all
 ```
 
 **Expected Output:**
 ```
-gcc -std=c11 -Wall -Wextra -O2 ... -c src/pisstvpp2.c -o src/pisstvpp2.o
-gcc -std=c11 -Wall -Wextra -O2 ... -c src/pisstvpp2_image.c -o src/pisstvpp2_image.o
+gcc -std=c11 -Wall -Wextra -O2 ... -c src/slowframe.c -o src/slowframe.o
+gcc -std=c11 -Wall -Wextra -O2 ... -c src/slowframe_image.c -o src/slowframe_image.o
 ...
-gcc src/pisstvpp2.o ... -o bin/pisstvpp2 ...
+gcc src/slowframe.o ... -o bin/slowframe ...
 ```
 
 #### Step 6: Verify
 
 ```bash
-./bin/pisstvpp2 -h
+./bin/slowframe -h
 ```
 
 Should display help message.
@@ -107,10 +107,10 @@ Should display help message.
 #### Step 7: Optional System-Wide Install
 
 ```bash
-sudo cp bin/pisstvpp2 /usr/local/bin/
+sudo cp bin/slowframe /usr/local/bin/
 ```
 
-Now you can run `pisstvpp2` from anywhere.
+Now you can run `slowframe` from anywhere.
 
 ---
 
@@ -147,14 +147,14 @@ sudo dnf install libogg-devel libvorbis-devel
 #### Step 4: Build
 
 ```bash
-cd /path/to/PiSSTVpp2
+cd /path/to/SlowFrame
 make clean && make all
 ```
 
 #### Step 5: Verify
 
 ```bash
-./bin/pisstvpp2 -h
+./bin/slowframe -h
 ```
 
 ---
@@ -188,14 +188,14 @@ brew install vips libogg libvorbis
 **Step 4: Build**
 
 ```bash
-cd /path/to/PiSSTVpp2
+cd /path/to/SlowFrame
 make clean && make all
 ```
 
 **Step 5: Verify**
 
 ```bash
-./bin/pisstvpp2 -h
+./bin/slowframe -h
 ```
 
 #### Option B: Using MacPorts
@@ -213,7 +213,7 @@ sudo port install vips libogg libvorbis
 **Step 3: Build**
 
 ```bash
-cd /path/to/PiSSTVpp2
+cd /path/to/SlowFrame
 make clean && make all
 ```
 
@@ -285,7 +285,7 @@ Pi 3 can run 64-bit Raspberry Pi OS. Both 32-bit and 64-bit work fine.
 - Desktop-class performance
 
 **8GB Models:**
-Excess RAM doesn't help (PiSSTVpp2 uses <20 MB), but useful for multitasking.
+Excess RAM doesn't help (SlowFrame uses <20 MB), but useful for multitasking.
 
 #### Raspberry Pi OS Lite
 
@@ -309,7 +309,7 @@ sudo apt-get install pkg-config
 pkg install vips libogg libvorbis
 
 # Build
-cd /path/to/PiSSTVpp2
+cd /path/to/SlowFrame
 gmake clean && gmake all
 ```
 
@@ -322,7 +322,7 @@ Note: Use `gmake` (GNU Make) instead of `make`.
 pkg_add vips libogg libvorbis
 
 # Build
-cd /path/to/PiSSTVpp2
+cd /path/to/SlowFrame
 make clean && make all
 ```
 
@@ -356,7 +356,7 @@ Likely works with appropriate dependencies, but untested.
 
 2. Build in Cygwin terminal:
    ```bash
-   cd /path/to/PiSSTVpp2
+   cd /path/to/SlowFrame
    make clean && make all
    ```
 
@@ -453,7 +453,7 @@ make clean && make all
 
 **Verify OGG support in binary:**
 ```bash
-./bin/pisstvpp2 -h | grep -i format
+./bin/slowframe -h | grep -i format
 # Should list: wav, aiff, ogg (if compiled in)
 ```
 
@@ -486,7 +486,7 @@ make CFLAGS="-std=c11 -Wall -Wextra -g -O0" clean all
 
 **Use with:**
 ```bash
-gdb ./bin/pisstvpp2
+gdb ./bin/slowframe
 ```
 
 #### Maximum Optimization
@@ -529,7 +529,7 @@ Or edit Makefile to remove OGG detection.
 
 ```bash
 make clean all
-sudo make install PREFIX=/opt/pisstvpp2
+sudo make install PREFIX=/opt/slowframe
 ```
 
 (Requires adding install target to Makefile)
@@ -700,7 +700,7 @@ make clean
 make V=1 all
 
 # Check linked libraries
-ldd bin/pisstvpp2
+ldd bin/slowframe
 
 # Reinstall dependencies
 sudo apt-get install --reinstall libvips-dev
@@ -725,7 +725,7 @@ sudo apt-get install gcc-arm-linux-gnueabihf
 
 This is complex. Easier to build on Pi directly or use qemu.
 
-**Step 3: Cross-compile PiSSTVpp2**
+**Step 3: Cross-compile SlowFrame**
 
 ```bash
 make CC=arm-linux-gnueabihf-gcc clean all
@@ -740,7 +740,7 @@ make CC=arm-linux-gnueabihf-gcc clean all
 sudo apt-get install qemu-user-static
 
 # Run ARM binary on x86
-qemu-arm-static bin/pisstvpp2 -h
+qemu-arm-static bin/slowframe -h
 ```
 
 ### Custom Makefile Modifications
@@ -755,10 +755,10 @@ BINDIR = $(PREFIX)/bin
 
 install: all
 	install -d $(DESTDIR)$(BINDIR)
-	install -m 0755 bin/pisstvpp2 $(DESTDIR)$(BINDIR)/
+	install -m 0755 bin/slowframe $(DESTDIR)$(BINDIR)/
 
 uninstall:
-	rm -f $(DESTDIR)$(BINDIR)/pisstvpp2
+	rm -f $(DESTDIR)$(BINDIR)/slowframe
 
 .PHONY: install uninstall
 ```
@@ -784,7 +784,7 @@ debug: clean all
 **Usage:**
 ```bash
 make debug
-gdb ./bin/pisstvpp2
+gdb ./bin/slowframe
 ```
 
 #### Add Test Target
@@ -805,8 +805,8 @@ make test
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/PiSSTVpp2.git
-cd PiSSTVpp2
+git clone https://github.com/yourusername/SlowFrame.git
+cd SlowFrame
 
 # Checkout specific version
 git checkout v2.0
@@ -819,18 +819,18 @@ make clean && make all
 
 **Build only object files:**
 ```bash
-make src/pisstvpp2.o src/pisstvpp2_image.o
+make src/slowframe.o src/slowframe_image.o
 ```
 
 **Build specific module:**
 ```bash
-make src/pisstvpp2_sstv.o
+make src/slowframe_sstv.o
 ```
 
 **Clean specific files:**
 ```bash
-rm src/pisstvpp2.o
-make src/pisstvpp2.o
+rm src/slowframe.o
+make src/slowframe.o
 ```
 
 ### Parallel Build
@@ -843,7 +843,7 @@ make -j$(nproc) all
 make -j4 all
 ```
 
-**Note:** PiSSTVpp2 builds fast anyway (<10 seconds), parallel build marginal benefit.
+**Note:** SlowFrame builds fast anyway (<10 seconds), parallel build marginal benefit.
 
 ### Verbose Build Output
 
@@ -864,28 +864,28 @@ make --debug all
 #### 1. Binary Exists
 
 ```bash
-ls -lh bin/pisstvpp2
+ls -lh bin/slowframe
 # Should show executable file, ~100-200 KB
 ```
 
 #### 2. Help Runs
 
 ```bash
-./bin/pisstvpp2 -h
+./bin/slowframe -h
 # Should display help text without errors
 ```
 
 #### 3. Version Info
 
 ```bash
-./bin/pisstvpp2 --version
+./bin/slowframe --version
 # Should show version number
 ```
 
 #### 4. Dependencies Linked
 
 ```bash
-ldd bin/pisstvpp2
+ldd bin/slowframe
 # Should show libvips, libogg, libvorbis (if compiled in)
 ```
 
@@ -905,7 +905,7 @@ libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6
 convert -size 320x256 xc:blue test_blue.png
 
 # Encode
-./bin/pisstvpp2 -i test_blue.png -o test.wav
+./bin/slowframe -i test_blue.png -o test.wav
 
 # Verify output
 ls -lh test.wav
@@ -1001,11 +1001,11 @@ If build fails:
 sudo apt-get install build-essential libvips-dev libogg-dev libvorbis-dev
 
 # Build
-cd PiSSTVpp2
+cd SlowFrame
 make clean && make all
 
 # Test
-./bin/pisstvpp2 -i test.jpg -o test.wav
+./bin/slowframe -i test.jpg -o test.wav
 ```
 
 **That's it!** 🎉

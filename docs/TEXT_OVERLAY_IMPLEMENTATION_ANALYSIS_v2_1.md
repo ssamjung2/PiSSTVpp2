@@ -1,5 +1,5 @@
 # Text Overlay Implementation - Critical Analysis & Task List
-## PiSSTVpp2 v2.1 Status Review
+## SlowFrame v2.1 Status Review
 
 **Analysis Date:** February 11, 2026  
 **Status:** ⚠️ CRITICAL - Implementation Incomplete  
@@ -28,7 +28,7 @@ The implementation chose **two different approaches** that are now in conflict:
 
 These approaches aren't properly integrated, resulting in:
 - `image_text_overlay.c` module fully compiled but unused
-- `apply_single_overlay()` in `pisstvpp2_image.c` creates text but doesn't place it
+- `apply_single_overlay()` in `slowframe_image.c` creates text but doesn't place it
 - No actual text visible in output images
 - Tests pass but feature doesn't work
 
@@ -47,8 +47,8 @@ These approaches aren't properly integrated, resulting in:
 #### ✅ Completed
 - `overlay_spec.h` - Comprehensive spec structure (327 lines)
 - `overlay_spec.c` - List management fully implemented (299 lines)
-- `pisstvpp2_config.h` - Config struct includes `OverlaySpecList overlay_specs` field
-- `pisstvpp2_config.c` - CLI parsing for -O, -S, -G flags implemented
+- `slowframe_config.h` - Config struct includes `OverlaySpecList overlay_specs` field
+- `slowframe_config.c` - CLI parsing for -O, -S, -G flags implemented
 
 #### ⚠️ Issues
 - Configuration parsing works but parameters not validated for conflicts
@@ -57,7 +57,7 @@ These approaches aren't properly integrated, resulting in:
 
 #### 📝 Code Example
 ```c
-// In pisstvpp2_config.c line ~180-200:
+// In slowframe_config.c line ~180-200:
 // CLI parsing works:
 case 'O':
     config->overlay_enabled = 1;  // ✅ Flag parsing works
@@ -73,7 +73,7 @@ case 'G':
 
 #### Flow Chart (Current - Broken)
 ```
-main (pisstvpp2.c)
+main (slowframe.c)
   ↓
 image_load_from_file()  ✅ Works
   ↓
@@ -88,7 +88,7 @@ image_apply_overlay_list()  ❌ BROKEN HERE!
       └─ g_object_unref(text_image) ❌ NEVER COMPOSITED!
 ```
 
-#### Problem Code (pisstvpp2_image.c lines 590-640)
+#### Problem Code (slowframe_image.c lines 590-640)
 ```c
 // Line 595-600: Text rendering works
 if (vips_text(&text_image, spec->text, 
@@ -141,7 +141,7 @@ image_text_overlay_apply()              // Main function
 - Phase 2.4 deliverable focused on "color bars" not "text overlays"
 - Later spec-based system implemented instead (overlay_spec.c)
 - No integration point in main pipeline
-- Function exported from `image_text_overlay.h` but not from `pisstvpp2_image.h`
+- Function exported from `image_text_overlay.h` but not from `slowframe_image.h`
 
 ---
 
@@ -154,7 +154,7 @@ image_text_overlay_apply()              // Main function
 **Evidence:**
 ```bash
 # Command:
-./pisstvpp2 -i photo.jpg -S W5ZZZ -G EM12ab -o output.wav
+./slowframe -i photo.jpg -S W5ZZZ -G EM12ab -o output.wav
 
 # Test suite shows PASSED but check image:
 # - overlay spec parsed ✅
@@ -189,8 +189,8 @@ log_verbose(verbose, timestamp_logging,
 
 **Set B: High-level Spec System (Recent)**
 - `overlay_spec.c/h` - Configuration and specs
-- `pisstvpp2_config.c` - CLI and config integration
-- Text rendering in `pisstvpp2_image.c`
+- `slowframe_config.c` - CLI and config integration
+- Text rendering in `slowframe_image.c`
 - Problem: Compositing never happens
 
 **Result:** Confusing codebase with incomplete implementations
@@ -201,7 +201,7 @@ log_verbose(verbose, timestamp_logging,
 
 ### Critical Issues Found
 
-#### 1. `src/pisstvpp2_image.c` - apply_single_overlay() [HIGH PRIORITY]
+#### 1. `src/slowframe_image.c` - apply_single_overlay() [HIGH PRIORITY]
 **Lines:** 553-640
 **Issue:** Text rendered but not composited to image
 **Status:** 90% complete, missing critical final step
@@ -228,7 +228,7 @@ if (result != PISSTVPP2_OK) {
 }
 ```
 
-#### 2. `src/include/pisstvpp2_config.h` - PisstvppConfig struct [MEDIUM PRIORITY]
+#### 2. `src/include/slowframe_config.h` - PisstvppConfig struct [MEDIUM PRIORITY]
 **Lines:** 127-148
 **Issue:** Missing field for grid_square
 **Current:**
@@ -246,7 +246,7 @@ typedef struct {
 char station_grid_square[CONFIG_MAX_GRID_SQUARE + 1];  // For overlay
 ```
 
-#### 3. `src/pisstvpp2_config.c` - CLI parsing [MEDIUM PRIORITY]
+#### 3. `src/slowframe_config.c` - CLI parsing [MEDIUM PRIORITY]
 **Lines:** 120-180 (getopt loop)
 **Issue:** -S and -G flags parsed but not fully integrated
 **Current:**
@@ -286,7 +286,7 @@ case 'G':  // Grid square
 
 **Recommendation:** Mark for future refactoring (Phase 2.5+) but remove from main pipeline for now
 
-#### 5. `src/include/pisstvpp2_image.h` [LOW PRIORITY]
+#### 5. `src/include/slowframe_image.h` [LOW PRIORITY]
 **Missing export:**
 ```c
 // Should add this function signature:
@@ -355,7 +355,7 @@ Overlays applied and composited ✅
 ### Gap 3: Module Linkage Incomplete
 
 **image_text_overlay.h** exported from src/include but:
-- Never imported in pisstvpp2_image.c
+- Never imported in slowframe_image.c
 - Never called from main pipeline
 - Functions like `image_text_overlay_create_config()` unused
 - Creates confusion about which system to use
@@ -388,17 +388,17 @@ Overlays applied and composited ✅
 ### Phase A: Critical Fixes (Must Do Before v2.1)
 
 #### A1. Fix Text Compositing [CRITICAL - 1-2 hours]
-**File:** `src/pisstvpp2_image.c`
+**File:** `src/slowframe_image.c`
 **Task:** Implement vips_insert() to composite text_image onto g_img.image
 **Impact:** Enable text to actually appear on images
 
 #### A2. Add Grid Square Config Field [CRITICAL - 30 min]
-**File:** `src/include/pisstvpp2_config.h`
+**File:** `src/include/slowframe_config.h`
 **Task:** Add `station_grid_square` field to PisstvppConfig struct
 **Impact:** Allow grid square to be passed through CLI to overlay system
 
 #### A3. Complete CLI Integration [CRITICAL - 1-2 hours]
-**File:** `src/pisstvpp2_config.c`
+**File:** `src/slowframe_config.c`
 **Task:** 
 - Add -G flag handler in getopt loop
 - Create overlay spec from -S and -G flags
@@ -406,7 +406,7 @@ Overlays applied and composited ✅
 **Impact:** CLI flags (-S, -G) produce actual overlays
 
 #### A4. Color Rendering System [CRITICAL - 2-3 hours]
-**File:** `src/pisstvpp2_image.c` - apply_single_overlay()
+**File:** `src/slowframe_image.c` - apply_single_overlay()
 **Task:**
 - Implement vips_colourspace/vips_linear for RGB colors
 - Render background rectangle with spec->bg_color
@@ -417,7 +417,7 @@ Overlays applied and composited ✅
 #### A5. Test Validation [CRITICAL - 1-2 hours]
 **File:** `tests/test_suite.py`
 **Task:**
-- Update tests to actually call pisstvpp2 with -S/-G flags
+- Update tests to actually call slowframe with -S/-G flags
 - Capture output images
 - Verify overlays present in output
 **Impact:** Verify feature actually works
@@ -490,10 +490,10 @@ Once text compositing is implemented, ham radio operators will be able to comply
 
 | File | Lines | Issue | Severity | Est. Time |
 |------|-------|-------|----------|-----------|
-| `pisstvpp2_image.c` | 590-640 | Text not composited | CRITICAL | 1-2h |
-| `pisstvpp2_config.h` | 127-148 | Missing grid_square field | CRITICAL | 0.5h |
-| `pisstvpp2_config.c` | 120-180 | -G flag not handled, no spec creation | CRITICAL | 1-2h |
-| `pisstvpp2_image.c` | 553-640 | Color rendering not implemented | CRITICAL | 2-3h |
+| `slowframe_image.c` | 590-640 | Text not composited | CRITICAL | 1-2h |
+| `slowframe_config.h` | 127-148 | Missing grid_square field | CRITICAL | 0.5h |
+| `slowframe_config.c` | 120-180 | -G flag not handled, no spec creation | CRITICAL | 1-2h |
+| `slowframe_image.c` | 553-640 | Color rendering not implemented | CRITICAL | 2-3h |
 | `tests/test_suite.py` | various | Tests don't verify output | CRITICAL | 1-2h |
 | `src/legacy/` | all | Should be archived | MEDIUM | 1h |
 | `docs/PISSTVPP2_v2_1_MASTER_PLAN.md` | various | Needs status update | MEDIUM | 2h |
@@ -517,16 +517,16 @@ Current v2.1 master plan states:
 
 ### Module Dependencies
 ```
-main (pisstvpp2.c)
-  ├─ pisstvpp2_config.h/c
+main (slowframe.c)
+  ├─ slowframe_config.h/c
   │  └─ overlay_spec.h/c ✅
-  ├─ pisstvpp2_image.h/c
+  ├─ slowframe_image.h/c
   │  ├─ image_loader.h/c ✅
   │  ├─ image_processor.h/c ✅
   │  ├─ image_aspect.h/c ✅
   │  ├─ image_text_overlay.h/c ❌ (unused)
   │  └─ overlay_spec.h ✅
-  ├─ pisstvpp2_sstv.h/c ✅
+  ├─ slowframe_sstv.h/c ✅
   └─ audio_encoder_*.h/c ✅
 ```
 

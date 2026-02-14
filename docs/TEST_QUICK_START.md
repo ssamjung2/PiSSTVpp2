@@ -67,7 +67,7 @@ convert -size 320x256 gradient: test_320x256.png
 
 Executable not found? Build it:
 ```bash
-make clean && make pisstvpp2
+make clean && make slowframe
 ```
 
 ## Key Test Files
@@ -88,7 +88,7 @@ python3 -c "from test_suite import *; TestSuite().test_protocols()"
 python3 -c "from test_suite import *; TestSuite().test_invalid_sample_rates()"
 
 # Run bash suite with custom executable
-./test_suite_bash.sh /path/to/pisstvpp2
+./test_suite_bash.sh /path/to/slowframe
 ```
 
 ## CI/CD Integration

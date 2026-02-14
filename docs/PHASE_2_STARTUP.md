@@ -12,7 +12,7 @@
 Phase 2 involves major refactoring of the image processing module plus implementation of a new text overlay feature with color bars. All work builds on the stable Phase 1 foundation (error codes, config, context).
 
 **Key Changes:**
-- Move from monolithic `pisstvpp2_image.c` (578 lines) to modular architecture
+- Move from monolithic `slowframe_image.c` (578 lines) to modular architecture
 - Create 4 new specialized modules: loader, processor, aspect, text_overlay
 - Implement text overlay feature for FCC compliance (station ID in transmissions)
 - Maintain 100% behavioral compatibility - tests must not change
@@ -31,7 +31,7 @@ Phase 2 involves major refactoring of the image processing module plus implement
 - File error handling
 - Progress callbacks (new - for verbose mode)
 
-**Current code location:** `src/pisstvpp2_image.c:200-350`
+**Current code location:** `src/slowframe_image.c:200-350`
 
 ---
 
@@ -45,7 +45,7 @@ Phase 2 involves major refactoring of the image processing module plus implement
 - Pixel buffer operations
 - Dimension queries
 
-**Current code location:** `src/pisstvpp2_image.c:75-200, 235-270`
+**Current code location:** `src/slowframe_image.c:75-200, 235-270`
 
 ---
 
@@ -59,7 +59,7 @@ Phase 2 involves major refactoring of the image processing module plus implement
 - Stretch logic (ASPECT_STRETCH)
 - All aspect calculation helpers
 
-**Current code location:** `src/pisstvpp2_image.c:275-450`
+**Current code location:** `src/slowframe_image.c:275-450`
 
 ---
 
@@ -77,12 +77,12 @@ Phase 2 involves major refactoring of the image processing module plus implement
 **CLI Integration (Post-Phase-2):**
 ```bash
 # Text with background bar
-./pisstvpp2 -i photo.png -m s1 -o output.wav \
+./slowframe -i photo.png -m s1 -o output.wav \
   --text-overlay "K0ABC" --text-placement bottom \
   --text-color white --bar-color black
 
 # Grid square on top
-./pisstvpp2 -i photo.png -m m1 -o output.wav \
+./slowframe -i photo.png -m m1 -o output.wav \
   --text-overlay "EN96" --text-placement top
 ```
 
@@ -92,7 +92,7 @@ Phase 2 involves major refactoring of the image processing module plus implement
 
 ```
 src/include/
-├── pisstvpp2_image.h (refactored facade, 50 lines)
+├── slowframe_image.h (refactored facade, 50 lines)
 └── image/ (new)
     ├── image_loader.h
     ├── image_processor.h
@@ -105,7 +105,7 @@ src/image/ (new directory)
 ├── image_aspect.c (180-220 lines)
 └── image_text_overlay.c (250-350 lines)
 
-src/pisstvpp2_image.c (refactored from 578 → 200 lines)
+src/slowframe_image.c (refactored from 578 → 200 lines)
 ├── ImageState struct (existing)
 ├── Module initialization
 ├── Facade functions (wrappers)
@@ -197,22 +197,22 @@ src/pisstvpp2_image.c (refactored from 578 → 200 lines)
 **Before Phase 2:**
 ```
 src/
-├── pisstvpp2_image.c (578 lines monolithic)
+├── slowframe_image.c (578 lines monolithic)
 ├── include/
-│   ├── pisstvpp2_image.h (257 lines, all functions here)
+│   ├── slowframe_image.h (257 lines, all functions here)
 ```
 
 **After Phase 2:**
 ```
 src/
-├── pisstvpp2_image.c (200 lines, refactored facade)
+├── slowframe_image.c (200 lines, refactored facade)
 ├── image/ (new directory)
 │   ├── image_loader.c
 │   ├── image_processor.c
 │   ├── image_aspect.c
 │   └── image_text_overlay.c
 ├── include/
-│   ├── pisstvpp2_image.h (50 lines, top-level API)
+│   ├── slowframe_image.h (50 lines, top-level API)
 │   ├── image/ (new directory)
 │   │   ├── image_loader.h
 │   │   ├── image_processor.h
@@ -242,5 +242,5 @@ src/
 ## References
 
 - [PISSTVPP2_v2_1_MASTER_PLAN.md](./PISSTVPP2_v2_1_MASTER_PLAN.md) - Full Phase 2 specification
-- [src/pisstvpp2_image.c](../src/pisstvpp2_image.c) - Current monolithic module
+- [src/slowframe_image.c](../src/slowframe_image.c) - Current monolithic module
 - [docs/PHASE_1_QUICK_START.md](./PHASE_1_QUICK_START.md) - Phase 1 foundation reference

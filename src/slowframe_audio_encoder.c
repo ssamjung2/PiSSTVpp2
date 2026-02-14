@@ -1,12 +1,12 @@
 /**
- * @file pisstvpp2_audio_encoder.c
+ * @file slowframe_audio_encoder.c
  * @brief Audio encoder factory and initialization
  *
  * Implements the factory pattern for audio format encoders.
  * Provides pluggable format writers (WAV, AIFF, OGG Vorbis).
  */
 
-#include "pisstvpp2_audio_encoder.h"
+#include "slowframe_audio_encoder.h"
 #include "error.h"
 #include <stdlib.h>
 #include <string.h>
@@ -64,7 +64,7 @@ AudioEncoder* audio_encoder_create(const char *format)
     }
 
     // Format not supported
-    error_log(PISSTVPP2_ERR_ARG_INVALID_FORMAT, "Unsupported audio format: %s", format);
+    error_log(SLOWFRAME_ERR_ARG_INVALID_FORMAT, "Unsupported audio format: %s", format);
     return NULL;
 }
 
@@ -108,7 +108,7 @@ int audio_encoder_get_output_filename(const char *input_filename,
                                       size_t buffer_size)
 {
     if (!input_filename || !format || !output_buffer || buffer_size == 0) {
-        return PISSTVPP2_ERR_ARG_VALUE_INVALID;
+        return SLOWFRAME_ERR_ARG_VALUE_INVALID;
     }
 
     // Get the file extension for this format
@@ -116,7 +116,7 @@ int audio_encoder_get_output_filename(const char *input_filename,
     
     char fmt_lower[16];
     if (!strtolower(format, fmt_lower, sizeof(fmt_lower))) {
-        return PISSTVPP2_ERR_ARG_INVALID_FORMAT;
+        return SLOWFRAME_ERR_ARG_INVALID_FORMAT;
     }
 
     if (strcmp(fmt_lower, "wav") == 0) {
@@ -126,7 +126,7 @@ int audio_encoder_get_output_filename(const char *input_filename,
     } else if (strcmp(fmt_lower, "ogg") == 0 || strcmp(fmt_lower, "vorbis") == 0) {
         extension = "ogg";
     } else {
-        return PISSTVPP2_ERR_ARG_INVALID_FORMAT;  // Unknown format
+        return SLOWFRAME_ERR_ARG_INVALID_FORMAT;  // Unknown format
     }
 
     // Build output filename: input_filename.extension
@@ -134,8 +134,8 @@ int audio_encoder_get_output_filename(const char *input_filename,
                          input_filename, extension);
     
     if (needed < 0 || (size_t)needed >= buffer_size) {
-        return PISSTVPP2_ERR_ARG_FILENAME_TOO_LONG;  // Buffer too small
+        return SLOWFRAME_ERR_ARG_FILENAME_TOO_LONG;  // Buffer too small
     }
 
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }

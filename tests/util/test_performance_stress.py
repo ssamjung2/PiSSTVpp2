@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Performance and Stress Testing for PiSSTVpp2
+Performance and Stress Testing for SlowFrame
 Tests application performance under various load conditions
 """
 
@@ -31,7 +31,7 @@ class PerformanceTestSuite:
                  images_dir=None):
         if executable_path is None:
             script_dir = Path(__file__).parent.parent.parent
-            executable_path = str(script_dir / "bin" / "pisstvpp2")
+            executable_path = str(script_dir / "bin" / "slowframe")
         if images_dir is None:
             script_dir = Path(__file__).parent.parent
             images_dir = str(script_dir / "images")
@@ -39,7 +39,7 @@ class PerformanceTestSuite:
         self.images_dir = images_dir
         self.passed = 0
         self.failed = 0
-        self.temp_dir = tempfile.mkdtemp(prefix="pisstvpp2_perf_")
+        self.temp_dir = tempfile.mkdtemp(prefix="slowframe_perf_")
         self.results = []
         
         # Collect all available test images
@@ -745,7 +745,7 @@ class PerformanceTestSuite:
     def run_all_tests(self):
         """Execute all performance tests"""
         print(f"\n{Colors.BOLD}{Colors.CYAN}╔════════════════════════════════════════════════════════╗{Colors.RESET}")
-        print(f"{Colors.BOLD}{Colors.CYAN}║  PiSSTVpp2 - Performance & Stress Testing             ║{Colors.RESET}")
+        print(f"{Colors.BOLD}{Colors.CYAN}║  SlowFrame - Performance & Stress Testing             ║{Colors.RESET}")
         print(f"{Colors.BOLD}{Colors.CYAN}║  Measuring throughput, stability, and resource usage   ║{Colors.RESET}")
         print(f"{Colors.BOLD}{Colors.CYAN}╚════════════════════════════════════════════════════════╝{Colors.RESET}")
         
@@ -815,7 +815,7 @@ if __name__ == "__main__":
         exe = sys.argv[1]
     else:
         script_dir = Path(__file__).parent.parent.parent
-        exe = str(script_dir / "bin" / "pisstvpp2")
+        exe = str(script_dir / "bin" / "slowframe")
     imgs = None
     if len(sys.argv) > 2:
         imgs = sys.argv[2]

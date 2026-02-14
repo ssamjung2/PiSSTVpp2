@@ -1,8 +1,8 @@
 # MMSSTV Mode Reference
 
-**Extended SSTV modes planned for PiSSTVpp2 v2.1 with MMSSTV library integration**
+**Extended SSTV modes planned for SlowFrame v2.1 with MMSSTV library integration**
 
-> **Note**: This document describes features planned for v2.1. PiSSTVpp2 v2.0 supports only the 7 legacy modes (Martin 1/2, Scottie 1/2/DX, Robot 36/72). See [MODE_REFERENCE.md](MODE_REFERENCE.md) for v2.0 modes.
+> **Note**: This document describes features planned for v2.1. SlowFrame v2.0 supports only the 7 legacy modes (Martin 1/2, Scottie 1/2/DX, Robot 36/72). See [MODE_REFERENCE.md](MODE_REFERENCE.md) for v2.0 modes.
 
 ---
 
@@ -197,22 +197,22 @@
 
 ```bash
 # Fast transmission (Robot 12, 12 seconds)
-./bin/pisstvpp2 -i photo.jpg -p r12 -o output.wav
+./bin/slowframe -i photo.jpg -p r12 -o output.wav
 
 # Standard quality (PD 120, 2 minutes)
-./bin/pisstvpp2 -i photo.jpg -p pd120 -o output.wav
+./bin/slowframe -i photo.jpg -p pd120 -o output.wav
 
 # Highest quality (PD 290, 4.8 minutes)
-./bin/pisstvpp2 -i photo.jpg -p pd290 -o output.ogg -r 44100
+./bin/slowframe -i photo.jpg -p pd290 -o output.ogg -r 44100
 
 # Classic mode (Martin 1, most compatible)
-./bin/pisstvpp2 -i photo.jpg -p m1 -o output.wav
+./bin/slowframe -i photo.jpg -p m1 -o output.wav
 
 # List all available modes
-./bin/pisstvpp2 --list-modes
+./bin/slowframe --list-modes
 
 # Show mode details
-./bin/pisstvpp2 --mode-info pd120
+./bin/slowframe --mode-info pd120
 ```
 
 ---

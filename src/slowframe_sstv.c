@@ -1,10 +1,10 @@
 /*
- * pisstvpp2_sstv.c
+ * slowframe_sstv.c
  *
- * SSTV Audio Encoding Module Implementation for PiSSTVpp2
+ * SSTV Audio Encoding Module Implementation for SlowFrame
  *
  * This module contains all audio synthesis and SSTV mode encoding functionality.
- * See pisstvpp2_sstv.h for API documentation.
+ * See slowframe_sstv.h for API documentation.
  */
 
 #include <stdio.h>
@@ -15,8 +15,8 @@
 #include <tgmath.h>
 #include "logging.h"
 #include "error.h"
-#include "pisstvpp2_sstv.h"
-#include "pisstvpp2_image.h"
+#include "slowframe_sstv.h"
+#include "slowframe_image.h"
 
 /* ============================================================================
    MODULE-PRIVATE GLOBAL STATE
@@ -109,7 +109,7 @@ static void playtone(uint16_t tonefreq, double tonedur) {
     for (i = 1; i <= tonesamples; i++) {
         g_sstv.samples++;
         if (g_sstv.samples >= g_sstv.max_samples) {
-            error_log(PISSTVPP2_ERR_SYSTEM_RESOURCE, "Audio buffer overflow",
+            error_log(SLOWFRAME_ERR_SYSTEM_RESOURCE, "Audio buffer overflow",
                      "Audio buffer overflow at sample %u (max capacity: %u)", g_sstv.samples, g_sstv.max_samples);
             return;
         }
@@ -598,8 +598,8 @@ int sstv_init(uint16_t sample_rate, int verbose, int timestamp_logging) {
     log_verbose(verbose, timestamp_logging, "Initializing SSTV audio with sample rate %d Hz\n", sample_rate);
     
     if (sample_rate < 8000 || sample_rate > 48000) {
-        error_log(PISSTVPP2_ERR_ARG_INVALID_SAMPLE_RATE, "Sample rate %d out of range (8000-48000 Hz)", sample_rate);
-        return PISSTVPP2_ERR_ARG_INVALID_SAMPLE_RATE;
+        error_log(SLOWFRAME_ERR_ARG_INVALID_SAMPLE_RATE, "Sample rate %d out of range (8000-48000 Hz)", sample_rate);
+        return SLOWFRAME_ERR_ARG_INVALID_SAMPLE_RATE;
     }
     
     g_sstv.rate = sample_rate;
@@ -622,8 +622,8 @@ static int sstv_init_buffer(void) {
     if (!g_sstv.audio) {
         g_sstv.audio = (uint16_t *)malloc(g_sstv.max_samples * sizeof(uint16_t));
         if (!g_sstv.audio) {
-            error_log(PISSTVPP2_ERR_MEMORY_ALLOC, "Failed to allocate %u sample audio buffer", g_sstv.max_samples);
-            return PISSTVPP2_ERR_MEMORY_ALLOC;
+            error_log(SLOWFRAME_ERR_MEMORY_ALLOC, "Failed to allocate %u sample audio buffer", g_sstv.max_samples);
+            return SLOWFRAME_ERR_MEMORY_ALLOC;
         }
     }
     
@@ -640,7 +640,7 @@ static int sstv_init_buffer(void) {
     g_sstv.samples = 0;
     g_sstv.initialized = 1;
     
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 void sstv_set_protocol(uint8_t protocol) {
@@ -653,12 +653,12 @@ uint8_t sstv_get_protocol(void) {
 
 int sstv_encode_frame(int verbose, int timestamp_logging) {
     if (!g_sstv.initialized) {
-        error_log(PISSTVPP2_ERR_SSTV_INIT, "SSTV module not initialized");
-        return PISSTVPP2_ERR_SSTV_INIT;
+        error_log(SLOWFRAME_ERR_SSTV_INIT, "SSTV module not initialized");
+        return SLOWFRAME_ERR_SSTV_INIT;
     }
     
     if (g_sstv.samples > 0) {
-        error_log(PISSTVPP2_ERR_SSTV_ENCODE, "Audio buffer not empty; consider calling sstv_reset_buffer()");
+        error_log(SLOWFRAME_ERR_SSTV_ENCODE, "Audio buffer not empty; consider calling sstv_reset_buffer()");
     }
     
     addvisheader(verbose, timestamp_logging);
@@ -686,17 +686,17 @@ int sstv_encode_frame(int verbose, int timestamp_logging) {
             buildaudio_r72(verbose, timestamp_logging);
             break;
         default:
-            error_log(PISSTVPP2_ERR_SSTV_MODE_NOT_FOUND, "Unknown SSTV protocol code: %d", g_sstv.protocol);
-            return PISSTVPP2_ERR_SSTV_MODE_NOT_FOUND;
+            error_log(SLOWFRAME_ERR_SSTV_MODE_NOT_FOUND, "Unknown SSTV protocol code: %d", g_sstv.protocol);
+            return SLOWFRAME_ERR_SSTV_MODE_NOT_FOUND;
     }
     
     addvistrailer();
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 void sstv_add_cw_signature(const char *callsign, int wpm, uint16_t tone_freq) {
     if (!g_sstv.initialized) {
-        error_log(PISSTVPP2_ERR_SSTV_INIT, "SSTV module not initialized",
+        error_log(SLOWFRAME_ERR_SSTV_INIT, "SSTV module not initialized",
                  "Cannot add CW signature - SSTV module must be initialized first");
         return;
     }

@@ -43,8 +43,8 @@ Image modules use relative path includes while all other sources use simple incl
 #include "../util/error.h"
 #include "../include/logging.h"
 
-// src/pisstvpp2.c (CONSISTENT)
-#include "pisstvpp2_image.h"
+// src/slowframe.c (CONSISTENT)
+#include "slowframe_image.h"
 #include "error.h"
 #include "logging.h"
 
@@ -89,7 +89,7 @@ src/
   ├── audio_encoder_wav.c
   ├── audio_encoder_aiff.c
   ├── audio_encoder_ogg.c
-  └── pisstvpp2_audio_encoder.c
+  └── slowframe_audio_encoder.c
 
 Should Be:
 src/
@@ -97,7 +97,7 @@ src/
   │   ├── audio_encoder_wav.c
   │   ├── audio_encoder_aiff.c
   │   └── audio_encoder_ogg.c
-  └── pisstvpp2_audio_encoder.c (or audio/audio_encoder.c)
+  └── slowframe_audio_encoder.c (or audio/audio_encoder.c)
 ```
 
 **Files Affected:**
@@ -116,7 +116,7 @@ src/
 - Inconsistent module organization pattern
 - Makes future modularity harder
 
-**Note:** [src/pisstvpp2_audio_encoder.c](src/pisstvpp2_audio_encoder.c) is the main dispatcher and can stay in root.
+**Note:** [src/slowframe_audio_encoder.c](src/slowframe_audio_encoder.c) is the main dispatcher and can stay in root.
 
 ---
 
@@ -209,14 +209,14 @@ Several test files have hardcoded absolute paths:
 
 ```python
 # tests/test_integration.py - Line 43
-def __init__(self, executable_path="/Users/ssamjung/Desktop/WIP/PiSSTVpp2/bin/pisstvpp2",
-             images_dir="/Users/ssamjung/Desktop/WIP/PiSSTVpp2/tests/images"):
+def __init__(self, executable_path="/Users/ssamjung/Desktop/WIP/SlowFrame/bin/slowframe",
+             images_dir="/Users/ssamjung/Desktop/WIP/SlowFrame/tests/images"):
 
 # tests/test_file_io_errors.py - Line 30
-test_image="/Users/ssamjung/Desktop/WIP/PiSSTVpp2/tests/images/test_320x240.png"
+test_image="/Users/ssamjung/Desktop/WIP/SlowFrame/tests/images/test_320x240.png"
 
 # tests/run_all_tests.py - Line 28
-def __init__(self, executable_path="/Users/ssamjung/Desktop/WIP/PiSSTVpp2/bin/pisstvpp2"):
+def __init__(self, executable_path="/Users/ssamjung/Desktop/WIP/SlowFrame/bin/slowframe"):
 ```
 
 **Files Affected:**
@@ -237,7 +237,7 @@ def __init__(self, executable_path="/Users/ssamjung/Desktop/WIP/PiSSTVpp2/bin/pi
 ```python
 # Better:
 from pathlib import Path
-test_exe = Path(__file__).parent.parent / "bin" / "pisstvpp2"
+test_exe = Path(__file__).parent.parent / "bin" / "slowframe"
 test_images = Path(__file__).parent / "images"
 ```
 
@@ -254,7 +254,7 @@ test_images = Path(__file__).parent / "images"
 │   ├── image/                (image module - organized)
 │   ├── util/                 (utilities - organized)
 │   ├── legacy/               (old code - isolated)
-│   ├── pisstvpp2*.c          (main modules)
+│   ├── slowframe*.c          (main modules)
 │   └── audio_encoder_*.c     (✗ should be in audio/)
 ├── tests/
 │   ├── images/               (✓ test fixtures)

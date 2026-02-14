@@ -6,7 +6,7 @@ Consolidate `-S`, `-G`, `-O` text input and styling options (`-F`, `-A`, `-I`, `
 ## Current Complexity
 Current approach requires separate flags for text and styling:
 ```bash
-bin/pisstvpp2 -i photo.jpg \
+bin/slowframe -i photo.jpg \
   -S "W5ABC" -F 20 -A center -I top -C white -B blue -M opaque -X 8 -V center \
   -G "EM12ab" -F 16 -A center -I bottom -C yellow -B black -M semi -X 4
 ```
@@ -38,7 +38,7 @@ bin/pisstvpp2 -i photo.jpg \
 
 **Example:**
 ```bash
-bin/pisstvpp2 -i photo.jpg \
+bin/slowframe -i photo.jpg \
   -T "W5ABC|size=20|align=center|pos=top|color=white|bg=blue" \
   -T "EM12ab|size=16|align=center|pos=bottom|color=yellow|bg=black"
 ```
@@ -63,7 +63,7 @@ bin/pisstvpp2 -i photo.jpg \
 
 **Example:**
 ```bash
-bin/pisstvpp2 -i photo.jpg \
+bin/slowframe -i photo.jpg \
   -T "text='W5ABC' size=20 align=center pos=top color=white bg=blue" \
   -T "text='EM12ab' size=16 align=center pos=bottom color=yellow bg=black"
 ```
@@ -89,7 +89,7 @@ bin/pisstvpp2 -i photo.jpg \
 
 **Example:**
 ```bash
-bin/pisstvpp2 -i photo.jpg \
+bin/slowframe -i photo.jpg \
   -T "W5ABC{size:20}{align:center}{pos:top}{color:white}{bg:blue}{mode:opaque}{pad:8}" \
   -T "EM12ab{size:16}{align:center}{pos:bottom}{color:yellow}{bg:black}{mode:semi}{pad:4}"
 ```
@@ -134,7 +134,7 @@ bin/pisstvpp2 -i photo.jpg \
 
 **Example:**
 ```bash
-bin/pisstvpp2 -i photo.jpg \
+bin/slowframe -i photo.jpg \
   -T "{text:W5ABC, size:20, align:center, pos:top, color:white, bg:blue}" \
   -T "{text:EM12ab, size:16, align:center, pos:bottom, color:yellow, bg:black}"
 ```
@@ -161,7 +161,7 @@ bin/pisstvpp2 -i photo.jpg \
 
 **Example:**
 ```bash
-bin/pisstvpp2 -i photo.jpg \
+bin/slowframe -i photo.jpg \
   -T '{"text":"W5ABC","size":20,"align":"center","pos":"top","color":"white","bg":"blue"}' \
   -T '{"text":"EM12ab","size":16,"align":"center","pos":"bottom","color":"yellow","bg":"black"}'
 ```
@@ -237,7 +237,7 @@ bin/pisstvpp2 -i photo.jpg \
 -T "W5ABC|size=20|align=center|pos=top|color=white|bg=blue|mode=opaque|pad=8|border=2|v-align=center"
 
 # Multiple overlays
-bin/pisstvpp2 -i photo.jpg \
+bin/slowframe -i photo.jpg \
   -T "W5ABC|size=20|align=center|pos=top|color=white|bg=blue" \
   -T "EM12ab|size=16|align=center|pos=bottom|color=yellow|bg=black"
 ```
@@ -309,7 +309,7 @@ To make both syntax options more concise, we could support abbreviated property 
 -T "W5ABC|s=20|a=center|p=top|c=white|bg=blue|m=opaque|pd=8|b=2"
 
 # Complete command
-bin/pisstvpp2 -i photo.jpg \
+bin/slowframe -i photo.jpg \
   -T "W5ABC|s=20|p=top|c=white|bg=blue" \
   -T "EM12ab|s=16|p=bottom|c=yellow|bg=black" \
   -o output.wav
@@ -324,7 +324,7 @@ bin/pisstvpp2 -i photo.jpg \
 -T "t=W5ABC s=20 p=top c=white bg=blue"
 
 # Complete command
-bin/pisstvpp2 -i photo.jpg \
+bin/slowframe -i photo.jpg \
   -T "t=W5ABC s=20 p=top c=white bg=blue" \
   -T "t=EM12ab s=16 p=bottom c=yellow bg=black" \
   -o output.wav

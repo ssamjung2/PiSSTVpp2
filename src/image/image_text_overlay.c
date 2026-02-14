@@ -1,7 +1,7 @@
 /*
  * image_text_overlay.c
  *
- * Text overlay and color bars for PiSSTVpp2
+ * Text overlay and color bars for SlowFrame
  * 
  * Implements text rendering and color bars for SSTV images.
  * Particularly useful for FCC Part 97 Section 97.113(a)(4) compliance,
@@ -73,9 +73,9 @@ static int create_colored_rectangle(int width, int height, uint8_t r, uint8_t g,
     
     /* Create a black rectangle of target size (single band) */
     if (vips_black(&rect, width, height, NULL)) {
-        error_log(PISSTVPP2_ERR_IMAGE_TEXT_OVERLAY, "Failed to create rectangle: %s",
+        error_log(SLOWFRAME_ERR_IMAGE_TEXT_OVERLAY, "Failed to create rectangle: %s",
                  vips_error_buffer());
-        return PISSTVPP2_ERR_IMAGE_TEXT_OVERLAY;
+        return SLOWFRAME_ERR_IMAGE_TEXT_OVERLAY;
     }
     
     /* TODO: Apply color mapping for non-black colors
@@ -95,7 +95,7 @@ static int create_colored_rectangle(int width, int height, uint8_t r, uint8_t g,
                    width, height);
     }
     
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 /**
@@ -126,26 +126,26 @@ static int composite_image_at_position(VipsImage *base, VipsImage *overlay, int 
         /* Extract first 3 bands (RGB) from RGBA */
         VipsImage *overlay_rgb = NULL;
         if (vips_extract_band(overlay, &overlay_rgb, 0, "n", 3, NULL)) {
-            error_log(PISSTVPP2_ERR_IMAGE_TEXT_OVERLAY, "Failed to extract RGB from overlay: %s",
+            error_log(SLOWFRAME_ERR_IMAGE_TEXT_OVERLAY, "Failed to extract RGB from overlay: %s",
                      vips_error_buffer());
-            return PISSTVPP2_ERR_IMAGE_TEXT_OVERLAY;
+            return SLOWFRAME_ERR_IMAGE_TEXT_OVERLAY;
         }
         
         /* Now insert the RGB version */
         if (vips_insert(base, overlay_rgb, &result, clamp_x, clamp_y, NULL)) {
             g_object_unref(overlay_rgb);
-            error_log(PISSTVPP2_ERR_IMAGE_TEXT_OVERLAY, "Failed to composite images: %s",
+            error_log(SLOWFRAME_ERR_IMAGE_TEXT_OVERLAY, "Failed to composite images: %s",
                      vips_error_buffer());
-            return PISSTVPP2_ERR_IMAGE_TEXT_OVERLAY;
+            return SLOWFRAME_ERR_IMAGE_TEXT_OVERLAY;
         }
         
         g_object_unref(overlay_rgb);
     } else {
         /* Use vips_insert directly */
         if (vips_insert(base, overlay, &result, clamp_x, clamp_y, NULL)) {
-            error_log(PISSTVPP2_ERR_IMAGE_TEXT_OVERLAY, "Failed to composite images: %s",
+            error_log(SLOWFRAME_ERR_IMAGE_TEXT_OVERLAY, "Failed to composite images: %s",
                      vips_error_buffer());
-            return PISSTVPP2_ERR_IMAGE_TEXT_OVERLAY;
+            return SLOWFRAME_ERR_IMAGE_TEXT_OVERLAY;
         }
     }
     
@@ -155,158 +155,7 @@ static int composite_image_at_position(VipsImage *base, VipsImage *overlay, int 
         log_verbose(verbose, 0, "       Composited overlay at position (%d, %d)\n", clamp_x, clamp_y);
     }
     
-    return PISSTVPP2_OK;
-}
-
-/* ============================================================================
-   COLOR BAR OPERATIONS
-   ============================================================================ */
-
-int image_text_overlay_add_color_bar(VipsImage *image, int placement, int bar_height,
-                                    uint8_t bar_r, uint8_t bar_g, uint8_t bar_b,
-                                    const char *text, uint8_t text_r, uint8_t text_g, uint8_t text_b,
-                                    VipsImage **out_barred, int verbose) {
-    /* Suppress unused parameter warnings for text color (future enhancement) */
-    (void)text_r;
-    (void)text_g;
-    (void)text_b;
-    if (!image || !out_barred) {
-        error_log(PISSTVPP2_ERR_ARG_INVALID, "NULL VipsImage pointer in color bar operation");
-        return PISSTVPP2_ERR_ARG_INVALID;
-    }
-    
-    int img_width = image->Xsize;
-    int img_height = image->Ysize;
-    
-    if (verbose) {
-        log_verbose(verbose, 0, "   Adding color bar (placement=%d, height=%d pixels)\n",
-                   placement, bar_height);
-    }
-    
-    /* Create the colored bar rectangle */
-    VipsImage *bar = NULL;
-    int result = PISSTVPP2_OK;
-    
-    if (placement == TEXT_PLACEMENT_TOP || placement == TEXT_PLACEMENT_BOTTOM) {
-        /* Horizontal bar (full width) */
-        result = create_colored_rectangle(img_width, bar_height, bar_r, bar_g, bar_b, &bar, verbose);
-    } else if (placement == TEXT_PLACEMENT_LEFT || placement == TEXT_PLACEMENT_RIGHT) {
-        /* Vertical bar (full height) */
-        result = create_colored_rectangle(bar_height, img_height, bar_r, bar_g, bar_b, &bar, verbose);
-    } else {
-        error_log(PISSTVPP2_ERR_ARG_INVALID, "Invalid bar placement: %d", placement);
-        return PISSTVPP2_ERR_ARG_INVALID;
-    }
-    
-    if (result != PISSTVPP2_OK) {
-        if (bar) g_object_unref(bar);
-        return result;
-    }
-    
-    /* Composite bar onto original image */
-    VipsImage *with_bar = NULL;
-    int bar_x = 0, bar_y = 0;
-    
-    switch (placement) {
-        case TEXT_PLACEMENT_TOP:
-            bar_x = 0;
-            bar_y = 0;
-            break;
-        case TEXT_PLACEMENT_BOTTOM:
-            bar_x = 0;
-            bar_y = img_height - bar_height;
-            break;
-        case TEXT_PLACEMENT_LEFT:
-            bar_x = 0;
-            bar_y = 0;
-            break;
-        case TEXT_PLACEMENT_RIGHT:
-            bar_x = img_width - bar_height;
-            bar_y = 0;
-            break;
-        default:
-            g_object_unref(bar);
-            error_log(PISSTVPP2_ERR_ARG_INVALID, "Unsupported bar placement");
-            return PISSTVPP2_ERR_ARG_INVALID;
-    }
-    
-    result = composite_image_at_position(image, bar, bar_x, bar_y, &with_bar, verbose);
-    g_object_unref(bar);
-    
-    if (result != PISSTVPP2_OK) {
-        return result;
-    }
-    
-    /* TODO: If text provided, could add text rendering here in future */
-    if (text && verbose) {
-        log_verbose(verbose, 0, "       Note: Text rendering in color bars not yet implemented\n");
-    }
-    
-    *out_barred = with_bar;
-    
-    if (verbose) {
-        log_verbose(verbose, 0, "   [OK] Color bar added: %dx%d at position (%d,%d)\n",
-                   bar->Xsize, bar->Ysize, bar_x, bar_y);
-    }
-    
-    return PISSTVPP2_OK;
-}
-
-/* ============================================================================
-   STATION ID OVERLAY
-   ============================================================================ */
-
-int image_text_overlay_add_station_id(VipsImage *image, const char *callsign,
-                                     const char *grid_square, VipsImage **out_labeled,
-                                     int verbose) {
-    if (!image || !out_labeled || !callsign) {
-        error_log(PISSTVPP2_ERR_ARG_INVALID, "NULL pointer in station ID overlay");
-        return PISSTVPP2_ERR_ARG_INVALID;
-    }
-    
-    if (strlen(callsign) == 0) {
-        error_log(PISSTVPP2_ERR_ARG_INVALID, "Empty callsign provided");
-        return PISSTVPP2_ERR_ARG_INVALID;
-    }
-    
-    if (verbose) {
-        log_verbose(verbose, 0, "   Adding station ID overlay\n");
-        log_verbose(verbose, 0, "      Callsign: %s\n", callsign);
-        if (grid_square) {
-            log_verbose(verbose, 0, "      Grid Square: %s\n", grid_square);
-        }
-    }
-    
-    /* Format the station ID string */
-    char station_id[256];
-    if (grid_square && strlen(grid_square) > 0) {
-        snprintf(station_id, sizeof(station_id), "%s / %s", callsign, grid_square);
-    } else {
-        snprintf(station_id, sizeof(station_id), "%s", callsign);
-    }
-    
-    /* Create a simple text overlay configuration */
-    TextOverlayConfig config = image_text_overlay_create_config();
-    config.text = station_id;
-    config.placement = TEXT_PLACEMENT_BOTTOM;
-    config.font_size = 20;
-    /* Use black background, white text for visibility */
-    config.bg_r = 0; config.bg_g = 0; config.bg_b = 0;
-    config.text_r = 255; config.text_g = 255; config.text_b = 255;
-    config.bar_height = 35;
-    
-    /* For now, use the color bar function with black background */
-    int result = image_text_overlay_add_color_bar(image, TEXT_PLACEMENT_BOTTOM, config.bar_height,
-                                                 0, 0, 0,    /* black bar */
-                                                 NULL,        /* no text yet (future enhancement) */
-                                                 255, 255, 255, /* white text color (ignored) */
-                                                 out_labeled, verbose);
-    
-    if (verbose) {
-        log_verbose(verbose, 0, "   [OK] Station ID overlay added: %s\n", station_id);
-    }
-    
-    return result;
+    return SLOWFRAME_OK;
 }
 
 /* ============================================================================
@@ -316,13 +165,13 @@ int image_text_overlay_add_station_id(VipsImage *image, const char *callsign,
 int image_text_overlay_apply(VipsImage *image, const TextOverlayConfig *config,
                             VipsImage **out_overlaid, int verbose) {
     if (!image || !config || !out_overlaid) {
-        error_log(PISSTVPP2_ERR_ARG_INVALID, "NULL pointer in text overlay apply");
-        return PISSTVPP2_ERR_ARG_INVALID;
+        error_log(SLOWFRAME_ERR_ARG_INVALID, "NULL pointer in text overlay apply");
+        return SLOWFRAME_ERR_ARG_INVALID;
     }
     
     if (!config->text) {
-        error_log(PISSTVPP2_ERR_ARG_INVALID, "No text provided in overlay config");
-        return PISSTVPP2_ERR_ARG_INVALID;
+        error_log(SLOWFRAME_ERR_ARG_INVALID, "No text provided in overlay config");
+        return SLOWFRAME_ERR_ARG_INVALID;
     }
     
     if (verbose) {
@@ -378,14 +227,14 @@ int image_text_overlay_apply(VipsImage *image, const TextOverlayConfig *config,
             bar_height = 50;
             break;
         default:
-            error_log(PISSTVPP2_ERR_ARG_INVALID, "Unknown text placement: %d", config->placement);
-            return PISSTVPP2_ERR_ARG_INVALID;
+            error_log(SLOWFRAME_ERR_ARG_INVALID, "Unknown text placement: %d", config->placement);
+            return SLOWFRAME_ERR_ARG_INVALID;
     }
     
     int result = create_colored_rectangle(bar_width, bar_height, 
                                          config->bg_r, config->bg_g, config->bg_b,
                                          &bar, verbose);
-    if (result != PISSTVPP2_OK) {
+    if (result != SLOWFRAME_OK) {
         return result;
     }
     
@@ -394,7 +243,7 @@ int image_text_overlay_apply(VipsImage *image, const TextOverlayConfig *config,
     result = composite_image_at_position(image, bar, bar_x, bar_y, &overlaid, verbose);
     g_object_unref(bar);
     
-    if (result != PISSTVPP2_OK) {
+    if (result != SLOWFRAME_OK) {
         return result;
     }
     
@@ -405,5 +254,5 @@ int image_text_overlay_apply(VipsImage *image, const TextOverlayConfig *config,
         log_verbose(verbose, 0, "        Output: %dx%d\n", overlaid->Xsize, overlaid->Ysize);
     }
     
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }

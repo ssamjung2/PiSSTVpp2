@@ -1,4 +1,4 @@
-# PiSSTVpp2 Documentation Consolidation - Complete
+# SlowFrame Documentation Consolidation - Complete
 
 **Consolidation Status:** ✅ Complete  
 **Date:** February 10, 2026  
@@ -23,10 +23,10 @@
 ### Example Usage
 ```bash
 # Simple text overlay
-./pisstvpp2 -i image.png --text-overlay "K0ABC/EN96" -m m1 -o output.wav
+./slowframe -i image.png --text-overlay "K0ABC/EN96" -m m1 -o output.wav
 
 # FCC-compliant with color bar
-./pisstvpp2 -i image.png \
+./slowframe -i image.png \
   --color-bar bottom \
   --bar-color "0,0,0" \
   --text-overlay "K0ABC / EN96ab" \

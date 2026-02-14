@@ -104,8 +104,8 @@ make clean && make all
 ### Task 1.2: Create Config Management Module (3-4 hours)
 
 **Files to Create:**
-- `src/core/pisstvpp2_config.h` (header)
-- `src/core/pisstvpp2_config.c` (implementation)
+- `src/core/slowframe_config.h` (header)
+- `src/core/slowframe_config.c` (implementation)
 
 **What to Include:**
 
@@ -141,8 +141,8 @@ const char* config_get_mode(config_t *cfg);
 ### Task 1.3: Create Context/State Management (3-4 hours)
 
 **Files to Create:**
-- `src/core/pisstvpp2_context.h` (header)
-- `src/core/pisstvpp2_context.c` (implementation)
+- `src/core/slowframe_context.h` (header)
+- `src/core/slowframe_context.c` (implementation)
 
 **What to Include:**
 
@@ -153,16 +153,16 @@ typedef struct {
     image_buffer_t *image;
     audio_samples_t *audio;
     // ... other state
-} pisstvpp2_context_t;
+} slowframe_context_t;
 
 // New functions:
-pisstvpp2_context_t* context_create(config_t *cfg);
-void context_free(pisstvpp2_context_t *ctx);
-void context_reset(pisstvpp2_context_t *ctx);
+slowframe_context_t* context_create(config_t *cfg);
+void context_free(slowframe_context_t *ctx);
+void context_reset(slowframe_context_t *ctx);
 ```
 
 **Checklist:**
-- [ ] Define pisstvpp2_context_t structure (with comment explaining ownership)
+- [ ] Define slowframe_context_t structure (with comment explaining ownership)
 - [ ] Create context_create() function
 - [ ] Create context_free() function
 - [ ] Create context_reset() function
@@ -176,10 +176,10 @@ void context_reset(pisstvpp2_context_t *ctx);
 ### Task 1.4: Update All Modules to Use Error Codes (6-8 hours)
 
 **Files to Modify:**
-- `src/pisstvpp2.c` (main)
-- `src/pisstvpp2_image.c` (image processing)
-- `src/pisstvpp2_sstv.c` (SSTV encoding)
-- `src/pisstvpp2_audio_encoder.c` (audio base)
+- `src/slowframe.c` (main)
+- `src/slowframe_image.c` (image processing)
+- `src/slowframe_sstv.c` (SSTV encoding)
+- `src/slowframe_audio_encoder.c` (audio base)
 - `src/audio_encoder_wav.c` (WAV specific)
 - `src/audio_encoder_aiff.c` (AIFF specific)
 - `src/audio_encoder_ogg.c` (OGG specific)
@@ -219,7 +219,7 @@ if (vips_image_write_to_file(...) != 0) {
 ### Step 1: Setup
 ```bash
 # Start from clean state
-cd /Users/ssamjung/Desktop/WIP/PiSSTVpp2
+cd /Users/ssamjung/Desktop/WIP/SlowFrame
 
 # Verify current state
 ./tests/test_suite.py
@@ -268,7 +268,7 @@ make clean && make all
 # Commit when tests pass
 git commit -m "feat(config): Extract config management module
 
-- Create src/core/pisstvpp2_config.h/c
+- Create src/core/slowframe_config.h/c
 - Move config_t structure definition
 - Implement config_init(), config_free(), config_validate()
 - Create getter functions for each field
@@ -280,7 +280,7 @@ Task 1.2 completion"
 ### Step 4: Task 1.3 (Context Management)
 ```bash
 # Create context.h and context.c
-# Define pisstvpp2_context_t with proper ownership documentation
+# Define slowframe_context_t with proper ownership documentation
 
 # Test
 make clean && make all
@@ -289,8 +289,8 @@ make clean && make all
 # Commit
 git commit -m "feat(context): Implement context/state management
 
-- Create src/core/pisstvpp2_context.h/c
-- Define pisstvpp2_context_t with config, image, audio, state
+- Create src/core/slowframe_context.h/c
+- Define slowframe_context_t with config, image, audio, state
 - Implement context_create(), context_free(), context_reset()
 - Document pointer ownership clearly
 - All 55 tests still passing
@@ -301,10 +301,10 @@ Task 1.3 completion"
 ### Step 5: Task 1.4 (Update All Modules)
 ```bash
 # Update each file in order:
-# 1. src/pisstvpp2.c
-# 2. src/pisstvpp2_image.c
-# 3. src/pisstvpp2_sstv.c
-# 4. src/pisstvpp2_audio_encoder.c
+# 1. src/slowframe.c
+# 2. src/slowframe_image.c
+# 3. src/slowframe_sstv.c
+# 4. src/slowframe_audio_encoder.c
 # 5. src/audio_encoder_wav.c
 # 6. src/audio_encoder_aiff.c
 # 7. src/audio_encoder_ogg.c
@@ -315,7 +315,7 @@ make clean && make all
 # Verify: 55/55 still passing
 
 # Commit after each file with context
-git commit -m "refactor(error): Update pisstvpp2.c to use unified error codes
+git commit -m "refactor(error): Update slowframe.c to use unified error codes
 
 - Replace fprintf(stderr) with error_log()
 - Replace scattered error returns with PISSTVPP2_* codes
@@ -327,10 +327,10 @@ Context: Task 1.4 (part 1)"
 # After all files done:
 git commit --amend -m "refactor(error): Update all modules to unified error codes
 
-- Update src/pisstvpp2.c (main program)
-- Update src/pisstvpp2_image.c (image processing)
-- Update src/pisstvpp2_sstv.c (SSTV encoding)
-- Update src/pisstvpp2_audio_encoder.c (audio base)
+- Update src/slowframe.c (main program)
+- Update src/slowframe_image.c (image processing)
+- Update src/slowframe_sstv.c (SSTV encoding)
+- Update src/slowframe_audio_encoder.c (audio base)
 - Update all audio_encoder_*.c (WAV, AIFF, OGG)
 - All error returns use PISSTVPP2_* codes
 - All error messages via error_log()
@@ -389,8 +389,8 @@ git log --oneline origin..HEAD
 
 ### Key Files in This Phase
 - New: `src/util/error.h` and `src/util/error.c`
-- New: `src/core/pisstvpp2_config.h` and `src/core/pisstvpp2_config.c`
-- New: `src/core/pisstvpp2_context.h` and `src/core/pisstvpp2_context.c`
+- New: `src/core/slowframe_config.h` and `src/core/slowframe_config.c`
+- New: `src/core/slowframe_context.h` and `src/core/slowframe_context.c`
 - Modified: All files listed in Task 1.4
 
 ### Files NOT Modified in Phase 1

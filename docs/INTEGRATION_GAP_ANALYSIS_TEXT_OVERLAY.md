@@ -23,14 +23,14 @@ src/image/
 └── image_text_overlay.c ← Phase 2.4: COLOR BARS ONLY (never called!)
 ```
 
-**High-Level Interface (`pisstvpp2_image.c`):**
+**High-Level Interface (`slowframe_image.c`):**
 ```c
 int image_load_from_file()              // ✅ Calls image_loader
 int image_correct_aspect_and_resize()   // ✅ Calls image_aspect
 // ❌ NO FUNCTION CALLS image_text_overlay
 ```
 
-**Main Pipeline (pisstvpp2.c → pisstvpp2_image.c):**
+**Main Pipeline (slowframe.c → slowframe_image.c):**
 ```
 Load Image
     ↓
@@ -43,7 +43,7 @@ Write Audio
 
 ### 2. Configuration Not Extended
 
-**Current PisstvppConfig (pisstvpp2_config.h):**
+**Current PisstvppConfig (slowframe_config.h):**
 ```c
 typedef struct {
     char input_file[...];
@@ -61,7 +61,7 @@ typedef struct {
 
 ### 3. CLI Not Extended
 
-**Current Options (pisstvpp2.c help text):**
+**Current Options (slowframe.c help text):**
 ```
 -i <file>       ✅ Input image
 -o <file>       ✅ Output file
@@ -90,7 +90,7 @@ typedef struct {
 
 ### 5. Image Module Missing Orchestration
 
-**What `pisstvpp2_image.h` exports:**
+**What `slowframe_image.h` exports:**
 ```c
 int image_load_from_file()              // Uses image_loader
 int image_get_dimensions()
@@ -122,14 +122,14 @@ Load      Aspect       Overlay        Encode
 
 ### Phase 3A: Configuration Extension (CRITICAL)
 
-**File: `src/include/pisstvpp2_config.h`**
+**File: `src/include/slowframe_config.h`**
 - Add `overlay_enabled` flag (0/1)
 - Add `overlay_mode` enum (COLOR_BAR, STATION_ID, BOTH)
 - Add `station_id_callsign` field
 - Add `station_id_grid_square` field
 - Add `overlay_placement` enum (TOP, BOTTOM, LEFT, RIGHT, CENTER)
 
-**File: `src/pisstvpp2_config.c`**
+**File: `src/slowframe_config.c`**
 - Add CLI option parsing for `-O` (enable overlay)
 - Add CLI option parsing for `-S <callsign>` (station ID)
 - Add CLI option parsing for `-G <grid>` (grid square)
@@ -138,13 +138,13 @@ Load      Aspect       Overlay        Encode
 
 ### Phase 3B: Image Pipeline Integration (CRITICAL)
 
-**File: `src/include/pisstvpp2_image.h`**
+**File: `src/include/slowframe_image.h`**
 - Add function: `image_apply_text_overlay()` that:
   - Wraps image_text_overlay module
   - Takes overlay config parameters
   - Returns updated VipsImage with overlay applied
 
-**File: `src/pisstvpp2_image.c`**
+**File: `src/slowframe_image.c`**
 - Import image_text_overlay.h
 - Implement `image_apply_text_overlay()` orchestration
 - Call this function after aspect correction, before SSTV encoding
@@ -152,7 +152,7 @@ Load      Aspect       Overlay        Encode
 
 ### Phase 3C: Main Pipeline Integration (CRITICAL)
 
-**File: `src/pisstvpp2.c` (main function)**
+**File: `src/slowframe.c` (main function)**
 - After `image_correct_aspect_and_resize()` completes
 - Before `sstv_encode_frame()` starts
 - Add conditional call to `image_apply_text_overlay()` if `config.overlay_enabled`
@@ -160,7 +160,7 @@ Load      Aspect       Overlay        Encode
 ### Phase 3D: Test Suite Update (IMPORTANT)
 
 **File: `tests/test_suite.py`**
-- Update tests to call pisstvpp2 WITH overlay options: `-O -S W5ZZZ -G EM12ab`
+- Update tests to call slowframe WITH overlay options: `-O -S W5ZZZ -G EM12ab`
 - Capture output files
 - Compare against expected dimensions
 - Eventually: image comparison tools to verify overlay placement
@@ -169,7 +169,7 @@ Load      Aspect       Overlay        Encode
 - Instead of just copying reference images
 - Actually run commands like:
   ```bash
-  ./pisstvpp2 -i image.jpg -O -S W5ZZZ -G EM12ab -o test_overlay_output.wav
+  ./slowframe -i image.jpg -O -S W5ZZZ -G EM12ab -o test_overlay_output.wav
   ```
 - Verify output .wav file is present and non-empty
 
@@ -178,10 +178,10 @@ Load      Aspect       Overlay        Encode
 | Component | Status | Reason |
 |-----------|--------|--------|
 | Text overlay C module | ✅ Works | Compiles, links, functions exist |
-| High-level image interface | ❌ Doesn't call it | No function exported from pisstvpp2_image.h |
+| High-level image interface | ❌ Doesn't call it | No function exported from slowframe_image.h |
 | Configuration system | ❌ No fields | PisstvppConfig has no overlay options |
 | CLI options | ❌ No flags | Help text/getopt don't mention overlay |
-| Main pipeline | ❌ Skips it | pisstvpp2.c never invokes overlay |
+| Main pipeline | ❌ Skips it | slowframe.c never invokes overlay |
 | Test infrastructure | ⚠️ Misleading | Tests PASS but don't verify actual overlays |
 
 ## Integration Checklist
@@ -189,9 +189,9 @@ Load      Aspect       Overlay        Encode
 - [ ] Extend PisstvppConfig struct with overlay fields
 - [ ] Add CLI option parsing for -O, -S, -G flags
 - [ ] Add validation for overlay parameters
-- [ ] Export image_apply_text_overlay() from pisstvpp2_image.h
-- [ ] Implement text overlay invocation in pisstvpp2_image.c
-- [ ] Call image_apply_text_overlay() in pisstvpp2.c main pipeline
+- [ ] Export image_apply_text_overlay() from slowframe_image.h
+- [ ] Implement text overlay invocation in slowframe_image.c
+- [ ] Call image_apply_text_overlay() in slowframe.c main pipeline
 - [ ] Update help text with overlay option documentation
 - [ ] Create working test cases that actually generate overlays
 - [ ] Update test suite to verify overlay output
@@ -208,11 +208,11 @@ Load      Aspect       Overlay        Encode
 ## Files Requiring Modification
 
 **Must Modify:**
-1. `src/include/pisstvpp2_config.h` - Add overlay config fields
-2. `src/pisstvpp2_config.c` - Add CLI parsing for overlay options
-3. `src/include/pisstvpp2_image.h` - Export overlay functions
-4. `src/pisstvpp2_image.c` - Implement overlay orchestration
-5. `src/pisstvpp2.c` - Call overlay in main pipeline
+1. `src/include/slowframe_config.h` - Add overlay config fields
+2. `src/slowframe_config.c` - Add CLI parsing for overlay options
+3. `src/include/slowframe_image.h` - Export overlay functions
+4. `src/slowframe_image.c` - Implement overlay orchestration
+5. `src/slowframe.c` - Call overlay in main pipeline
 6. `tests/test_suite.py` - Generate actual overlay outputs
 
 **Already Complete:**

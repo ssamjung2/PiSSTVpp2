@@ -1,6 +1,6 @@
-# PiSSTVpp2 v2.0 - Master Project Plan
+# SlowFrame v2.0 - Master Project Plan
 
-**Project:** PiSSTVpp2 Version 2.0 - Next Generation SSTV Encoder  
+**Project:** SlowFrame Version 2.0 - Next Generation SSTV Encoder  
 **Status:** Part 1 Complete, Part 0 Cleanup Done, Awaiting Part 2 (mmsstv-portable)  
 **Version:** 1.1  
 **Date:** January 29, 2026  
@@ -11,7 +11,7 @@
 
 ## Executive Summary
 
-This document outlines a comprehensive plan to transform PiSSTVpp2 into a professional, production-ready version 2.0 release with support for extensive SSTV modes via the MMSSTV library port. The project encompasses code refactoring, comprehensive testing, documentation, and establishing infrastructure for open-source community contribution on GitHub.
+This document outlines a comprehensive plan to transform SlowFrame into a professional, production-ready version 2.0 release with support for extensive SSTV modes via the MMSSTV library port. The project encompasses code refactoring, comprehensive testing, documentation, and establishing infrastructure for open-source community contribution on GitHub.
 
 **Important Note:** This plan is being created from a **clean slate approach**, focusing on the actual existing code structure rather than relying on previous analysis documents. All prior Copilot-generated summary documents and analysis scripts will be archived to ensure we establish a proper foundation based on direct code inspection.
 
@@ -67,7 +67,7 @@ The existing workspace contains significant Copilot-generated documentation and 
 - `util/sstvcatch.py`, `util/audio_check.py` - Testing utilities (2 files)
 - `util/test_*.sh`, `util/QUICK_START_TESTS.sh` - Debug test scripts (4 files)
 - `util/*.md` - Supporting documentation files (3 files)
-- `src/pisstvpp2.c.backup`, `src/pisstvpp2.c.backup2` - Backup files
+- `src/slowframe.c.backup`, `src/slowframe.c.backup2` - Backup files
 - `src/test_vips.c` - If this is exploratory (verify first)
 
 **Result:** 
@@ -108,8 +108,8 @@ The existing workspace contains significant Copilot-generated documentation and 
   - Test/implementation docs (TEST_IMPLEMENTATION_*, SAMPLE_* docs - 10 files)
   
 - **Source:** 3 backup/test files removed
-  - pisstvpp2.c.backup
-  - pisstvpp2.c.backup2  
+  - slowframe.c.backup
+  - slowframe.c.backup2  
   - test_vips.c
 
 - **Utilities:** 22 files removed from util/
@@ -157,19 +157,19 @@ The existing workspace contains significant Copilot-generated documentation and 
 **Note:** The following is based on direct inspection of the current source files and build configuration. No prior summary documents were used.
 
 **Code Layout (actual files):**
-- Main entry point: `src/pisstvpp2.c` (~831 lines)
-- Image processing: `src/pisstvpp2_image.c` + `src/include/pisstvpp2_image.h`
-- SSTV synthesis: `src/pisstvpp2_sstv.c` + `src/include/pisstvpp2_sstv.h`
-- Audio encoder factory: `src/pisstvpp2_audio_encoder.c` + `src/include/pisstvpp2_audio_encoder.h`
+- Main entry point: `src/slowframe.c` (~831 lines)
+- Image processing: `src/slowframe_image.c` + `src/include/slowframe_image.h`
+- SSTV synthesis: `src/slowframe_sstv.c` + `src/include/slowframe_sstv.h`
+- Audio encoder factory: `src/slowframe_audio_encoder.c` + `src/include/slowframe_audio_encoder.h`
 - Format encoders: `src/audio_encoder_wav.c`, `src/audio_encoder_aiff.c`, `src/audio_encoder_ogg.c`
 
 **Architecture (as implemented):**
 - Modular pipeline: image load → aspect correction → SSTV synthesis → audio encoder
 - Single-threaded, streaming pipeline
 - Global state (after Part 1 refactoring):
-  - `pisstvpp2.c`: no globals (uses local `rate` variable)
-  - `pisstvpp2_image.c`: `g_image`, `g_buffer`, `g_original_filename`
-  - `pisstvpp2_sstv.c`: encapsulated in single `g_sstv` state struct
+  - `slowframe.c`: no globals (uses local `rate` variable)
+  - `slowframe_image.c`: `g_image`, `g_buffer`, `g_original_filename`
+  - `slowframe_sstv.c`: encapsulated in single `g_sstv` state struct
 
 **SSTV Modes Supported (verified in code):**
 - Martin 1 (VIS 44)
@@ -233,7 +233,7 @@ The existing workspace contains significant Copilot-generated documentation and 
 2. Aligned test image paths to `tests/images` in the test suite.
 3. Added basic OGG header validation and optional OGG test path.
 4. Normalized DC bias in `playtone()` to match envelope path.
-5. Removed duplicate `ASPECT_TOLERANCE` definition from `pisstvpp2.c`.
+5. Removed duplicate `ASPECT_TOLERANCE` definition from `slowframe.c`.
 6. Aligned default sample rate constants to 22050 Hz.
 7. Removed the main-module global sample rate (`g_rate`) and used a local `rate` variable.
 8. Fixed test suite aspect mode to use valid `center` instead of `fit`.
@@ -478,15 +478,15 @@ typedef struct {
 **Current Structure:**
 ```
 src/
-├── pisstvpp2.c               (831 lines - everything)
-├── pisstvpp2_image.c
-├── pisstvpp2_sstv.c
-├── pisstvpp2_audio_encoder.c
+├── slowframe.c               (831 lines - everything)
+├── slowframe_image.c
+├── slowframe_sstv.c
+├── slowframe_audio_encoder.c
 ├── audio_encoder_*.c         (4 files)
 └── include/
-    ├── pisstvpp2_image.h
-    ├── pisstvpp2_sstv.h
-    ├── pisstvpp2_audio_encoder.h
+    ├── slowframe_image.h
+    ├── slowframe_sstv.h
+    ├── slowframe_audio_encoder.h
     └── logging.h
 ```
 
@@ -494,9 +494,9 @@ src/
 ```
 src/
 ├── core/
-│   ├── pisstvpp2_main.c      (Entry point)
-│   ├── pisstvpp2_config.c    (Configuration/options)
-│   └── pisstvpp2_context.c   (Global state management)
+│   ├── slowframe_main.c      (Entry point)
+│   ├── slowframe_config.c    (Configuration/options)
+│   └── slowframe_context.c   (Global state management)
 ├── image/
 │   ├── image.c               (Image loading/processing)
 │   ├── image_aspect.c        (Aspect ratio correction)
@@ -664,7 +664,7 @@ install: $(TARGET)
 	install -m 755 $(TARGET) $(DESTDIR)$(INSTALL_DIR)/bin/
 
 # Add library build (for future library mode)
-libpisstvpp2.a: $(OBJ_FILES)
+libslowframe.a: $(OBJ_FILES)
 	ar rcs $@ $^
 
 # Add sanitizers for testing
@@ -747,7 +747,7 @@ void test_playtone_amplitude_range(void) {
 1. **Mode Correctness Tests**
    ```bash
    for mode in m1 m2 s1 s2 sdx r36 r72; do
-       ./pisstvpp2 -i test.jpg -p $mode -o test_$mode.wav
+       ./slowframe -i test.jpg -p $mode -o test_$mode.wav
        verify_sstv_output test_$mode.wav $mode
    done
    ```
@@ -755,7 +755,7 @@ void test_playtone_amplitude_range(void) {
 2. **Format Compatibility Tests**
    ```bash
    for format in wav aiff ogg; do
-       ./pisstvpp2 -i test.jpg -f $format -o test.$format
+       ./slowframe -i test.jpg -f $format -o test.$format
        verify_audio_format test.$format $format
    done
    ```
@@ -763,7 +763,7 @@ void test_playtone_amplitude_range(void) {
 3. **Aspect Ratio Tests**
    ```bash
    for aspect in crop pad stretch; do
-       ./pisstvpp2 -i input.jpg -a $aspect -o test_${aspect}.wav
+       ./slowframe -i input.jpg -a $aspect -o test_${aspect}.wav
        verify_aspect_correction test_${aspect}.wav
    done
    ```
@@ -771,20 +771,20 @@ void test_playtone_amplitude_range(void) {
 4. **Image Format Tests**
    ```bash
    for fmt in png jpg gif bmp tiff webp; do
-       ./pisstvpp2 -i test.$fmt -o test_$fmt.wav
+       ./slowframe -i test.$fmt -o test_$fmt.wav
    done
    ```
 
 5. **CW Signature Tests**
    ```bash
-   ./pisstvpp2 -i test.jpg -C "W5XYZ" -W 25 -T 800 -o test_cw.wav
+   ./slowframe -i test.jpg -C "W5XYZ" -W 25 -T 800 -o test_cw.wav
    verify_cw_present test_cw.wav "W5XYZ" 25 800
    ```
 
 6. **Sample Rate Tests**
    ```bash
    for rate in 8000 11025 22050 44100 48000; do
-       ./pisstvpp2 -i test.jpg -r $rate -o test_${rate}.wav
+       ./slowframe -i test.jpg -r $rate -o test_${rate}.wav
        verify_sample_rate test_${rate}.wav $rate
    done
    ```
@@ -821,10 +821,10 @@ void test_playtone_amplitude_range(void) {
 
 ```bash
 # Build with sanitizers
-make clean && make CFLAGS="-fsanitize=address" pisstvpp2
+make clean && make CFLAGS="-fsanitize=address" slowframe
 
 # Run tests
-./pisstvpp2 -i test.jpg -o test.wav  # Should detect any memory issues
+./slowframe -i test.jpg -o test.wav  # Should detect any memory issues
 ```
 
 #### Phase 5: Regression Testing
@@ -1066,8 +1066,8 @@ clang-tidy src/*.c -- $(CFLAGS)
 
 ### 6.1 GitHub Repository Setup
 
-**Repository Name:** `PiSSTVpp2` (or `pisstvpp2`)  
-**URL:** `https://github.com/[OWNER]/PiSSTVpp2`  
+**Repository Name:** `SlowFrame` (or `slowframe`)  
+**URL:** `https://github.com/[OWNER]/SlowFrame`  
 **Description:** "Professional SSTV image-to-audio encoder for Raspberry Pi, Linux, and macOS"
 
 **Initial Structure:**
@@ -1134,7 +1134,7 @@ LICENSES/GPL-3.0-or-later.txt  (Full GPL v3 text)
 **File: CONTRIBUTING.md**
 
 ```markdown
-# Contributing to PiSSTVpp2
+# Contributing to SlowFrame
 
 We welcome contributions from ham radio enthusiasts and software developers!
 
@@ -1165,8 +1165,8 @@ We welcome contributions from ham radio enthusiasts and software developers!
 
 ### Development Setup
 ```bash
-git clone https://github.com/yourname/PiSSTVpp2.git
-cd PiSSTVpp2
+git clone https://github.com/yourname/SlowFrame.git
+cd SlowFrame
 ./scripts/install_deps.sh
 make all
 make test
@@ -1202,7 +1202,7 @@ about: Report a bug to help us improve
 ## Steps to Reproduce
 1. Command used:
 ```bash
-./pisstvpp2 [your command]
+./slowframe [your command]
 ```
 2. Test image: [filename/attached]
 3. Expected output: [what should happen]
@@ -1257,7 +1257,7 @@ We will respond within 48 hours.
 **File: ROADMAP.md**
 
 ```markdown
-# PiSSTVpp2 Roadmap
+# SlowFrame Roadmap
 
 ## Version 2.0 (Current)
 **Target: Q2 2026**
@@ -1410,7 +1410,7 @@ Ubuntu/Debian:
 # Installation support
 PREFIX ?= /usr/local
 INSTALL_BIN = $(PREFIX)/bin
-INSTALL_DOC = $(PREFIX)/share/doc/pisstvpp2
+INSTALL_DOC = $(PREFIX)/share/doc/slowframe
 
 install: $(TARGET)
 	mkdir -p $(INSTALL_BIN)
@@ -1420,7 +1420,7 @@ install: $(TARGET)
 	install -m 644 LICENSE $(INSTALL_DOC)/
 
 uninstall:
-	rm -f $(INSTALL_BIN)/pisstvpp2
+	rm -f $(INSTALL_BIN)/slowframe
 	rm -rf $(INSTALL_DOC)
 
 # Additional targets
@@ -1497,8 +1497,8 @@ help:
 
 **Release Assets Structure:**
 ```
-pisstvpp2-2.0.0-raspios-armv7l.tar.gz
-├── pisstvpp2 (executable)
+slowframe-2.0.0-raspios-armv7l.tar.gz
+├── slowframe (executable)
 ├── README.md
 ├── INSTALLATION.md
 └── examples/
@@ -1539,7 +1539,7 @@ Future: Create debian package (.deb)
 **Homebrew (for macOS):**
 ```
 Future: Create Homebrew formula
-- pisstvpp2.rb in homebrew-core
+- slowframe.rb in homebrew-core
 - Automatic updates with new releases
 ```
 
@@ -1756,7 +1756,7 @@ MMSSTV Integration (12 weeks) is the longest pole
 
 ### Current (v1.x)
 ```
-src/pisstvpp2.c (831 lines)
+src/slowframe.c (831 lines)
 ├── Main entry point
 ├── Image processing
 ├── SSTV encoding (6 modes)
@@ -1767,7 +1767,7 @@ src/pisstvpp2.c (831 lines)
 ### Target (v2.0)
 ```
 src/
-├── pisstvpp2.c (entry point, ~200 lines)
+├── slowframe.c (entry point, ~200 lines)
 ├── core/config.c, context.c
 ├── image/*.c (image processing)
 ├── sstv/*.c (SSTV encoding, modular)
@@ -1839,7 +1839,7 @@ esac
 # Run benchmark on all modes
 for mode in m1 m2 s1 s2 sdx r36; do
   echo "Testing $mode..."
-  time ./bin/pisstvpp2 -i tests/images/test.jpg -p $mode -o /tmp/test_$mode.wav
+  time ./bin/slowframe -i tests/images/test.jpg -p $mode -o /tmp/test_$mode.wav
 done
 ```
 
@@ -1855,7 +1855,7 @@ open coverage/index.html  # or firefox on Linux
 
 ## Summary & Current Status
 
-This comprehensive master plan provides a roadmap for transforming PiSSTVpp2 into a professional, community-driven open-source project with:
+This comprehensive master plan provides a roadmap for transforming SlowFrame into a professional, community-driven open-source project with:
 
 1. **✅ Clean workspace** with only essential, authoritative files (COMPLETED)
 2. **✅ Fresh code analysis** based on direct inspection, not prior documentation (COMPLETED)
@@ -1889,7 +1889,7 @@ This comprehensive master plan provides a roadmap for transforming PiSSTVpp2 int
 ⏸️ **Part 2: MMSSTV Library Integration** - AWAITING EXTERNAL DEPENDENCY
 - Blocked on availability of `mmsstv-portable` C library
 - Stub interface defined and ready in `src/include/mmsstv_stub.h`
-- `src/pisstvpp2_mmsstv_adapter.c` skeleton created (awaiting library)
+- `src/slowframe_mmsstv_adapter.c` skeleton created (awaiting library)
 - Mode parameter tables ready to be filled when library available
 - Integration approach validated and documented
 

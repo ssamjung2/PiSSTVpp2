@@ -7,7 +7,7 @@
 
 ## What I've Created For You
 
-You now have a **complete, documented strategy** for evolving PiSSTVpp2 while maintaining community accessibility. Here's what exists:
+You now have a **complete, documented strategy** for evolving SlowFrame while maintaining community accessibility. Here's what exists:
 
 ### 1. **MODERNIZATION_AND_MMSSTV_ROADMAP.md** (8000+ words)
 The comprehensive architecture document explaining:
@@ -82,13 +82,13 @@ if (function() != PISSTVPP2_OK) {
 ### 2. **Code Modularization** (Phases 2-3)
 ```c
 // Before: Everything interconnected
-pisstvpp2.c (811 lines)
+slowframe.c (811 lines)
   ↓
-pisstvpp2_image.c (loading, processing, aspect)
+slowframe_image.c (loading, processing, aspect)
   ↓
-pisstvpp2_sstv.c (7 modes hardcoded)
+slowframe_sstv.c (7 modes hardcoded)
   ↓
-pisstvpp2_audio_encoder.c
+slowframe_audio_encoder.c
 
 // After: Clear responsibilities
 core/
@@ -113,8 +113,8 @@ audio/
 4. Falls back to native-only (that's OK!)
 
 # CLI automatically extends:
-Without MMSSTV:  pisstvpp2 -p m1|m2|s1|s2|sdx|r36|r72
-With MMSSTV:     pisstvpp2 -p m1|m2|...|r72|pd120|avt90|...
+Without MMSSTV:  slowframe -p m1|m2|s1|s2|sdx|r36|r72
+With MMSSTV:     slowframe -p m1|m2|...|r72|pd120|avt90|...
 ```
 
 ### 4. **Code Accessibility** (Throughout)
@@ -278,7 +278,7 @@ With MMSSTV:     pisstvpp2 -p m1|m2|...|r72|pd120|avt90|...
 ### For First Developer (Phase 1)
 1. → Read DEVELOPMENT_QUICK_REFERENCE.md
 2. → Study DEVELOPMENT_TASK_LIST_v2.1.md§Phase 1
-3. → Review current src/pisstvpp2.c structure
+3. → Review current src/slowframe.c structure
 4. → Create feature branch: `git checkout -b feature/phase-1-error-codes`
 5. → Start Task 1.1 (Error Code System)
 
@@ -293,7 +293,7 @@ With MMSSTV:     pisstvpp2 -p m1|m2|...|r72|pd120|avt90|...
 ## Additional Information
 
 ### Available Documentation
-All documents are in `/Users/ssamjung/Desktop/WIP/PiSSTVpp2/docs/`
+All documents are in `/Users/ssamjung/Desktop/WIP/SlowFrame/docs/`
 
 **New Documents Created Today:**
 - `MODERNIZATION_AND_MMSSTV_ROADMAP.md` (comprehensive strategy)
@@ -308,7 +308,7 @@ All documents are in `/Users/ssamjung/Desktop/WIP/PiSSTVpp2/docs/`
 - `TEST_EXECUTION_SUMMARY.md` - Current test status
 
 ### Getting Started
-1. `cd /Users/ssamjung/Desktop/WIP/PiSSTVpp2`
+1. `cd /Users/ssamjung/Desktop/WIP/SlowFrame`
 2. `make clean && make all` (verify current state)
 3. `./tests/test_suite.py` (verify 55/55 pass)
 4. Read `docs/DEVELOPMENT_QUICK_REFERENCE.md`
@@ -318,7 +318,7 @@ All documents are in `/Users/ssamjung/Desktop/WIP/PiSSTVpp2/docs/`
 
 ## Summary Statement
 
-**You now have a complete, documented roadmap for evolving PiSSTVpp2 from a solid v2.0 foundation into a modern, extensible v2.1 that gracefully supports up to 57+ SSTV modes, while maintaining full backward compatibility and remaining accessible to the ham radio community.**
+**You now have a complete, documented roadmap for evolving SlowFrame from a solid v2.0 foundation into a modern, extensible v2.1 that gracefully supports up to 57+ SSTV modes, while maintaining full backward compatibility and remaining accessible to the ham radio community.**
 
 The strategy is:
 - **Safe** (no breaking changes, constant testing)

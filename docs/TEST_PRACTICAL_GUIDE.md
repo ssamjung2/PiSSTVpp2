@@ -34,7 +34,7 @@ You want to run tests in your CI/CD system:
 make test-ci
 
 # This will:
-# 1. Build pisstvpp2
+# 1. Build slowframe
 # 2. Run full test suite
 # 3. Generate JSON report
 # 4. Exit with appropriate code (0=success, 1=failure)
@@ -115,7 +115,7 @@ echo "===================="
 
 for protocol in m1 m2 s1 s2 sdx r36 r72; do
     echo -n "$protocol: "
-    time ./pisstvpp2 -i test_320x240.png -p "$protocol" -o /tmp/bench_$protocol.wav
+    time ./slowframe -i test_320x240.png -p "$protocol" -o /tmp/bench_$protocol.wav
 done
 ```
 
@@ -129,7 +129,7 @@ You want to verify the program works with various image types:
 
 for img in test*.{jpg,png,gif,bmp}; do
     echo "Testing $img..."
-    ./pisstvpp2 -i "$img" -o /tmp/test_${img##*/}.wav -v
+    ./slowframe -i "$img" -o /tmp/test_${img##*/}.wav -v
     if [ -f "/tmp/test_${img##*/}.wav" ]; then
         echo "  ✓ Success"
     else
@@ -168,7 +168,7 @@ EOF
 # Test encoding of all images
 for img in batch_test/test_*.png; do
     output="batch_test/output/$(basename ${img%.png}).wav"
-    if ./pisstvpp2 -i "$img" -o "$output"; then
+    if ./slowframe -i "$img" -o "$output"; then
         echo "✓ $img"
     else
         echo "✗ $img"
@@ -183,7 +183,7 @@ You updated dependencies and want to ensure compatibility:
 ```bash
 # Rebuild with latest dependencies
 make clean
-make pisstvpp2
+make slowframe
 
 # Run full test suite with verbose output
 make test-full
@@ -223,7 +223,7 @@ echo "Debugging Robot 72..."
 convert -size 320x240 gradient: debug_test.png
 
 # Run with maximum verbosity
-./pisstvpp2 -i debug_test.png -p r72 -o debug_r72.wav -v
+./slowframe -i debug_test.png -p r72 -o debug_r72.wav -v
 
 # Analyze output
 echo ""
@@ -254,11 +254,11 @@ You want to automatically test after each edit:
 
 while true; do
     # Wait for source file changes
-    inotifywait -e modify pisstvpp2.c
+    inotifywait -e modify slowframe.c
     
     # Rebuild and test
     echo "Source changed, rebuilding and testing..."
-    make clean && make pisstvpp2 && make test-quick
+    make clean && make slowframe && make test-quick
     
     echo "Done. Waiting for next change..."
 done
@@ -324,20 +324,20 @@ cat test_report.md
 
 ## Scenario 12: Testing With Custom Executable Path
 
-You have multiple versions of pisstvpp2:
+You have multiple versions of slowframe:
 
 ```bash
 # Test with development version
-python3 test_suite.py --exe ./pisstvpp2_dev
+python3 test_suite.py --exe ./slowframe_dev
 
 # Test with optimized version
-python3 test_suite.py --exe ./pisstvpp2_O3
+python3 test_suite.py --exe ./slowframe_O3
 
 # Test with sanitizer version
-python3 test_suite.py --exe ./pisstvpp2_san
+python3 test_suite.py --exe ./slowframe_san
 
 # Compare results
-for exe in pisstvpp2*; do
+for exe in slowframe*; do
     echo "Testing $exe..."
     python3 test_suite.py --exe "./$exe" 2>&1 | grep -E "PASSED|FAILED" | tail -1
 done
@@ -355,13 +355,13 @@ ssh pi@192.168.1.100
 cd ~/projects/PiSSTVpp
 
 # Build
-make clean && make pisstvpp2
+make clean && make slowframe
 
 # Run quick test (uses less resources)
 make test-quick
 
 # Or run specific protocol test
-./pisstvpp2 -i test_320x240.png -p r72 -o test_r72.wav -v
+./slowframe -i test_320x240.png -p r72 -o test_r72.wav -v
 ```
 
 ## Scenario 14: Testing Edge Cases
@@ -377,29 +377,29 @@ echo "================="
 
 # Minimum sample rate
 echo "Min sample rate (8000 Hz):"
-./pisstvpp2 -i test_320x240.png -r 8000 -o /tmp/edge_min_rate.wav
+./slowframe -i test_320x240.png -r 8000 -o /tmp/edge_min_rate.wav
 
 # Maximum sample rate
 echo "Max sample rate (48000 Hz):"
-./pisstvpp2 -i test_320x240.png -r 48000 -o /tmp/edge_max_rate.wav
+./slowframe -i test_320x240.png -r 48000 -o /tmp/edge_max_rate.wav
 
 # Very long callsign (max 31 chars)
 echo "Max callsign length:"
-./pisstvpp2 -i test_320x240.png -C "A1B2C3D4E5F6G7H8I9" -o /tmp/edge_call_long.wav
+./slowframe -i test_320x240.png -C "A1B2C3D4E5F6G7H8I9" -o /tmp/edge_call_long.wav
 
 # Edge WPM values
 echo "Min WPM (1):"
-./pisstvpp2 -i test_320x240.png -C "TEST" -W 1 -o /tmp/edge_wpm_min.wav
+./slowframe -i test_320x240.png -C "TEST" -W 1 -o /tmp/edge_wpm_min.wav
 
 echo "Max WPM (50):"
-./pisstvpp2 -i test_320x240.png -C "TEST" -W 50 -o /tmp/edge_wpm_max.wav
+./slowframe -i test_320x240.png -C "TEST" -W 50 -o /tmp/edge_wpm_max.wav
 
 # Edge tone frequencies
 echo "Min tone (400 Hz):"
-./pisstvpp2 -i test_320x240.png -C "TEST" -T 400 -o /tmp/edge_tone_min.wav
+./slowframe -i test_320x240.png -C "TEST" -T 400 -o /tmp/edge_tone_min.wav
 
 echo "Max tone (2000 Hz):"
-./pisstvpp2 -i test_320x240.png -C "TEST" -T 2000 -o /tmp/edge_tone_max.wav
+./slowframe -i test_320x240.png -C "TEST" -T 2000 -o /tmp/edge_tone_max.wav
 ```
 
 ## Quick Command Reference
@@ -417,7 +417,7 @@ make test-ci            # CI/CD mode
 make test-clean         # Clean outputs
 
 # Manual testing
-./pisstvpp2 -h          # Show help
+./slowframe -h          # Show help
 ./test_suite_bash.sh    # Run bash tests
 
 # Python suite options
@@ -431,7 +431,7 @@ python3 test_suite.py --keep-outputs  # Keep files
 | Problem | Solution |
 |---------|----------|
 | "No test images found" | Create with: `convert -size 320x240 gradient: test_320x240.png` |
-| "Executable not found" | Run `make pisstvpp2` first |
+| "Executable not found" | Run `make slowframe` first |
 | "WAV file validation failed" | Check file isn't truncated: `file test_outputs/*.wav` |
 | "Python test fails" | Verify Python 3.6+: `python3 --version` |
 | "Permission denied" | Make executable: `chmod +x test_suite_bash.sh` |

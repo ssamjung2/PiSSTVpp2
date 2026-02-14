@@ -1,7 +1,7 @@
 /*
  * image_processor.h
  *
- * Basic image processing operations for PiSSTVpp2
+ * Basic image processing operations for SlowFrame
  * 
  * Provides color space conversion, scaling, cropping, padding, and pixel access
  * utilities built on top of libvips for efficient image transformation.
@@ -10,7 +10,7 @@
  * - All operations work on VipsImage objects (memory-efficient)
  * - Operations are composable (output of one is input to next)
  * - Pixel access operates on ImageBuffer (from image_loader)
- * - All errors use standardized PISSTVPP2_ERR_* codes
+ * - All errors use standardized SLOWFRAME_ERR_* codes
  *
  * Typical Usage Flow:
  * 1. image_loader_load_image() → get RGB ImageBuffer + VipsImage
@@ -35,7 +35,7 @@
  * @param image VipsImage to convert
  * @param out_rgb Output: converted VipsImage (or same if already RGB)
  * 
- * @return PISSTVPP2_OK on success
+ * @return SLOWFRAME_OK on success
  * Caller responsibility: g_object_unref(out_rgb) after use
  */
 int image_processor_to_rgb(VipsImage *image, VipsImage **out_rgb);
@@ -51,7 +51,7 @@ int image_processor_to_rgb(VipsImage *image, VipsImage **out_rgb);
  * @param out_scaled Output: scaled VipsImage
  * @param verbose If non-zero, print progress
  * 
- * @return PISSTVPP2_OK on success, PISSTVPP2_ERR_IMAGE_PROCESS on failure
+ * @return SLOWFRAME_OK on success, SLOWFRAME_ERR_IMAGE_PROCESS on failure
  * Caller responsibility: g_object_unref(out_scaled) after use
  */
 int image_processor_scale(VipsImage *image, int new_width, int new_height,
@@ -70,7 +70,7 @@ int image_processor_scale(VipsImage *image, int new_width, int new_height,
  * @param out_cropped Output: cropped VipsImage
  * @param verbose If non-zero, print progress
  * 
- * @return PISSTVPP2_OK on success
+ * @return SLOWFRAME_OK on success
  * Caller responsibility: g_object_unref(out_cropped) after use
  */
 int image_processor_crop(VipsImage *image, int left, int top, int width, int height,
@@ -89,7 +89,7 @@ int image_processor_crop(VipsImage *image, int left, int top, int width, int hei
  * @param out_padded Output: padded VipsImage
  * @param verbose If non-zero, print progress
  * 
- * @return PISSTVPP2_OK on success
+ * @return SLOWFRAME_OK on success
  * Caller responsibility: g_object_unref(out_padded) after use
  */
 int image_processor_embed(VipsImage *image, int left, int top, int canvas_width, int canvas_height,

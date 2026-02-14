@@ -1,4 +1,4 @@
-# PiSSTVpp2 v2.1 Analysis - Delivery Summary
+# SlowFrame v2.1 Analysis - Delivery Summary
 ## Comprehensive Text Overlay Implementation Assessment
 
 **Completed:** February 11, 2026  
@@ -71,7 +71,7 @@ Text overlay feature is architecturally sound but has a **critical bug** in the 
 ## Key Findings
 
 ### Critical Bug (Blocks All Functionality)
-**Location:** `src/pisstvpp2_image.c` lines 590-640 in `apply_single_overlay()`
+**Location:** `src/slowframe_image.c` lines 590-640 in `apply_single_overlay()`
 
 ```c
 // Current (BROKEN):
@@ -109,7 +109,7 @@ Missing field in `PisstvppConfig` struct:
 ### Module Fragmentation
 Two competing implementations:
 1. `image_text_overlay.c/h` - Phase 2.4 module (color bars only, unused)
-2. `overlay_spec.c/h` + `pisstvpp2_image.c` - Spec system (incomplete)
+2. `overlay_spec.c/h` + `slowframe_image.c` - Spec system (incomplete)
 
 Result: Confusing codebase, unclear which to use
 

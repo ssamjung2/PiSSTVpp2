@@ -12,7 +12,7 @@
 ```bash
 # Run comprehensive test suite
 cd tests
-python3 test_text_overlay_comprehensive.py --exe ../bin/pisstvpp2
+python3 test_text_overlay_comprehensive.py --exe ../bin/slowframe
 
 # Results will be saved to:
 # tests/test_outputs/text_overlay_comprehensive/
@@ -135,7 +135,7 @@ qso_multicolor_20260211_214353.png     (21KB) - Multi-color professional layout
 ```python
 from test_text_overlay_comprehensive import TextOverlayComprehensiveTests
 
-suite = TextOverlayComprehensiveTests(executable_path="../bin/pisstvpp2")
+suite = TextOverlayComprehensiveTests(executable_path="../bin/slowframe")
 
 # Run only stress tests
 suite.test_all_named_colors_stress()

@@ -1,7 +1,7 @@
 /*
- * pisstvpp2_sstv.h
+ * slowframe_sstv.h
  *
- * SSTV Audio Encoding Module for PiSSTVpp2
+ * SSTV Audio Encoding Module for SlowFrame
  *
  * This module handles all SSTV (Slow Scan Television) encoding functionality:
  * - Audio tone synthesis and modulation
@@ -23,12 +23,12 @@
  * - Synthesis state (g_theta, g_fudge): Phase continuity and timing
  *
  * Dependencies:
- * - pisstvpp2_image.h: For image pixel data access
+ * - slowframe_image.h: For image pixel data access
  * - error.h: For unified error code system
  */
 
-#ifndef PISSTVPP2_SSTV_H
-#define PISSTVPP2_SSTV_H
+#ifndef SLOWFRAME_SSTV_H
+#define SLOWFRAME_SSTV_H
 
 #include <stdint.h>
 #include <stdio.h>
@@ -88,10 +88,10 @@ enum {
  * @param verbose If non-zero, print initialization messages
  * @param timestamp_logging If non-zero, add millisecond-precision timestamps to verbose output
  *
- * @return Error code: PISSTVPP2_OK on success, or:
- *   - PISSTVPP2_ERR_ARG_INVALID_SAMPLE_RATE: Sample rate out of valid range
- *   - PISSTVPP2_ERR_MEMORY_ALLOC: Failed to allocate audio buffer
- *   - PISSTVPP2_ERR_SSTV_INIT: Initialization failed
+ * @return Error code: SLOWFRAME_OK on success, or:
+ *   - SLOWFRAME_ERR_ARG_INVALID_SAMPLE_RATE: Sample rate out of valid range
+ *   - SLOWFRAME_ERR_MEMORY_ALLOC: Failed to allocate audio buffer
+ *   - SLOWFRAME_ERR_SSTV_INIT: Initialization failed
  *
  * Effects:
  * - Allocates audio buffer if needed
@@ -140,18 +140,18 @@ uint8_t sstv_get_protocol(void);
  * @param verbose If non-zero, print progress per scan line
  * @param timestamp_logging If non-zero, add millisecond-precision timestamps to verbose output
  *
- * @return Error code: PISSTVPP2_OK on success, or:
- *   - PISSTVPP2_ERR_SSTV_INIT: Module not initialized
- *   - PISSTVPP2_ERR_SSTV_MODE_NOT_FOUND: SSTV mode not recognized
- *   - PISSTVPP2_ERR_SSTV_ENCODE: Audio encoding failed
- *   - PISSTVPP2_ERR_IMAGE_LOAD: No image loaded
+ * @return Error code: SLOWFRAME_OK on success, or:
+ *   - SLOWFRAME_ERR_SSTV_INIT: Module not initialized
+ *   - SLOWFRAME_ERR_SSTV_MODE_NOT_FOUND: SSTV mode not recognized
+ *   - SLOWFRAME_ERR_SSTV_ENCODE: Audio encoding failed
+ *   - SLOWFRAME_ERR_IMAGE_LOAD: No image loaded
  *
  * Effects:
  * - Appends audio samples to global buffer
  * - Updates g_samples counter
  *
  * Notes:
- * - Requires a valid image to be loaded (via pisstvpp2_image module)
+ * - Requires a valid image to be loaded (via slowframe_image module)
  * - Requires SSTV protocol to be set (via sstv_set_protocol)
  */
 int sstv_encode_frame(int verbose, int timestamp_logging);
@@ -253,4 +253,5 @@ void sstv_reset_buffer(void);
  */
 void sstv_get_mode_details(uint8_t protocol, int verbose, int timestamp_logging);
 
-#endif /* PISSTVPP2_SSTV_H */
+#endif /* SLOWFRAME_SSTV_H */
+

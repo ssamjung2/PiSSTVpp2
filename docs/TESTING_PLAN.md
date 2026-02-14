@@ -1,6 +1,6 @@
-# PiSSTVpp2 Testing Plan
+# SlowFrame Testing Plan
 
-**Comprehensive testing strategy and test case coverage for PiSSTVpp2 v2.0**
+**Comprehensive testing strategy and test case coverage for SlowFrame v2.0**
 
 ---
 
@@ -22,7 +22,7 @@
 
 ### Purpose
 
-The PiSSTVpp2 test suite ensures:
+The SlowFrame test suite ensures:
 - **Functional correctness**: All SSTV modes work properly
 - **Audio quality**: Generated output is valid and complete
 - **Input handling**: All image formats supported by libvips process correctly
@@ -67,7 +67,7 @@ The test suite covers **55+ automated tests** across:
 - **Approach**: Compile individual test binaries with mocked dependencies
 
 #### Integration Testing
-- **Scope**: Module interactions (pisstvpp2.c + all modules)
+- **Scope**: Module interactions (slowframe.c + all modules)
 - **Coverage**: Full end-to-end pipeline
 - **Approach**: Run complete binary with various inputs
 
@@ -193,13 +193,13 @@ sudo apt-get update
 sudo apt-get install build-essential libvips-dev libogg-dev libvorbis-dev python3
 
 # 2. Clone/download repository
-cd /path/to/PiSSTVpp2
+cd /path/to/SlowFrame
 
 # 3. Build
 make clean && make all
 
 # 4. Verify binary exists
-ls -lh bin/pisstvpp2
+ls -lh bin/slowframe
 
 # 5. Verify test images exist
 ls -lh tests/images/
@@ -225,7 +225,7 @@ ls -lh tests/images/
 
 ```bash
 # Run all tests
-cd /path/to/PiSSTVpp2/tests
+cd /path/to/SlowFrame/tests
 python3 test_suite.py
 
 # Run with verbose output
@@ -254,7 +254,7 @@ Details written to: test_results.json
 
 ```bash
 # Bash quick tests (no Python needed)
-cd /path/to/PiSSTVpp2/tests
+cd /path/to/SlowFrame/tests
 bash test_suite_bash.sh
 
 # Run specific test
@@ -539,7 +539,7 @@ cd tests && python3 test_suite.py
 # Expected: 55 passed, 0 failed
 
 # 3. Check for memory leaks (optional)
-valgrind --leak-check=full ./bin/pisstvpp2 -i tests/images/*.ppm
+valgrind --leak-check=full ./bin/slowframe -i tests/images/*.ppm
 
 # 4. Verify no compiler warnings
 make clean && make all 2>&1 | grep -i warning

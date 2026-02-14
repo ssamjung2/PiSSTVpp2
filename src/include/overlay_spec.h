@@ -123,6 +123,15 @@ typedef enum {
     BG_SEMI = 2         /**< Semi-transparent background */
 } BackgroundMode;
 
+/**
+ * @brief Text wrapping mode for multi-line text
+ */
+typedef enum {
+    WRAP_WORD = 0,      /**< Wrap at word boundaries */
+    WRAP_CHAR = 1,      /**< Wrap at character boundaries */
+    WRAP_NONE = 2       /**< No wrapping (single line) */
+} TextWrapMode;
+
 // ===========================================================================
 // COLOR STRUCTURES
 // ===========================================================================
@@ -155,25 +164,32 @@ typedef struct {
     
     // Positioning and placement
     OverlayPlacement placement;             /**< Where to place the overlay */
-    uint16_t offset_x;                      /**< Horizontal offset from placement edge (pixels) */
-    uint16_t offset_y;                      /**< Vertical offset from placement edge (pixels) */
+    int16_t offset_x;                       /**< Horizontal offset from placement edge (pixels, -100 to 100) */
+    int16_t offset_y;                       /**< Vertical offset from placement edge (pixels, -100 to 100) */
     
     // Text styling
-    uint16_t font_size;                     /**< Font size in pixels (typically 8-32) */
+    uint16_t font_size;                     /**< Font size in pixels (typically 8-72 for SSTV) */
+    char font_family[64];                   /**< Font family name (fontconfig style, e.g., "sans", "mono") */
     TextAlignment text_align;               /**< Horizontal text alignment */
     VerticalAlignment valign;               /**< Vertical text alignment */
     RGBAColor text_color;                   /**< Text/foreground color */
     
+    // Text wrapping and line spacing
+    uint16_t text_width;                    /**< Max text width for wrapping (0 = no limit) */
+    TextWrapMode wrap_mode;                 /**< How to wrap text (word/char/none) */
+    float line_spacing;                     /**< Line spacing multiplier (1.0 = single spacing) */
+    
     // Background styling
     BackgroundMode bg_mode;                 /**< How to render background */
     RGBAColor bg_color;                     /**< Background fill color */
+    uint8_t opacity;                        /**< Opacity/alpha 0-100 (alternative to bg_mode) */
     uint16_t padding;                       /**< Padding around text (pixels) */
     uint16_t border_width;                  /**< Border width (0 = no border) */
     RGBAColor border_color;                 /**< Border color (if border_width > 0) */
     
     // Background bar styling (solid color bar behind text for visibility)
     int bg_bar_enable;                      /**< 1 to render solid color bar behind text, 0 to disable */
-    uint16_t bg_bar_margin;                 /**< Extra margin around bar beyond padding (0-30 pixels) */
+    uint16_t bg_bar_margin;                 /**< Extra margin around bar beyond padding (0-15 pixels) */
     int bg_bar_width_mode;                  /**< 0=auto(text), 1=full(image), 2=half(image), 3=fixed(pixels) */
     uint16_t bg_bar_custom_width;           /**< Custom width in pixels when bg_bar_width_mode==3 */
     int bg_bar_orientation;                 /**< 0=horizontal (default), 1=vertical (spans image height) */
@@ -215,7 +231,7 @@ typedef struct {
  * @param list Pointer to OverlaySpecList to initialize
  * @param capacity Maximum number of overlays to support
  *
- * @return PISSTVPP2_OK on success, error code on failure
+ * @return SLOWFRAME_OK on success, error code on failure
  *
  * @note Must be called before adding overlays
  * @note Call overlay_spec_list_cleanup() when done
@@ -228,7 +244,7 @@ int overlay_spec_list_init(OverlaySpecList *list, size_t capacity);
  * @param list Pointer to initialized OverlaySpecList
  * @param spec Pointer to TextOverlaySpec to add
  *
- * @return PISSTVPP2_OK on success, error code if list is full
+ * @return SLOWFRAME_OK on success, error code if list is full
  *
  * @note Makes a copy of the spec, does not store pointer
  */
@@ -250,7 +266,7 @@ TextOverlaySpec* overlay_spec_list_get(OverlaySpecList *list, size_t index);
  * @param list Pointer to OverlaySpecList
  * @param index Index of overlay to remove (0-based)
  *
- * @return PISSTVPP2_OK on success, error code if invalid index
+ * @return SLOWFRAME_OK on success, error code if invalid index
  */
 int overlay_spec_list_remove(OverlaySpecList *list, size_t index);
 
@@ -309,9 +325,6 @@ TextOverlaySpec overlay_spec_create_default(void);
  *
  * @return TextOverlaySpec configured for station ID display
  */
-TextOverlaySpec overlay_spec_create_station_id(const char *callsign, 
-                                                const char *grid_square,
-                                                OverlayPlacement placement);
 
 /**
  * @brief Parse placement string to enum
@@ -337,7 +350,7 @@ TextAlignment overlay_parse_alignment(const char *align_str);
  * @param color_str Hex string like "FF0000" or named color like "red"
  * @param out_color Output: parsed color with alpha=255
  *
- * @return PISSTVPP2_OK on success, error code on failure
+ * @return SLOWFRAME_OK on success, error code on failure
  */
 int overlay_parse_color(const char *color_str, RGBAColor *out_color);
 
@@ -390,7 +403,7 @@ typedef struct {
  * @param list Pointer to ColorBarList to initialize
  * @param capacity Maximum number of color bars to support
  *
- * @return PISSTVPP2_OK on success, error code on failure
+ * @return SLOWFRAME_OK on success, error code on failure
  *
  * @note Must be called before adding color bars
  * @note Call colorbar_list_cleanup() when done
@@ -403,7 +416,7 @@ int colorbar_list_init(ColorBarList *list, size_t capacity);
  * @param list Pointer to initialized ColorBarList
  * @param bar Pointer to ColorBar to add
  *
- * @return PISSTVPP2_OK on success, error code if list is full
+ * @return SLOWFRAME_OK on success, error code if list is full
  *
  * @note Makes a copy of the bar, does not store pointer
  */
@@ -491,7 +504,7 @@ ColorBarPosition colorbar_parse_position(const char *position_str);
  * @param spec_str Pipe-separated specification string
  * @param out_spec Output: populated TextOverlaySpec structure
  *
- * @return PISSTVPP2_OK on success, error code on failure
+ * @return SLOWFRAME_OK on success, error code on failure
  */
 int overlay_parse_unified_spec(const char *spec_str, TextOverlaySpec *out_spec);
 

@@ -88,13 +88,13 @@ This is a **significant improvement** over the previous v2.0 plan (500-620 hours
 **Text Overlay Features:**
 ```bash
 # Add call sign to bottom bar (most common)
-./pisstvpp2 -i image.png \
+./slowframe -i image.png \
   --text-overlay "K0ABC/EN96" \
   --text-placement bottom \
   -m m1 -o output.wav
 
 # FCC-compliant multi-element layout
-./pisstvpp2 -i image.png \
+./slowframe -i image.png \
   --color-bar top \
   --text-overlay "K0ABC" \
   --color-bar bottom \
@@ -172,7 +172,7 @@ If MMSSTV library missing:
 [BUILD] Building with dynamic mode support (57 modes)
 [BUILD] Compiling src/
 [BUILD] Linking...
-[✓] Binary: bin/pisstvpp2 (142 KB)
+[✓] Binary: bin/slowframe (142 KB)
 ```
 
 **Deliverable:** Smart build system, informative output  
@@ -292,7 +292,7 @@ Final: Suite of 70-80 tests, 100% passing ✓
 git checkout -b feature/phase-1-error-codes
 
 # 2. Read full task 1.1 from master plan
-# File: /Users/ssamjung/Desktop/WIP/PiSSTVpp2/docs/PISSTVPP2_v2_1_MASTER_PLAN.md
+# File: /Users/ssamjung/Desktop/WIP/SlowFrame/docs/PISSTVPP2_v2_1_MASTER_PLAN.md
 
 # 3. Implement Task 1.1: Error Code System
 create src/util/error.h

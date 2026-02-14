@@ -1,5 +1,5 @@
 
-# PiSSTVpp2 Modernization & MMSSTV Integration Roadmap
+# SlowFrame Modernization & MMSSTV Integration Roadmap
 
 **Document Version:** 1.0  
 **Date:** February 10, 2026  
@@ -10,7 +10,7 @@
 
 ## Executive Summary
 
-This roadmap describes the strategy for adding optional MMSSTV library support to PiSSTVpp2 while simultaneously modernizing the codebase. The key principle is **graceful degradation**: the application remains fully functional with native SSTV modes, but detects and enables MMSSTV functionality when the library is available.
+This roadmap describes the strategy for adding optional MMSSTV library support to SlowFrame while simultaneously modernizing the codebase. The key principle is **graceful degradation**: the application remains fully functional with native SSTV modes, but detects and enables MMSSTV functionality when the library is available.
 
 **Key Features of This Approach:**
 - ✅ Backward compatible (all existing functionality preserved)
@@ -26,12 +26,12 @@ This roadmap describes the strategy for adding optional MMSSTV library support t
 ### A1. Dynamic Mode Registry System
 
 **Current State:**
-- Modes are hardcoded in `pisstvpp2_sstv.c` (7 native modes)
+- Modes are hardcoded in `slowframe_sstv.c` (7 native modes)
 - No plugin or dynamic mechanism
 
 **Proposed State:**
 ```c
-// include/pisstvpp2_mode_registry.h
+// include/slowframe_mode_registry.h
 
 typedef struct {
     const char *code;              // "m1", "pd120", etc.
@@ -90,7 +90,7 @@ export MMSSTV_INCLUDE_PATH="/usr/local/include/mmsstv"
 
 **Detection Mechanism:**
 ```c
-// include/pisstvpp2_mmsstv_loader.h
+// include/slowframe_mmsstv_loader.h
 
 typedef enum {
     MMSSTV_STATUS_NOT_AVAILABLE,
@@ -137,7 +137,7 @@ main → image_load → image_aspect_correct → mode_registry_lookup
 
 **Implementation:**
 ```c
-// include/pisstvpp2_encoder.h
+// include/slowframe_encoder.h
 
 typedef struct {
     const mode_definition_t *mode;
@@ -159,7 +159,7 @@ int encode_sstv_image(encoding_context_t *ctx);
 **Goal:** Replace inconsistent error codes (-1, 0, 1, 2) with named constants.
 
 ```c
-// include/pisstvpp2_error.h
+// include/slowframe_error.h
 
 #define PISSTVPP2_OK              0
 #define PISSTVPP2_ERR_ARGS        1    // Invalid arguments
@@ -184,10 +184,10 @@ void error_log(int error_code, const char *context);
 **Current File Structure:**
 ```
 src/
-├── pisstvpp2.c               (811 lines - main entry)
-├── pisstvpp2_image.c/h       (image loading/processing)
-├── pisstvpp2_sstv.c/h        (native SSTV encoding)
-├── pisstvpp2_audio_encoder.c/h (audio format abstraction)
+├── slowframe.c               (811 lines - main entry)
+├── slowframe_image.c/h       (image loading/processing)
+├── slowframe_sstv.c/h        (native SSTV encoding)
+├── slowframe_audio_encoder.c/h (audio format abstraction)
 ├── audio_encoder_*.c         (format-specific encoders)
 └── include/logging.h         (utility)
 ```
@@ -196,9 +196,9 @@ src/
 ```
 src/
 ├── core/
-│   ├── pisstvpp2_main.c      (Entry point, argument parsing)
-│   ├── pisstvpp2_config.c/h  (Configuration management)
-│   └── pisstvpp2_context.c/h (Global state management)
+│   ├── slowframe_main.c      (Entry point, argument parsing)
+│   ├── slowframe_config.c/h  (Configuration management)
+│   └── slowframe_context.c/h (Global state management)
 │
 ├── image/
 │   ├── image_loader.c/h      (Image loading)
@@ -235,21 +235,21 @@ src/
 └── include/
     ├── config.h              (Build-time config)
     └── public/
-        └── pisstvpp2.h       (Public API for library use)
+        └── slowframe.h       (Public API for library use)
 ```
 
 **Refactoring Phases:**
 
 **Phase 1: Establish Foundations (No Breaking Changes)**
 - ✅ Create error.h and error.c (unified error codes)
-- ✅ Create pisstvpp2_config.h/c (config management)
-- ✅ Create pisstvpp2_context.h/c (state management)
+- ✅ Create slowframe_config.h/c (config management)
+- ✅ Create slowframe_context.h/c (state management)
 - ✅ Update existing modules to use error codes
 - Keep all functionality working
 - Estimated effort: 8-10 hours
 
 **Phase 2: Modularize Image Processing**
-- Extract image_loader.c from pisstvpp2_image.c
+- Extract image_loader.c from slowframe_image.c
 - Extract image_processor.c for scaling/color ops
 - Extract image_aspect.c for aspect ratio logic
 - Add proper header guards and documentation
@@ -382,24 +382,24 @@ mode_registry_t* registry_create(void) {
 
 **Before:**
 ```bash
-pisstvpp2 -i input.jpg -p m1 -o output.wav
+slowframe -i input.jpg -p m1 -o output.wav
 # Only 7 modes: m1, m2, s1, s2, sdx, r36, r72
 ```
 
 **After (with MMSSTV):**
 ```bash
-pisstvpp2 -i input.jpg -p pd120 -o output.wav
+slowframe -i input.jpg -p pd120 -o output.wav
 # 7 native + 50+ MMSSTV modes if library available
 # Fallback to native modes if library missing
 
 # List available modes
-pisstvpp2 --list-modes
+slowframe --list-modes
 # Output includes source (native/mmsstv) and availability
 ```
 
 **Dynamic Help:**
 ```bash
-pisstvpp2 -h
+slowframe -h
 # Help text includes:
 # - All available modes (native ✓ + mmsstv ✓/✗)
 # - Library status
@@ -474,7 +474,7 @@ install: $(TARGET)
 	install -m 755 $(TARGET) $(DESTDIR)$(PREFIX)/bin/
 
 help:
-	@echo "PiSSTVpp2 Build System"
+	@echo "SlowFrame Build System"
 	@echo "======================="
 	@echo ""
 	@echo "MMSSTV Library Status: $(MMSSTV_AVAILABLE)"
@@ -505,13 +505,13 @@ $ make all
 [INFO]  - libogg:  ✓ /usr/lib/libogg.so
 [INFO]  - libvorbis: ✓ /usr/lib/libvorbis.so
 [INFO]  - MMSSTV: ✗ not found
-[BUILD] Compiling core/pisstvpp2_main.c...
+[BUILD] Compiling core/slowframe_main.c...
 [BUILD] Compiling image/image_loader.c...
 [BUILD] Compiling sstv/sstv_core.c...
 [BUILD] Compiling sstv/sstv_native.c (7 modes)...
 [BUILD] Compiling mmsstv/mmsstv_loader.c (detection only)...
-[BUILD] Linking pisstvpp2...
-[BUILD] Build complete: bin/pisstvpp2 (137 KB)
+[BUILD] Linking slowframe...
+[BUILD] Build complete: bin/slowframe (137 KB)
 
 Available SSTV modes: 7 native modes
 (MMSSTV modes not available - see docs/BUILD.md#mmsstv for setup)
@@ -523,8 +523,8 @@ $ make clean && make all
 [INFO]  - libvips: ✓ /usr/lib/libvips.so
 [INFO]  - MMSSTV: ✓ /opt/mmsstv/lib/libmmsstv.so
 [BUILD] Compiling mmsstv/mmsstv_adapter.c (dynamic mode loading)...
-[BUILD] Linking pisstvpp2...
-[BUILD] Build complete: bin/pisstvpp2 (165 KB)
+[BUILD] Linking slowframe...
+[BUILD] Build complete: bin/slowframe (165 KB)
 
 Available SSTV modes: 7 native + 50 MMSSTV = 57 total modes
 ```
@@ -561,9 +561,9 @@ make clean && make all
 **Regression Tests:**
 ```bash
 # Old command-line syntax should work identically
-./bin/pisstvpp2 -i test.jpg -p m1 -o test1.wav
-./bin/pisstvpp2 -i test.jpg -p s2 -f aiff -o test2.aiff
-./bin/pisstvpp2 -i test.jpg -p r36 -r 44100 -o test3.wav
+./bin/slowframe -i test.jpg -p m1 -o test1.wav
+./bin/slowframe -i test.jpg -p s2 -f aiff -o test2.aiff
+./bin/slowframe -i test.jpg -p r36 -r 44100 -o test3.wav
 
 # Compare outputs to v2.0 baseline
 # Audio files should be identical within tolerance
@@ -601,8 +601,8 @@ make clean && make all
 ```c
 // File: src/sstv/modes_pd.c
 
-#include "pisstvpp2_mode_registry.h"
-#include "pisstvpp2_mmsstv_loader.h"
+#include "slowframe_mode_registry.h"
+#include "slowframe_mmsstv_loader.h"
 
 // Define the mode using MMSSTV library
 static int pd120_encode_frame(const image_buffer_t *img, audio_samples_t *audio) {

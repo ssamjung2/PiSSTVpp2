@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Comprehensive Text Overlay Test Suite for PiSSTVpp2
+Comprehensive Text Overlay Test Suite for SlowFrame
 Tests all styling options, colors, placements, and QSO exchange scenarios
 All tests save intermediate debug images for visual verification
 """
@@ -22,12 +22,12 @@ class TextOverlayComprehensiveTests:
         """Initialize test suite
         
         Args:
-            executable_path: Path to pisstvpp2 executable
+            executable_path: Path to slowframe executable
             verbose: Enable verbose output
         """
         if executable_path is None:
             script_dir = Path(__file__).parent.parent.parent
-            executable_path = str(script_dir / "bin" / "pisstvpp2")
+            executable_path = str(script_dir / "bin" / "slowframe")
         self.exe = executable_path
         self.verbose = verbose
         self.test_dir = Path(__file__).parent.parent / "test_outputs" / "text_overlay_comprehensive"
@@ -61,7 +61,7 @@ class TextOverlayComprehensiveTests:
         ]
     
     def _run_command(self, args):
-        """Execute pisstvpp2 with given arguments
+        """Execute slowframe with given arguments
         
         Returns:
             (returncode, stdout, stderr)
@@ -1014,7 +1014,7 @@ class TextOverlayComprehensiveTests:
     def run_all_tests(self):
         """Execute all tests"""
         print(f"\n{'='*90}")
-        print(f"PiSSTVpp2 Comprehensive Text Overlay Test Suite")
+        print(f"SlowFrame Comprehensive Text Overlay Test Suite")
         print(f"Start: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"Test images: {len(self.test_images)}")
         print(f"Test output: {self.test_dir}")
@@ -1103,8 +1103,8 @@ class TextOverlayComprehensiveTests:
 if __name__ == "__main__":
     import argparse
     
-    parser = argparse.ArgumentParser(description="PiSSTVpp2 Comprehensive Text Overlay Test Suite")
-    parser.add_argument("--exe", default=None, help="Path to pisstvpp2 executable")
+    parser = argparse.ArgumentParser(description="SlowFrame Comprehensive Text Overlay Test Suite")
+    parser.add_argument("--exe", default=None, help="Path to slowframe executable")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
     
     args = parser.parse_args()
@@ -1112,7 +1112,7 @@ if __name__ == "__main__":
     # Set default executable path if not provided
     if args.exe is None:
         script_dir = Path(__file__).parent.parent.parent
-        args.exe = str(script_dir / "bin" / "pisstvpp2")
+        args.exe = str(script_dir / "bin" / "slowframe")
     
     try:
         suite = TextOverlayComprehensiveTests(executable_path=args.exe, verbose=args.verbose)

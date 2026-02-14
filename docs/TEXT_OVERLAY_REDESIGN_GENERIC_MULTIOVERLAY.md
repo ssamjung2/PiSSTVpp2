@@ -1,4 +1,4 @@
-# PiSSTVpp2 v2.1 - Text Overlay System Redesign
+# SlowFrame v2.1 - Text Overlay System Redesign
 ## Generic Multi-Overlay Architecture
 
 **Date:** February 11, 2026  
@@ -25,15 +25,15 @@ Each overlay is created with a **text flag** (`-O`), then **customized** with ad
 
 ```bash
 # Simple: Two overlays with defaults
-./pisstvpp2 -i photo.jpg -O "W5ZZZ" -O "EM12ab"
+./slowframe -i photo.jpg -O "W5ZZZ" -O "EM12ab"
 
 # Medium: Multiple overlays, custom placement
-./pisstvpp2 -i photo.jpg \
+./slowframe -i photo.jpg \
   -O "W5ZZZ" -P top \
   -O "EM12ab" -P bottom
 
 # Advanced: Full customization
-./pisstvpp2 -i photo.jpg \
+./slowframe -i photo.jpg \
   -O "W5ZZZ" -P top -C blue -F 28 -B white \
   -O "EM12ab" -P bottom -C white -F 24 -B blue \
   -O "Feb 11, 2026" -P right -C gray -F 16 -B transparent
@@ -180,16 +180,16 @@ if (config->current_overlay && strlen(config->current_overlay->text) > 0) {
 ### Use Case 1: FCC Compliance (Current)
 ```bash
 # Old syntax (still works via mapping):
-./pisstvpp2 -i photo.jpg -S W5ZZZ -G EM12ab
+./slowframe -i photo.jpg -S W5ZZZ -G EM12ab
 
 # New syntax:
-./pisstvpp2 -i photo.jpg -O "W5ZZZ" -P bottom -O "EM12ab" -P bottom
+./slowframe -i photo.jpg -O "W5ZZZ" -P bottom -O "EM12ab" -P bottom
 ```
 
 ### Use Case 2: Multiple Station IDs
 ```bash
 # Add callsign at top, grid square at bottom
-./pisstvpp2 -i photo.jpg \
+./slowframe -i photo.jpg \
   -O "W5ZZZ" -P top -C blue -F 32 \
   -O "EM12ab" -P bottom -C blue -F 32
 ```
@@ -197,7 +197,7 @@ if (config->current_overlay && strlen(config->current_overlay->text) > 0) {
 ### Use Case 3: Rich Metadata
 ```bash
 # Callsign, grid, date, operator
-./pisstvpp2 -i photo.jpg \
+./slowframe -i photo.jpg \
   -O "W5ZZZ" -P top -C blue -F 28 -B white \
   -O "EM12ab" -P bottom -C blue -F 24 -B white \
   -O "2026-02-11" -P left -C gray -F 16 -B transparent \
@@ -206,7 +206,7 @@ if (config->current_overlay && strlen(config->current_overlay->text) > 0) {
 
 ### Use Case 4: Professional Contest Overlay
 ```bash
-./pisstvpp2 -i photo.jpg \
+./slowframe -i photo.jpg \
   -O "ARCI SSTV Contest" -P top -C white -F 36 -B black \
   -O "W5ZZZ" -P top-left -C yellow -F 24 -B black \
   -O "EM12ab" -P top-right -C yellow -F 24 -B black \
@@ -216,7 +216,7 @@ if (config->current_overlay && strlen(config->current_overlay->text) > 0) {
 ### Use Case 5: Minimal (Just Text)
 ```bash
 # Text overlay with all defaults
-./pisstvpp2 -i photo.jpg -O "73 ES HAPPY SSTV!"
+./slowframe -i photo.jpg -O "73 ES HAPPY SSTV!"
 ```
 
 ---
@@ -383,7 +383,7 @@ TOP-LEFT    [TEXT] ┌─────────────┐
 ### New Tasks Replacing Text Overlay Tasks 2.1-2.3
 
 #### Task A: Update Config Structure & Parsing
-**Files:** `src/include/pisstvpp2_config.h`, `src/pisstvpp2_config.c`
+**Files:** `src/include/slowframe_config.h`, `src/slowframe_config.c`
 
 1. Add to PisstvppConfig:
    - `TextOverlaySpec *current_overlay` pointer
@@ -396,17 +396,17 @@ TOP-LEFT    [TEXT] ┌─────────────┐
 4. Finalize/add overlay when next `-O` encountered or parsing ends
 
 #### Task B: Update Config Help Text
-**Files:** `src/pisstvpp2.c` (show_help function)
+**Files:** `src/slowframe.c` (show_help function)
 
 Add section documenting new text overlay system with examples
 
 #### Task C: Mapping Old Flags to New System
-**Files:** `src/pisstvpp2_config.c`
+**Files:** `src/slowframe_config.c`
 
 Implement automatic conversion of old `-S`/`-G` to new spec system for backward compatibility
 
 #### Task D: Update Text Overlay Rendering
-**Files:** `src/pisstvpp2_image.c`
+**Files:** `src/slowframe_image.c`
 
 No changes needed - rendering already generic enough to handle any text
 

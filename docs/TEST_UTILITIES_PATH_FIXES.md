@@ -7,8 +7,8 @@ All Python test utility files in `/tests/util/` have been updated to use relativ
 
 ### 1. Path Resolution Strategy
 **Before:**
-- Hardcoded absolute paths like `/Users/ssamjung/Desktop/WIP/PiSSTVpp2/bin/pisstvpp2`
-- Relative paths like `../bin/pisstvpp2` that assumed tests were run from `/tests/` directory
+- Hardcoded absolute paths like `/Users/ssamjung/Desktop/WIP/SlowFrame/bin/slowframe`
+- Relative paths like `../bin/slowframe` that assumed tests were run from `/tests/` directory
 
 **After:**
 - Dynamic path resolution using `Path(__file__).parent` 
@@ -23,7 +23,7 @@ All of the following now use:
 ```python
 if executable_path is None:
     script_dir = Path(__file__).parent.parent.parent
-    executable_path = str(script_dir / "bin" / "pisstvpp2")
+    executable_path = str(script_dir / "bin" / "slowframe")
 ```
 
 **Files:**
@@ -81,7 +81,7 @@ The path resolution assumes:
 ```
 /
 ├── bin/
-│   └── pisstvpp2          # Executable
+│   └── slowframe          # Executable
 ├── tests/
 │   ├── images/            # Test image fixtures
 │   ├── test_outputs/      # Generated test outputs
@@ -93,7 +93,7 @@ The path resolution assumes:
 
 #### Run test from any directory:
 ```bash
-cd /Users/ssamjung/Desktop/WIP/PiSSTVpp2
+cd /Users/ssamjung/Desktop/WIP/SlowFrame
 
 # Works from project root
 python3 tests/util/test_suite.py
@@ -103,16 +103,16 @@ cd tests/util
 python3 test_suite.py
 
 # Works from anywhere with full path
-python3 /Users/ssamjung/Desktop/WIP/PiSSTVpp2/tests/util/test_suite.py
+python3 /Users/ssamjung/Desktop/WIP/SlowFrame/tests/util/test_suite.py
 ```
 
 #### Override executable path:
 ```bash
 # All test files accept --exe or as first argument
-python3 tests/util/test_suite.py --exe /custom/path/to/pisstvpp2
+python3 tests/util/test_suite.py --exe /custom/path/to/slowframe
 
 # Integration test format
-python3 tests/util/test_integration.py /custom/bin/pisstvpp2 /custom/images/dir
+python3 tests/util/test_integration.py /custom/bin/slowframe /custom/images/dir
 ```
 
 ### 5. Verification

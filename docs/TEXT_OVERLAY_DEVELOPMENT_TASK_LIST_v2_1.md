@@ -1,4 +1,4 @@
-# PiSSTVpp2 v2.1 - Text Overlay Feature Development Task List
+# SlowFrame v2.1 - Text Overlay Feature Development Task List
 ## Comprehensive Implementation Plan
 
 **Document Version:** 2.1.0  
@@ -28,7 +28,7 @@ This task list defines all work required to complete text overlay functionality 
 ### Task 1.1: Add Current Overlay Tracking to Config Structure
 **Priority:** CRITICAL  
 **Effort:** 30 minutes  
-**File:** `src/include/pisstvpp2_config.h`  
+**File:** `src/include/slowframe_config.h`  
 **Type:** Code Change  
 
 **Current State:**
@@ -74,7 +74,7 @@ config->current_overlay = NULL;
 ### Task 1.2: Implement CLI Flag Handlers for Overlay Styling
 **Priority:** CRITICAL  
 **Effort:** 2-3 hours  
-**File:** `src/pisstvpp2_config.c`  
+**File:** `src/slowframe_config.c`  
 **Type:** Code Change  
 **Prerequisites:** Task 1.1
 
@@ -233,15 +233,15 @@ if (config->current_overlay) {
 **Test Cases:**
 ```bash
 # Single overlay, default styling
-./pisstvpp2 -i photo.jpg -O "W5ZZZ"
+./slowframe -i photo.jpg -O "W5ZZZ"
 
 # Multiple overlays with styling
-./pisstvpp2 -i photo.jpg \
+./slowframe -i photo.jpg \
   -O "W5ZZZ" -P top -C blue -F 32 -B white \
   -O "EM12ab" -P bottom -C white -F 24 -B blue
 
 # Complex with all options
-./pisstvpp2 -i photo.jpg \
+./slowframe -i photo.jpg \
   -O "Callsign" -P top -C FF0000 -B black -F 28 -A center -M opaque
 ```
 
@@ -255,7 +255,7 @@ if (config->current_overlay) {
 ### Task 1.3: Implement Backward Compatibility with Old Flags
 **Priority:** IMPORTANT  
 **Effort:** 1 hour  
-**File:** `src/pisstvpp2_config.c`  
+**File:** `src/slowframe_config.c`  
 **Type:** Code Change  
 **Prerequisites:** Task 1.2 complete
 
@@ -330,16 +330,16 @@ return PISSTVPP2_OK;
 **Test Cases:**
 ```bash
 # Old syntax (should work, shows info message)
-./pisstvpp2 -i test.jpg -S "W5ZZZ" -v
+./slowframe -i test.jpg -S "W5ZZZ" -v
 
 # New syntax (preferred)
-./pisstvpp2 -i test.jpg -O "W5ZZZ" -P bottom -C blue
+./slowframe -i test.jpg -O "W5ZZZ" -P bottom -C blue
 
 # Both together (new takes priority, old ignored)
-./pisstvpp2 -i test.jpg -O "Station ID" -S "Old Callsign"
+./slowframe -i test.jpg -O "Station ID" -S "Old Callsign"
 
 # CW used with -S (old usage, still works for Morse)
-./pisstvpp2 -i test.jpg -S "W5ABC" -W 15
+./slowframe -i test.jpg -S "W5ABC" -W 15
 ```
 
 **Success Criteria:**
@@ -355,7 +355,7 @@ return PISSTVPP2_OK;
 ### Task 2.1: Implement Text-to-Image Compositing
 **Priority:** CRITICAL  
 **Effort:** 2-3 hours  
-**File:** `src/pisstvpp2_image.c`  
+**File:** `src/slowframe_image.c`  
 **Type:** Code Fix (Core Bug)  
 **Prerequisites:** Complete understanding of vips_insert API
 
@@ -440,7 +440,7 @@ return PISSTVPP2_OK;
 
 **Test Case:**
 ```bash
-./pisstvpp2 -i image.jpg -S W5ZZZ -v -o test.wav
+./slowframe -i image.jpg -S W5ZZZ -v -o test.wav
 # Expected in verbose output:
 #   "Rendering overlay text 'W5ZZZ'"
 #   "Text positioned at (x, y)"
@@ -458,7 +458,7 @@ return PISSTVPP2_OK;
 ### Task 2.2: Implement RGB Color Rendering
 **Priority:** CRITICAL  
 **Effort:** 2-3 hours  
-**File:** `src/pisstvpp2_image.c`  
+**File:** `src/slowframe_image.c`  
 **Type:** Feature Implementation  
 **Prerequisites:** Task 2.1 (text compositing working)
 
@@ -576,7 +576,7 @@ if (spec->border_width > 0) {
 ### Task 2.3: Implement Background Box Rendering
 **Priority:** CRITICAL  
 **Effort:** 1-2 hours  
-**File:** `src/pisstvpp2_image.c`  
+**File:** `src/slowframe_image.c`  
 **Type:** Feature Implementation  
 **Prerequisites:** Task 2.2 (color rendering)
 
@@ -650,7 +650,7 @@ if (spec->bg_mode != BG_TRANSPARENT) {
 **Test Case:**
 ```bash
 # Spec with white background box and blue text
-./pisstvpp2 -i photo.jpg -S W5ZZZ -v -o output.wav
+./slowframe -i photo.jpg -S W5ZZZ -v -o output.wav
 # Verify: white bar visible with blue text on it
 ```
 
@@ -672,7 +672,7 @@ if (spec->bg_mode != BG_TRANSPARENT) {
 
 **Current State:**
 - Tests create directories and save metadata
-- Tests don't actually call pisstvpp2 with overlay arguments
+- Tests don't actually call slowframe with overlay arguments
 - Tests don't verify output images contain overlays
 
 **Required Changes:**
@@ -694,7 +694,7 @@ def test_text_overlay_multi_overlay_e2e():
     # Test Case 1: Single overlay with defaults
     output_audio = "test_output_single.wav"
     cmd = [
-        "./pisstvpp2",
+        "./slowframe",
         "-i", test_image,
         "-O", "W5ZZZ",           # Single overlay text
         "-o", output_audio
@@ -714,7 +714,7 @@ def test_text_overlay_multiple_overlays_e2e():
     
     # Test Case 2: Multiple overlays with custom parameters
     cmd = [
-        "./pisstvpp2",
+        "./slowframe",
         "-i", test_image,
         "-O", "W5ZZZ",           # Overlay 1
         "-P", "top",             # Placement
@@ -745,7 +745,7 @@ def test_text_overlay_backward_compat():
     
     # Test Case 3: Old -S flag (deprecated but should work)
     cmd = [
-        "./pisstvpp2",
+        "./slowframe",
         "-i", test_image,
         "-S", "W5ZZZ",           # Old overlay syntax
         "-v",                    # Verbose (should show deprecation note)
@@ -820,7 +820,7 @@ python3 -m pytest tests/test_suite.py::test_overlay_placements -v
     result = subprocess.run(cmd, capture_output=True, text=True)
     
     # Verify exit code
-    assert result.returncode == 0, f"pisstvpp2 failed: {result.stderr}"
+    assert result.returncode == 0, f"slowframe failed: {result.stderr}"
     
     # Verify output audio file exists
     assert os.path.exists(output_audio), f"Output file not created: {output_audio}"
@@ -875,7 +875,7 @@ def test_overlay_appears_in_image():
 
 **Validation:**
 - [ ] All tests pass
-- [ ] Overlay tests actually execute pisstvpp2
+- [ ] Overlay tests actually execute slowframe
 - [ ] Output files are verified to exist
 - [ ] Verbose output checked for overlay processing
 
@@ -895,7 +895,7 @@ python3 -m pytest tests/test_suite.py::test_overlay_appears_in_image -v
 ### Task 3.2: Verify Error Handling
 **Priority:** IMPORTANT  
 **Effort:** 1 hour  
-**File:** `src/pisstvpp2_image.c`, potentially `src/pisstvpp2_config.c`  
+**File:** `src/slowframe_image.c`, potentially `src/slowframe_config.c`  
 **Type:** Error Handling  
 **Prerequisites:** Task 2.1 (compositing complete)
 
@@ -945,11 +945,11 @@ for (size_t i = 0; i < overlay_count; i++) {
 3. Test invalid specs:
 ```bash
 # Test with invalid callsign length
-./pisstvpp2 -i test.jpg -S "THISCALLSIGNISTOOLONGANDSHOULDFAIL"
+./slowframe -i test.jpg -S "THISCALLSIGNISTOOLONGANDSHOULDFAIL"
 # Should fail with appropriate error code
 
 # Test with invalid grid square
-./pisstvpp2 -i test.jpg -G "INVALID_GRID_FORMAT"
+./slowframe -i test.jpg -G "INVALID_GRID_FORMAT"
 # Should fail gracefully or truncate
 ```
 
@@ -971,7 +971,7 @@ for (size_t i = 0; i < overlay_count; i++) {
 ### Task 4.1: Update Help Text with Overlay Options
 **Priority:** IMPORTANT  
 **Effort:** 30 minutes  
-**File:** `src/pisstvpp2.c` or `src/pisstvpp2_config.c`  
+**File:** `src/slowframe.c` or `src/slowframe_config.c`  
 **Type:** Documentation  
 **Prerequisites:** Task 1.2 (CLI flags implemented)
 
@@ -982,7 +982,7 @@ for (size_t i = 0; i < overlay_count; i++) {
 
 **Required Changes:**
 
-1. Find `show_help()` function in pisstvpp2.c
+1. Find `show_help()` function in slowframe.c
 2. Replace old overlay section with new generic multi-overlay help:
 ```c
 // In help text output, add:
@@ -1010,26 +1010,26 @@ for (size_t i = 0; i < overlay_count; i++) {
 // Examples section
 "\nExamples:\n"
 "  # Single overlay with defaults (20pt blue text, bottom)\n"
-"  ./pisstvpp2 -i photo.jpg -O \"W5ZZZ\" -o output.wav\n"
+"  ./slowframe -i photo.jpg -O \"W5ZZZ\" -o output.wav\n"
 "  \n"
 "  # Single overlay, customized (top, white text on black bg)\n"
-"  ./pisstvpp2 -i photo.jpg -O \"W5ZZZ\" -P top -C white -B black -F 32\n"
+"  ./slowframe -i photo.jpg -O \"W5ZZZ\" -P top -C white -B black -F 32\n"
 "  \n"
 "  # FCC-compliant dual overlay (callsign + grid square)\n"
-"  ./pisstvpp2 -i photo.jpg -O \"W5ZZZ\" -P top \\\n"
+"  ./slowframe -i photo.jpg -O \"W5ZZZ\" -P top \\\n"
 "              -O \"EM12ab\" -P bottom -C red\n"
 "  \n"
 "  # Multiple overlays with different styles\n"
-"  ./pisstvpp2 -i photo.jpg \\\n"
+"  ./slowframe -i photo.jpg \\\n"
 "              -O \"Station\" -P top -C blue -F 32 \\\n"
 "              -O \"Grid\" -P bottom -C white -B black -F 24\n"
 "  \n"
 "  # Old syntax (still works, shows deprecation notice)\n"
-"  ./pisstvpp2 -i photo.jpg -S \"W5ZZZ\" -o output.wav\n"
+"  ./slowframe -i photo.jpg -S \"W5ZZZ\" -o output.wav\n"
 ```
 
 **Validation:**
-- [ ] Help text displays correctly (run `./pisstvpp2 -h`)
+- [ ] Help text displays correctly (run `./slowframe -h`)
 - [ ] No text overflow or formatting issues
 - [ ] Examples are accurate and match new design
 - [ ] Backward compatibility note included
@@ -1057,7 +1057,7 @@ for (size_t i = 0; i < overlay_count; i++) {
 
 ## Architecture Overview
 
-The text overlay system in PiSSTVpp2 v2.1 uses a generic multi-overlay design, 
+The text overlay system in SlowFrame v2.1 uses a generic multi-overlay design, 
 replacing the Phase 2.4 QSO-specific system.
 
 ### Key Components
@@ -1072,13 +1072,13 @@ replacing the Phase 2.4 QSO-specific system.
    - Allows unlimited overlays per image
    - Applied sequentially in order they were created
 
-3. **CLI Integration** (`src/pisstvpp2_config.c`)
+3. **CLI Integration** (`src/slowframe_config.c`)
    - `-O <text>` creates new overlay with arbitrary text
    - Styling flags (`-P`, `-C`, `-B`, `-F`, `-A`) customize current overlay
    - Multiple `-O` invocations create multiple overlays
    - Backward compatibility: old `-S` flag maps to new system
 
-4. **Image Rendering** (`src/pisstvpp2_image.c`)
+4. **Image Rendering** (`src/slowframe_image.c`)
    - `apply_single_overlay()` - Renders single overlay spec
    - `image_apply_overlay_list()` - Applies all overlays sequentially
    - Uses vips_text() for text rendering
@@ -1088,7 +1088,7 @@ replacing the Phase 2.4 QSO-specific system.
 
 1. **CLI Parsing Phase**
    ```
-   User Command: ./pisstvpp2 -i photo.jpg -O "Text1" -P top -C blue -O "Text2"
+   User Command: ./slowframe -i photo.jpg -O "Text1" -P top -C blue -O "Text2"
    ↓
    Config Parser sees -O flag → creates new TextOverlaySpec
    ↓
@@ -1141,7 +1141,7 @@ overlay_spec_list_add(&list, &spec);
 overlay_parse_placement(const char *str);
 overlay_parse_color(const char *hex_or_name, RGBAColor *out);
 
-// image processing/pisstvpp2_image.c:
+// image processing/slowframe_image.c:
 image_apply_overlay_list(OverlaySpecList *overlays);
 apply_single_overlay(TextOverlaySpec *spec);
 ```
@@ -1150,13 +1150,13 @@ apply_single_overlay(TextOverlaySpec *spec);
 
 ### Example 1: Single Overlay, Default Styling
 ```bash
-./pisstvpp2 -i photo.jpg -O "W5ZZZ" -o output.wav
+./slowframe -i photo.jpg -O "W5ZZZ" -o output.wav
 ```
 **Result:** Text "W5ZZZ" renders in blue (default) at bottom (default) with 28pt font
 
 ### Example 2: Multiple Overlays, Custom Styling
 ```bash
-./pisstvpp2 -i photo.jpg \
+./slowframe -i photo.jpg \
   -O "Callsign" -P top -C white -B black -F 32 \
   -O "Grid" -P bottom -C red -F 24
 ```
@@ -1165,7 +1165,7 @@ apply_single_overlay(TextOverlaySpec *spec);
 
 ### Example 3: FCC Compliance (Dual Callsign/Grid)
 ```bash
-./pisstvpp2 -i photo.jpg \
+./slowframe -i photo.jpg \
   -O "W5ABC" -P top -C blue \
   -O "EM12ab" -P bottom -C blue
 ```
@@ -1174,7 +1174,7 @@ apply_single_overlay(TextOverlaySpec *spec);
 
 ### Example 4: Backward Compatibility (Old -S Flag)
 ```bash
-./pisstvpp2 -i photo.jpg -S "W5ABC" -o output.wav
+./slowframe -i photo.jpg -S "W5ABC" -o output.wav
 ```
 **Result:** Old syntax still works - "W5ABC" creates overlay at bottom with defaults
 (Note: Shows deprecation message when verbose `-v` flag used)
@@ -1210,7 +1210,7 @@ Font size via `-F` flag:
 # In test_suite.py
 def test_multi_overlay_with_colors():
     cmd = [
-        "./pisstvpp2", "-i", "test.jpg",
+        "./slowframe", "-i", "test.jpg",
         "-O", "Text1", "-P", "top", "-C", "FF0000",
         "-O", "Text2", "-P", "bottom", "-C", "0000FF",
         "-o", "output.wav"
@@ -1222,7 +1222,7 @@ def test_multi_overlay_with_colors():
 ### Integration Test Example
 ```bash
 # Verify overlay appears in output
-./pisstvpp2 -i test.jpg -O "TestText" -K
+./slowframe -i test.jpg -O "TestText" -K
 # Check test_overlay_intermediate.jpg contains rendered text
 ```
 
@@ -1295,7 +1295,7 @@ it for reference without causing confusion.
  * experimental feature but is superseded by:
  * 
  * - overlay_spec.c/.h: Generic overlay specification system
- * - pisstvpp2_image.c: Text rendering via vips_text() + vips_insert()
+ * - slowframe_image.c: Text rendering via vips_text() + vips_insert()
  * 
  * The new system handles both text rendering and background boxes more
  * effectively using vips operations.
@@ -1312,7 +1312,7 @@ it for reference without causing confusion.
  * - Currently not planned
  * 
  * USE CASES FOR CURRENT WORK:
- * For text overlays: Use overlay_spec.c / pisstvpp2_image.c::image_apply_overlay_list()
+ * For text overlays: Use overlay_spec.c / slowframe_image.c::image_apply_overlay_list()
  * For background boxes: Implement via vips_insert() in apply_single_overlay()
  * For borders: Not currently supported (potential enhancement)
  */
@@ -1331,7 +1331,7 @@ it for reference without causing confusion.
 # set(DEPRECATED_SOURCES
 #     image_text_overlay.c   # Phase 2.4 archived feature
 # )
-# target_link_libraries(pisstvpp2 PRIVATE ${DEPRECATED_SOURCES})
+# target_link_libraries(slowframe PRIVATE ${DEPRECATED_SOURCES})
 ```
 
 3. **Update image module header** (`src/image/image.h` or similar):
@@ -1365,7 +1365,7 @@ it for reference without causing confusion.
  * STATUS: Archived - Not used in current rendering pipeline
  * 
  * REASON FOR REPLACEMENT:
- * The overlay_spec system (overlay_spec.c/h + pisstvpp2_image.c) provides
+ * The overlay_spec system (overlay_spec.c/h + slowframe_image.c) provides
  * superior text rendering and styling capabilities via vips_text() and 
  * vips_insert(). Background boxes are now handled within apply_single_overlay().
  * 
@@ -1437,13 +1437,13 @@ System was redesigned Feb 11, 2026 to support:
 - New architecture: `-O <text>` creates overlay, styling flags customize it
 - Flags: `-O` (text), `-P` (placement), `-C` (color), `-B` (bg), `-F` (font), `-A` (align)
 - Backward compatibility: old -S flag automatically mapped to new system
-- Works in src/pisstvpp2_config.c
+- Works in src/slowframe_config.c
 
 ✅ **Text Rendering**
 - vips_text() for text rendering with full font support
 - vips_insert() for compositing text onto image
 - Supports arbitrary text, not just callsigns
-- In src/pisstvpp2_image.c::apply_single_overlay()
+- In src/slowframe_image.c::apply_single_overlay()
 
 ✅ **Styling Capabilities**
 - Placement modes: top, bottom, left, right, center (configurable)
@@ -1472,22 +1472,22 @@ System was redesigned Feb 11, 2026 to support:
 
 ```bash
 # Single overlay (new system)
-./pisstvpp2 -i photo.jpg -O "W5ZZZ" -o output.wav
+./slowframe -i photo.jpg -O "W5ZZZ" -o output.wav
 
 # FCC-compliant dual overlay (callsign + grid)
-./pisstvpp2 -i photo.jpg \
+./slowframe -i photo.jpg \
   -O "W5ZZZ" -P top -C blue -F 28 \
   -O "EM12ab" -P bottom -C blue -F 24 \
   -o output.wav
 
 # Multiple overlays with different styles
-./pisstvpp2 -i photo.jpg \
+./slowframe -i photo.jpg \
   -O "Station ID" -P top -C white -B black -F 32 \
   -O "Grid Square" -P bottom -C red -F 24 \
   -o output.wav
 
 # Old syntax (still works, backward compatible)
-./pisstvpp2 -i photo.jpg -S "W5ZZZ" -o output.wav
+./slowframe -i photo.jpg -S "W5ZZZ" -o output.wav
 ```
 
 ### Implementation Details
@@ -1500,9 +1500,9 @@ System was redesigned Feb 11, 2026 to support:
 5. Text composited onto image with vips_insert()
 
 **Files Modified:**
-- `src/pisstvpp2_config.h` - Added current_overlay pointer to config
-- `src/pisstvpp2_config.c` - New CLI handlers for -O, -P, -C, -B, -F, -A flags
-- `src/pisstvpp2_image.c` - Enhanced apply_single_overlay() with compositing
+- `src/slowframe_config.h` - Added current_overlay pointer to config
+- `src/slowframe_config.c` - New CLI handlers for -O, -P, -C, -B, -F, -A flags
+- `src/slowframe_image.c` - Enhanced apply_single_overlay() with compositing
 - `src/overlay_spec.c/h` - Comprehensive spec system (was 95% complete, now fully utilized)
 - `tests/test_suite.py` - Multi-overlay test cases
 
@@ -1698,7 +1698,7 @@ For most efficient single-developer implementation:
 ### Phase 1: Foundation (2-3 hours)
 1. **Task 2.1** - Fix text compositing ⭐ **START HERE**
    - Critical bug fix enabling all overlay features
-   - Lines 630-640 in pisstvpp2_image.c
+   - Lines 630-640 in slowframe_image.c
    - Add vips_insert() call to composite text
    
 2. **Task 1.1** - Config structure update

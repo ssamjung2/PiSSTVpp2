@@ -1,7 +1,7 @@
 /*
  * image_aspect.h
  *
- * Image aspect ratio correction for PiSSTVpp2
+ * Image aspect ratio correction for SlowFrame
  * 
  * Provides three algorithms for adapting images to target dimensions:
  * - CENTER: Crop from center, discards edges
@@ -37,11 +37,11 @@ typedef enum {
  * @param verbose If non-zero, print diagnostic messages
  * @param timestamp_logging If non-zero, add timestamps to messages
  * 
- * @return PISSTVPP2_OK on success, or error code:
- *   - PISSTVPP2_ERR_ARG_INVALID: Invalid arguments
- *   - PISSTVPP2_ERR_IMAGE_DIMENSIONS_INVALID: Invalid target dimensions
- *   - PISSTVPP2_ERR_ARG_ASPECT_MODE_INVALID: Unknown aspect mode
- *   - PISSTVPP2_ERR_IMAGE_PROCESS: Transformation failed
+ * @return SLOWFRAME_OK on success, or error code:
+ *   - SLOWFRAME_ERR_ARG_INVALID: Invalid arguments
+ *   - SLOWFRAME_ERR_IMAGE_DIMENSIONS_INVALID: Invalid target dimensions
+ *   - SLOWFRAME_ERR_ARG_ASPECT_MODE_INVALID: Unknown aspect mode
+ *   - SLOWFRAME_ERR_IMAGE_PROCESS: Transformation failed
  * 
  * Algorithms:
  * - ASPECT_CENTER:
@@ -87,7 +87,7 @@ const char *image_aspect_get_name(AspectMode mode);
  * @param mode_str String like "center", "pad", "stretch" (case-insensitive)
  * @param out_mode Output: parsed AspectMode
  * 
- * @return PISSTVPP2_OK on success, PISSTVPP2_ERR_ARG_ASPECT_MODE_INVALID on unknown string
+ * @return SLOWFRAME_OK on success, SLOWFRAME_ERR_ARG_ASPECT_MODE_INVALID on unknown string
  */
 int image_aspect_parse(const char *mode_str, AspectMode *out_mode);
 

@@ -1,7 +1,7 @@
 
-# PiSSTVpp2 v2.1 Development Guide - Quick Reference
+# SlowFrame v2.1 Development Guide - Quick Reference
 
-**Your roadmap for modernizing and extending PiSSTVpp2 with optional MMSSTV support**
+**Your roadmap for modernizing and extending SlowFrame with optional MMSSTV support**
 
 ---
 
@@ -107,7 +107,7 @@ Final validation, release notes, publication.
 ## Key Design Decisions (Why We're Doing This)
 
 ### Why Mode Registry?
-**Current:** Hardcoded 7 modes in pisstvpp2_sstv.c  
+**Current:** Hardcoded 7 modes in slowframe_sstv.c  
 **Problem:** Can't easily add MMSSTV modes without massive refactor  
 **Solution:** Dynamic registry that native + MMSSTV modes plug into  
 **Benefit:** Clean separation, easy to add modes, community contributions simpler  
@@ -205,10 +205,10 @@ src/util/
 └── error.c              (Error string mapping)
 
 src/core/
-├── pisstvpp2_config.h   (Config structures)
-├── pisstvpp2_config.c   (Config management)
-├── pisstvpp2_context.h  (Global state)
-└── pisstvpp2_context.c  (State management)
+├── slowframe_config.h   (Config structures)
+├── slowframe_config.c   (Config management)
+├── slowframe_context.h  (Global state)
+└── slowframe_context.c  (State management)
 ```
 
 **Phase 2-3: Modularization**
@@ -270,10 +270,10 @@ src/mmsstv/
 - Test Results: [TEST_EXECUTION_SUMMARY.md](./TEST_EXECUTION_SUMMARY.md) (295 lines)
 
 ### Code to Study
-- Main entry: `src/pisstvpp2.c` (811 lines) - understand current flow
-- SSTV encoder: `src/pisstvpp2_sstv.c` (784 lines) - becomes mode functions
-- Image module: `src/pisstvpp2_image.c` (~400 lines) - refactor into 3 modules
-- Audio encoder: `src/pisstvpp2_audio_encoder.c/h` (~240 lines) - mostly changes refs
+- Main entry: `src/slowframe.c` (811 lines) - understand current flow
+- SSTV encoder: `src/slowframe_sstv.c` (784 lines) - becomes mode functions
+- Image module: `src/slowframe_image.c` (~400 lines) - refactor into 3 modules
+- Audio encoder: `src/slowframe_audio_encoder.c/h` (~240 lines) - mostly changes refs
 
 ### External References
 - MMSSTV (original): http://www.qsl.net/mmsstv/

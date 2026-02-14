@@ -1,4 +1,4 @@
-# PiSSTVpp2 v2.1 Configuration Audit & Analysis Tools
+# SlowFrame v2.1 Configuration Audit & Analysis Tools
 ## February 12, 2026
 
 ---
@@ -21,14 +21,14 @@
 - Code path was dead (field never used in image processing)
 
 **Migration path for users:**
-- Old: `pisstvpp2 -i image.jpg -S "N0CALL" -G "EM12ab"`
-- New: `pisstvpp2 -i image.jpg -S "N0CALL"` (just omit grid square)
-- Or use unified: `pisstvpp2 -i image.jpg -T "N0CALL|placement=bottom"`
+- Old: `slowframe -i image.jpg -S "N0CALL" -G "EM12ab"`
+- New: `slowframe -i image.jpg -S "N0CALL"` (just omit grid square)
+- Or use unified: `slowframe -i image.jpg -T "N0CALL|placement=bottom"`
 
 **Files modified:**
-- `src/pisstvpp2_config.c` - Removed getopt 'G:' and case 'G': handler
-- `src/pisstvpp2_config.h` - Removed struct field and constant
-- `src/pisstvpp2.c` - Updated help text
+- `src/slowframe_config.c` - Removed getopt 'G:' and case 'G': handler
+- `src/slowframe_config.h` - Removed struct field and constant
+- `src/slowframe.c` - Updated help text
 
 ---
 
@@ -223,58 +223,58 @@
 ### For Basic SSTV Transmission
 ```bash
 # Simplest usage - defaults to Martin 1 mode, 22050 Hz, WAV
-./pisstvpp2 -i image.jpg
+./slowframe -i image.jpg
 
 # With output filename
-./pisstvpp2 -i image.jpg -o output.aiff
+./slowframe -i image.jpg -o output.aiff
 
 # With protocol selection
-./pisstvpp2 -i image.jpg -p r36 -r 11025 -f ogg
+./slowframe -i image.jpg -p r36 -r 11025 -f ogg
 ```
 
 ### With CW Signature (Morse Code)
 ```bash
 # Add CW callsign with defaults (15 WPM, 800 Hz)
-./pisstvpp2 -i image.jpg -C N0CALL
+./slowframe -i image.jpg -C N0CALL
 
 # Custom WPM and tone
-./pisstvpp2 -i image.jpg -C N0CALL -W 20 -T 1000
+./slowframe -i image.jpg -C N0CALL -W 20 -T 1000
 ```
 
 ### With Text Overlay (Station ID)
 ```bash
 # Add station ID at top
-./pisstvpp2 -i image.jpg -S "N0CALL"
+./slowframe -i image.jpg -S "N0CALL"
 
 # Place at bottom
-./pisstvpp2 -i image.jpg -S "N0CALL" -I bottom
+./slowframe -i image.jpg -S "N0CALL" -I bottom
 
 # Custom appearance (if fully implemented)
-./pisstvpp2 -i image.jpg -S "N0CALL" -F 30 -B black -A center
+./slowframe -i image.jpg -S "N0CALL" -F 30 -B black -A center
 ```
 
 ### With Aspect Ratio Control
 ```bash
 # Center-crop (default)
-./pisstvpp2 -i image.jpg
+./slowframe -i image.jpg
 
 # Add black bars to preserve aspect
-./pisstvpp2 -i image.jpg -a pad
+./slowframe -i image.jpg -a pad
 
 # Stretch to fill (may distort)
-./pisstvpp2 -i image.jpg -a stretch
+./slowframe -i image.jpg -a stretch
 ```
 
 ### Do Not Use (Known Issues)
 ```bash
 # AVOID: Grid square flag removed
-./pisstvpp2 -i image.jpg -G EM12ab    # WRONG - flag removed
+./slowframe -i image.jpg -G EM12ab    # WRONG - flag removed
 
 # AVOID: Duplicate placement flags
-./pisstvpp2 -i image.jpg -O "text" -P bottom -I bottom  # CONFUSING - use only -P
+./slowframe -i image.jpg -O "text" -P bottom -I bottom  # CONFUSING - use only -P
 
 # AVOID: Color names in non-overlay context
-./pisstvpp2 -i image.jpg -C "red"    # WRONG - -C is for callsign, use -B for color
+./slowframe -i image.jpg -C "red"    # WRONG - -C is for callsign, use -B for color
 ```
 
 ---
@@ -464,13 +464,13 @@ def test_text_overlay_with_verification():
     
     # Generate output with overlay
     result = subprocess.run([
-        './pisstvpp2', 
+        './slowframe', 
         '-i', 'tests/images/sample.png',
         '-S', 'N0CALL',
         '-o', 'tests/test_outputs/overlay_test.wav'
     ], capture_output=True)
     
-    assert result.returncode == 0, "pisstvpp2 failed"
+    assert result.returncode == 0, "slowframe failed"
     assert Path('tests/test_outputs/overlay_test.wav').exists()
     
     # Convert WAV to PNG for visual verification
@@ -496,7 +496,7 @@ def test_text_overlay_with_verification():
 
 ```bash
 # Test 1: Generate with text overlay
-./pisstvpp2 -i tests/images/sample.png -S "N0CALL" -o /tmp/test1.wav
+./slowframe -i tests/images/sample.png -S "N0CALL" -o /tmp/test1.wav
 
 # Test 2: Analyze output structure (if converted to image)
 python3 tests/util/image_analyzer.py tests/images/sample.png --verbose

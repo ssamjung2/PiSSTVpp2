@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Image Comparison Tool for PiSSTVpp2 Testing
+Image Comparison Tool for SlowFrame Testing
 
 Compares actual output images against expected reference images
 to validate that overlays, colors, and content match specifications.

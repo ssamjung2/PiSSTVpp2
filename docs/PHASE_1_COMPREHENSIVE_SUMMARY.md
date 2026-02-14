@@ -43,7 +43,7 @@ The comprehensive analysis of PiSSTV++ v2.1 Phase 1 modernization work reveals:
 
 ### Binary Status
 ```
-Binary:          bin/pisstvpp2 (v2.1.0)
+Binary:          bin/slowframe (v2.1.0)
 Size:            138 KB
 Compilation:     ✅ Successful (only minor warnings)
 Test Suite:      249 comprehensive tests ready
@@ -54,14 +54,14 @@ Runs:            ✅ Yes - accepts options, produces help, validates config
 
 | Module | Status | Issues | Effort |
 |--------|--------|--------|--------|
-| **pisstvpp2.c** (main) | ⚠️ 30% | VIPS_CALL macro, goto cleanup | 4-5h |
-| **pisstvpp2_image.c** | ⚠️ 40% | 4× return -1, 8× fprintf | 2-3h |
-| **pisstvpp2_sstv.c** | ⚠️ 50% | Mixed patterns, warnings | 2-3h |
-| **pisstvpp2_audio_encoder.c** | ⚠️ Limited | Factory functions | 1-2h |
+| **slowframe.c** (main) | ⚠️ 30% | VIPS_CALL macro, goto cleanup | 4-5h |
+| **slowframe_image.c** | ⚠️ 40% | 4× return -1, 8× fprintf | 2-3h |
+| **slowframe_sstv.c** | ⚠️ 50% | Mixed patterns, warnings | 2-3h |
+| **slowframe_audio_encoder.c** | ⚠️ Limited | Factory functions | 1-2h |
 | **audio_encoder_wav.c** | ❌ 0% | 25-30× return -1 | 2-3h |
 | **audio_encoder_aiff.c** | ❌ 0% | 40-50× return -1 | 2-3h |
 | **audio_encoder_ogg.c** | ❌ 0% | 3-5× return -1 | 1-2h |
-| **pisstvpp2_mmsstv_adapter.c** | ❌ 0% | 20× return -1 | 2-3h |
+| **slowframe_mmsstv_adapter.c** | ❌ 0% | 20× return -1 | 2-3h |
 | | | | |
 | **TOTAL REMAINING** | ⚠️ CRITICAL | ~150 lines | **18-24 hours** |
 
@@ -157,24 +157,24 @@ These **MUST** be complete:
 **Timeline:** 2-3 business days of focused work
 
 **Day 1 (6 hours):**
-1. Update pisstvpp2.c - Remove VIPS_CALL macro (4-5 hrs)
-2. Update pisstvpp2_image.c - Replace return -1 (2-3 hrs)
+1. Update slowframe.c - Remove VIPS_CALL macro (4-5 hrs)
+2. Update slowframe_image.c - Replace return -1 (2-3 hrs)
 3. Run tests - Verify no regressions
 
 **Day 2 (9 hours):**
 4. Update all audio encoders (WAV, AIFF, OGG) (6-8 hrs)
-5. Update pisstvpp2_sstv.c (2-3 hrs)
+5. Update slowframe_sstv.c (2-3 hrs)
 6. Run tests - Full validation
 
 **Day 3 (5-6 hours):**
-7. Update pisstvpp2_mmsstv_adapter.c (2-3 hrs)
-8. Update pisstvpp2_audio_encoder.c base (1-2 hrs)
+7. Update slowframe_mmsstv_adapter.c (2-3 hrs)
+8. Update slowframe_audio_encoder.c base (1-2 hrs)
 9. Final comprehensive testing (1-2 hrs)
 
 **Result:** Phase 1 COMPLETE ✅
 
 ### Option B: Incremental Completion
-Start with critical path (pisstvpp2.c + image.c), test, then continue
+Start with critical path (slowframe.c + image.c), test, then continue
 
 ---
 
@@ -255,7 +255,7 @@ Start with critical path (pisstvpp2.c + image.c), test, then continue
    - Incremental approach (longer, lower pressure)
 
 3. **Start with Module 1:**
-   - pisstvpp2.c (main program)
+   - slowframe.c (main program)
    - Refactor VIPS_CALL macro
    - Run tests after each change
 
@@ -265,8 +265,8 @@ Start with critical path (pisstvpp2.c + image.c), test, then continue
 
 ### If You Want to Start Immediately
 Execute in this order:
-1. `pisstvpp2.c` - 4-5 hours
-2. `pisstvpp2_image.c` - 2-3 hours
+1. `slowframe.c` - 4-5 hours
+2. `slowframe_image.c` - 2-3 hours
 3. Test suite - 30 minutes
 4. Audio encoders - 6-8 hours
 5. SSTV/MMSSTV - 4-6 hours
@@ -334,10 +334,10 @@ The documents I've created provide:
 
 **Code Files Analyzed (Not Modified):**
 - ✅ src/util/error.h/c - Complete analysis
-- ✅ src/include/pisstvpp2_config.h
-- ✅ src/pisstvpp2_config.c - Complete analysis
-- ✅ src/include/pisstvpp2_context.h
-- ✅ src/pisstvpp2_context.c - Complete analysis
+- ✅ src/include/slowframe_config.h
+- ✅ src/slowframe_config.c - Complete analysis
+- ✅ src/include/slowframe_context.h
+- ✅ src/slowframe_context.c - Complete analysis
 - ✅ 8 other modules analyzed for error patterns
 
 **Task List Updated:**

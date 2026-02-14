@@ -1,4 +1,4 @@
-# PiSSTVpp2 v2.0 - Modernization & Enhancement Progress
+# SlowFrame v2.0 - Modernization & Enhancement Progress
 
 **Date Updated:** February 10, 2026  
 **Overall Status:** Parts 0, 1, and 4 Complete | Part 2 Awaiting MMSSTV | Parts 3, 5, 6, 7 Ready to Begin
@@ -91,7 +91,7 @@ Currently blocked on availability of `mmsstv-portable` C library.
 
 **Preparation Completed:**
 - [x] Stub interface defined: `src/include/mmsstv_stub.h`
-- [x] Adapter skeleton created: `src/pisstvpp2_mmsstv_adapter.c`
+- [x] Adapter skeleton created: `src/slowframe_mmsstv_adapter.c`
 - [x] Mode parameter tables designed
 - [x] Integration approach documented: `MMSSTV_INTEGRATION.md`
 - [x] Configuration module ready for new modes
@@ -327,7 +327,7 @@ Already 60% complete from testing documentation.
 
 ## Conclusion
 
-**Current Status:** PiSSTVpp2 is in excellent shape with modernization 50% complete:
+**Current Status:** SlowFrame is in excellent shape with modernization 50% complete:
 - ✅ Testing infrastructure complete and comprehensive
 - ✅ Code refactored and hardened
 - ✅ Security vulnerabilities fixed

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Integration Testing for PiSSTVpp2
+Integration Testing for SlowFrame
 Tests feature combinations and real-world usage scenarios
 """
 
@@ -44,7 +44,7 @@ class IntegrationTestSuite:
                  images_dir=None):
         if executable_path is None:
             script_dir = Path(__file__).parent.parent.parent
-            executable_path = str(script_dir / "bin" / "pisstvpp2")
+            executable_path = str(script_dir / "bin" / "slowframe")
         if images_dir is None:
             script_dir = Path(__file__).parent.parent
             images_dir = str(script_dir / "images")
@@ -54,7 +54,7 @@ class IntegrationTestSuite:
         self.failed = 0
         self.skipped = 0
         self.test_results = []
-        self.temp_dir = tempfile.mkdtemp(prefix="pisstvpp2_test_")
+        self.temp_dir = tempfile.mkdtemp(prefix="slowframe_test_")
         
         if not os.path.exists(self.exe):
             raise FileNotFoundError(f"Executable not found: {self.exe}")
@@ -408,7 +408,7 @@ class IntegrationTestSuite:
     def run_all_tests(self):
         """Execute all integration tests"""
         print(f"\n{Colors.BOLD}{Colors.CYAN}╔═══════════════════════════════════════════════════════════════╗{Colors.RESET}")
-        print(f"{Colors.BOLD}{Colors.CYAN}║  PiSSTVpp2 - Integration Testing Suite                       ║{Colors.RESET}")
+        print(f"{Colors.BOLD}{Colors.CYAN}║  SlowFrame - Integration Testing Suite                       ║{Colors.RESET}")
         print(f"{Colors.BOLD}{Colors.CYAN}║  Testing real-world feature combinations and workflows       ║{Colors.RESET}")
         print(f"{Colors.BOLD}{Colors.CYAN}╚═══════════════════════════════════════════════════════════════╝{Colors.RESET}")
         
@@ -462,7 +462,7 @@ if __name__ == "__main__":
     images_path = sys.argv[2] if len(sys.argv) > 2 else None
     if exe_path is None:
         script_dir = Path(__file__).parent.parent.parent
-        exe_path = str(script_dir / "bin" / "pisstvpp2")
+        exe_path = str(script_dir / "bin" / "slowframe")
     if images_path is None:
         script_dir = Path(__file__).parent.parent
         images_path = str(script_dir / "images")

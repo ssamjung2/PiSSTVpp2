@@ -1,7 +1,7 @@
 /*
  * image_aspect.c
  *
- * Aspect ratio correction module for PiSSTVpp2
+ * Aspect ratio correction module for SlowFrame
  * 
  * Implements three strategies for adapting images to target aspect ratios:
  *
@@ -119,7 +119,7 @@ static int correct_center_mode(VipsImage *image, int target_width, int target_he
     VipsImage *cropped = NULL;
     int result = image_processor_crop(image, crop_left, crop_top, crop_width, crop_height,
                                      &cropped, verbose);
-    if (result != PISSTVPP2_OK) {
+    if (result != SLOWFRAME_OK) {
         return result;
     }
 
@@ -127,7 +127,7 @@ static int correct_center_mode(VipsImage *image, int target_width, int target_he
     VipsImage *resized = NULL;
     if (cropped->Xsize != target_width || cropped->Ysize != target_height) {
         result = image_processor_scale(cropped, target_width, target_height, &resized, verbose);
-        if (result != PISSTVPP2_OK) {
+        if (result != SLOWFRAME_OK) {
             g_object_unref(cropped);
             return result;
         }
@@ -144,7 +144,7 @@ static int correct_center_mode(VipsImage *image, int target_width, int target_he
                    (*out_corrected)->Xsize, (*out_corrected)->Ysize);
     }
 
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 /* ============================================================================
@@ -178,7 +178,7 @@ static int correct_pad_mode(VipsImage *image, int target_width, int target_heigh
     VipsImage *padded = NULL;
     int result = image_processor_embed(image, pad_left, pad_top, target_width, target_height,
                                       &padded, verbose);
-    if (result != PISSTVPP2_OK) {
+    if (result != SLOWFRAME_OK) {
         return result;
     }
 
@@ -190,7 +190,7 @@ static int correct_pad_mode(VipsImage *image, int target_width, int target_heigh
                    padded->Xsize, padded->Ysize);
     }
 
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 /* ============================================================================
@@ -210,7 +210,7 @@ static int correct_stretch_mode(VipsImage *image, int target_width, int target_h
 
     VipsImage *resized = NULL;
     int result = image_processor_scale(image, target_width, target_height, &resized, verbose);
-    if (result != PISSTVPP2_OK) {
+    if (result != SLOWFRAME_OK) {
         return result;
     }
 
@@ -224,7 +224,7 @@ static int correct_stretch_mode(VipsImage *image, int target_width, int target_h
                    src_aspect, tgt_aspect, fabs(src_aspect - tgt_aspect) * 100);
     }
 
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 /* ============================================================================
@@ -234,20 +234,20 @@ static int correct_stretch_mode(VipsImage *image, int target_width, int target_h
 int image_aspect_correct(VipsImage *image, int target_width, int target_height, AspectMode mode,
                         VipsImage **out_corrected, int verbose, int timestamp_logging) {
     if (!image) {
-        error_log(PISSTVPP2_ERR_ARG_INVALID, "Cannot correct aspect of NULL VipsImage");
-        return PISSTVPP2_ERR_ARG_INVALID;
+        error_log(SLOWFRAME_ERR_ARG_INVALID, "Cannot correct aspect of NULL VipsImage");
+        return SLOWFRAME_ERR_ARG_INVALID;
     }
 
     if (!out_corrected) {
-        error_log(PISSTVPP2_ERR_ARG_INVALID, "Output VipsImage pointer is NULL");
-        return PISSTVPP2_ERR_ARG_INVALID;
+        error_log(SLOWFRAME_ERR_ARG_INVALID, "Output VipsImage pointer is NULL");
+        return SLOWFRAME_ERR_ARG_INVALID;
     }
 
     if (target_width <= 0 || target_height <= 0) {
-        error_log(PISSTVPP2_ERR_IMAGE_DIMENSIONS_INVALID,
+        error_log(SLOWFRAME_ERR_IMAGE_DIMENSIONS_INVALID,
                  "Invalid target dimensions for aspect correction: %dx%d",
                  target_width, target_height);
-        return PISSTVPP2_ERR_IMAGE_DIMENSIONS_INVALID;
+        return SLOWFRAME_ERR_IMAGE_DIMENSIONS_INVALID;
     }
 
     int img_width = image->Xsize;
@@ -272,11 +272,11 @@ int image_aspect_correct(VipsImage *image, int target_width, int target_height, 
         log_verbose(verbose, timestamp_logging,
                    "   [OK] Image already correct size and aspect - no correction needed\n");
         *out_corrected = image;
-        return PISSTVPP2_OK;
+        return SLOWFRAME_OK;
     }
 
     /* Apply correction based on mode */
-    int result = PISSTVPP2_OK;
+    int result = SLOWFRAME_OK;
     switch (mode) {
         case ASPECT_CENTER:
             result = correct_center_mode(image, target_width, target_height, out_corrected,
@@ -294,25 +294,25 @@ int image_aspect_correct(VipsImage *image, int target_width, int target_height, 
             break;
 
         default:
-            error_log(PISSTVPP2_ERR_ARG_ASPECT_MODE_INVALID,
+            error_log(SLOWFRAME_ERR_ARG_ASPECT_MODE_INVALID,
                      "Unknown aspect mode: %d", mode);
-            return PISSTVPP2_ERR_ARG_ASPECT_MODE_INVALID;
+            return SLOWFRAME_ERR_ARG_ASPECT_MODE_INVALID;
     }
 
-    if (result != PISSTVPP2_OK) {
+    if (result != SLOWFRAME_OK) {
         error_log(result, "Aspect ratio correction failed");
         return result;
     }
 
     /* Verify result dimensions */
     if ((*out_corrected)->Xsize != target_width || (*out_corrected)->Ysize != target_height) {
-        error_log(PISSTVPP2_ERR_IMAGE_PROCESS,
+        error_log(SLOWFRAME_ERR_IMAGE_PROCESS,
                  "Aspect correction produced wrong dimensions: got %dx%d, expected %dx%d",
                  (*out_corrected)->Xsize, (*out_corrected)->Ysize, target_width, target_height);
         if (*out_corrected != image) {
             g_object_unref(*out_corrected);
         }
-        return PISSTVPP2_ERR_IMAGE_PROCESS;
+        return SLOWFRAME_ERR_IMAGE_PROCESS;
     }
 
     if (verbose) {
@@ -321,7 +321,7 @@ int image_aspect_correct(VipsImage *image, int target_width, int target_height, 
                    (*out_corrected)->Xsize, (*out_corrected)->Ysize);
     }
 
-    return PISSTVPP2_OK;
+    return SLOWFRAME_OK;
 }
 
 /* ============================================================================
@@ -339,24 +339,24 @@ const char *image_aspect_get_name(AspectMode mode) {
 
 int image_aspect_parse(const char *mode_str, AspectMode *out_mode) {
     if (!mode_str || !out_mode) {
-        error_log(PISSTVPP2_ERR_ARG_INVALID, "NULL pointer in aspect mode parsing");
-        return PISSTVPP2_ERR_ARG_INVALID;
+        error_log(SLOWFRAME_ERR_ARG_INVALID, "NULL pointer in aspect mode parsing");
+        return SLOWFRAME_ERR_ARG_INVALID;
     }
 
     if (strcasecmp(mode_str, "center") == 0) {
         *out_mode = ASPECT_CENTER;
-        return PISSTVPP2_OK;
+        return SLOWFRAME_OK;
     }
     if (strcasecmp(mode_str, "pad") == 0) {
         *out_mode = ASPECT_PAD;
-        return PISSTVPP2_OK;
+        return SLOWFRAME_OK;
     }
     if (strcasecmp(mode_str, "stretch") == 0) {
         *out_mode = ASPECT_STRETCH;
-        return PISSTVPP2_OK;
+        return SLOWFRAME_OK;
     }
 
-    error_log(PISSTVPP2_ERR_ARG_ASPECT_MODE_INVALID,
+    error_log(SLOWFRAME_ERR_ARG_ASPECT_MODE_INVALID,
              "Unknown aspect mode: '%s' (valid: center, pad, stretch)", mode_str);
-    return PISSTVPP2_ERR_ARG_ASPECT_MODE_INVALID;
+    return SLOWFRAME_ERR_ARG_ASPECT_MODE_INVALID;
 }

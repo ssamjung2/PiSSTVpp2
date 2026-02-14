@@ -15,7 +15,7 @@ set -e
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$( dirname "$SCRIPT_DIR" )"
-BIN="$PROJECT_ROOT/bin/pisstvpp2"
+BIN="$PROJECT_ROOT/bin/slowframe"
 TEST_RESULTS_DIR="$PROJECT_ROOT/tests/test_results"
 TEST_DIR="${1:-$TEST_RESULTS_DIR}"
 
@@ -33,7 +33,7 @@ if [ ! -f "$BIN" ]; then
 fi
 
 echo "=========================================="
-echo "PiSSTVpp2 Dimension Verification Tests"
+echo "SlowFrame Dimension Verification Tests"
 echo "=========================================="
 echo ""
 

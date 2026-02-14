@@ -1,4 +1,4 @@
-# PiSSTVpp2 User Guide
+# SlowFrame User Guide
 
 **Complete reference for all features and capabilities**
 
@@ -27,9 +27,9 @@ Version 2.0 | Updated: 2024
 
 ## Introduction
 
-### What is PiSSTVpp2?
+### What is SlowFrame?
 
-PiSSTVpp2 is a modern SSTV (Slow Scan Television) encoder that converts images into audio signals. Originally designed for Raspberry Pi, it works on any Linux system and macOS.
+SlowFrame is a modern SSTV (Slow Scan Television) encoder that converts images into audio signals. Originally designed for Raspberry Pi, it works on any Linux system and macOS.
 
 **Key Features:**
 - 7 SSTV modes (Martin, Scottie, Robot families)
@@ -42,7 +42,7 @@ PiSSTVpp2 is a modern SSTV (Slow Scan Television) encoder that converts images i
 
 ### Version 2.0 Changes
 
-PiSSTVpp2 v2.0 is a complete rewrite with:
+SlowFrame v2.0 is a complete rewrite with:
 
 **New Features:**
 - OGG Vorbis output format
@@ -113,7 +113,7 @@ sudo port install vips libogg libvorbis
 
 ```bash
 # Navigate to source directory
-cd /path/to/PiSSTVpp2
+cd /path/to/SlowFrame
 
 # Clean previous builds
 make clean
@@ -122,21 +122,21 @@ make clean
 make all
 
 # Verify build
-./bin/pisstvpp2 -h
+./bin/slowframe -h
 ```
 
 **Build Output:**
-- Binary: `bin/pisstvpp2`
+- Binary: `bin/slowframe`
 - No installation required (self-contained)
 
 ### Optional: System-Wide Installation
 
 ```bash
 # Install to /usr/local/bin
-sudo cp bin/pisstvpp2 /usr/local/bin/
+sudo cp bin/slowframe /usr/local/bin/
 
 # Verify
-pisstvpp2 -h
+slowframe -h
 ```
 
 ---
@@ -146,7 +146,7 @@ pisstvpp2 -h
 ### Command Structure
 
 ```bash
-pisstvpp2 -i <input-image> -o <output-audio> [options]
+slowframe -i <input-image> -o <output-audio> [options]
 ```
 
 **Required:**
@@ -164,7 +164,7 @@ pisstvpp2 -i <input-image> -o <output-audio> [options]
 ### Simplest Example
 
 ```bash
-pisstvpp2 -i photo.jpg -o transmission.wav
+slowframe -i photo.jpg -o transmission.wav
 ```
 
 This creates a Martin 1 mode WAV file with default settings.
@@ -172,7 +172,7 @@ This creates a Martin 1 mode WAV file with default settings.
 ### Typical Usage
 
 ```bash
-pisstvpp2 -i photo.jpg -o transmission.wav -p s2 -C "N0CALL" -v
+slowframe -i photo.jpg -o transmission.wav -p s2 -C "N0CALL" -v
 ```
 
 This creates:
@@ -187,7 +187,7 @@ This creates:
 
 ### Available Modes
 
-PiSSTVpp2 v2.0 supports 7 SSTV modes:
+SlowFrame v2.0 supports 7 SSTV modes:
 
 | Mode Code | Full Name | Duration | Resolution | Color | Quality |
 |-----------|-----------|----------|------------|-------|---------|
@@ -399,22 +399,22 @@ PiSSTVpp2 v2.0 supports 7 SSTV modes:
 
 **Maximum Quality:**
 ```bash
-pisstvpp2 -i photo.jpg -o output.wav -p sdx -r 48000 -f wav
+slowframe -i photo.jpg -o output.wav -p sdx -r 48000 -f wav
 ```
 
 **Minimum File Size:**
 ```bash
-pisstvpp2 -i photo.jpg -o output.ogg -p r36 -r 11025 -f ogg
+slowframe -i photo.jpg -o output.ogg -p r36 -r 11025 -f ogg
 ```
 
 **Contest Standard:**
 ```bash
-pisstvpp2 -i photo.jpg -o output.wav -p m1 -C "N0CALL" -r 44100
+slowframe -i photo.jpg -o output.wav -p m1 -C "N0CALL" -r 44100
 ```
 
 **Quick Test:**
 ```bash
-pisstvpp2 -i photo.jpg -o test.wav -p r36 -v
+slowframe -i photo.jpg -o test.wav -p r36 -v
 ```
 
 ---
@@ -441,7 +441,7 @@ pisstvpp2 -i photo.jpg -o test.wav -p r36 -v
 
 **Example:**
 ```bash
-pisstvpp2 -i photo.jpg -o transmission.wav -f wav
+slowframe -i photo.jpg -o transmission.wav -f wav
 ```
 
 **File Size Examples:**
@@ -468,7 +468,7 @@ pisstvpp2 -i photo.jpg -o transmission.wav -f wav
 
 **Example:**
 ```bash
-pisstvpp2 -i photo.jpg -o transmission.aiff -f aiff
+slowframe -i photo.jpg -o transmission.aiff -f aiff
 ```
 
 ### OGG Vorbis Format
@@ -491,7 +491,7 @@ pisstvpp2 -i photo.jpg -o transmission.aiff -f aiff
 
 **Example:**
 ```bash
-pisstvpp2 -i photo.jpg -o transmission.ogg -f ogg
+slowframe -i photo.jpg -o transmission.ogg -f ogg
 ```
 
 **File Size Examples:**
@@ -518,7 +518,7 @@ pisstvpp2 -i photo.jpg -o transmission.ogg -f ogg
 
 ### Supported Input Formats
 
-PiSSTVpp2 uses libvips, supporting:
+SlowFrame uses libvips, supporting:
 
 **Common Formats:**
 - JPEG (.jpg, .jpeg)
@@ -560,7 +560,7 @@ SSTV modes expect 4:3 aspect ratio images. Different input aspect ratios need co
 
 **Example:**
 ```bash
-pisstvpp2 -i portrait.jpg -o output.wav -a center
+slowframe -i portrait.jpg -o output.wav -a center
 ```
 
 **Result:** Portrait image cropped horizontally from center, losing left/right edges.
@@ -580,7 +580,7 @@ pisstvpp2 -i portrait.jpg -o output.wav -a center
 
 **Example:**
 ```bash
-pisstvpp2 -i square.jpg -o output.wav -a pad
+slowframe -i square.jpg -o output.wav -a pad
 ```
 
 **Result:** Square image with black bars on left and right sides.
@@ -599,7 +599,7 @@ pisstvpp2 -i square.jpg -o output.wav -a pad
 
 **Example:**
 ```bash
-pisstvpp2 -i wide.jpg -o output.wav -a stretch
+slowframe -i wide.jpg -o output.wav -a stretch
 ```
 
 **Result:** Wide image compressed horizontally to fit 4:3.
@@ -644,13 +644,13 @@ pisstvpp2 -i wide.jpg -o output.wav -a stretch
 **Example Inputs:**
 ```bash
 # High-res photo (downscaled, excellent quality)
-pisstvpp2 -i 4000x3000.jpg -o output.wav
+slowframe -i 4000x3000.jpg -o output.wav
 
 # Small image (upscaled, may show artifacts)
-pisstvpp2 -i 160x120.jpg -o output.wav
+slowframe -i 160x120.jpg -o output.wav
 
 # Perfect size (minimal processing)
-pisstvpp2 -i 640x480.jpg -o output.wav
+slowframe -i 640x480.jpg -o output.wav
 ```
 
 ---
@@ -674,7 +674,7 @@ Where:
 ### Basic Usage
 
 ```bash
-pisstvpp2 -i photo.jpg -o output.wav -C "N0CALL"
+slowframe -i photo.jpg -o output.wav -C "N0CALL"
 ```
 
 **Result:**
@@ -711,10 +711,10 @@ pisstvpp2 -i photo.jpg -o output.wav -C "N0CALL"
 **Example:**
 ```bash
 # Slow CW for easy copying
-pisstvpp2 -i photo.jpg -C "N0CALL" -W 13 -o output.wav
+slowframe -i photo.jpg -C "N0CALL" -W 13 -o output.wav
 
 # Fast CW for quick ID
-pisstvpp2 -i photo.jpg -C "N0CALL" -W 25 -o output.wav
+slowframe -i photo.jpg -C "N0CALL" -W 25 -o output.wav
 ```
 
 #### Tone Frequency (-T)
@@ -731,17 +731,17 @@ pisstvpp2 -i photo.jpg -C "N0CALL" -W 25 -o output.wav
 **Example:**
 ```bash
 # Low tone
-pisstvpp2 -i photo.jpg -C "N0CALL" -T 600 -o output.wav
+slowframe -i photo.jpg -C "N0CALL" -T 600 -o output.wav
 
 # High tone
-pisstvpp2 -i photo.jpg -C "N0CALL" -T 1200 -o output.wav
+slowframe -i photo.jpg -C "N0CALL" -T 1200 -o output.wav
 ```
 
 ### Complete CW Examples
 
 **Standard ID:**
 ```bash
-pisstvpp2 -i photo.jpg -o output.wav -C "N0CALL"
+slowframe -i photo.jpg -o output.wav -C "N0CALL"
 ```
 - 18 WPM
 - 850 Hz tone
@@ -749,21 +749,21 @@ pisstvpp2 -i photo.jpg -o output.wav -C "N0CALL"
 
 **Slow, Low Tone:**
 ```bash
-pisstvpp2 -i photo.jpg -o output.wav -C "W1AW" -W 13 -T 600
+slowframe -i photo.jpg -o output.wav -C "W1AW" -W 13 -T 600
 ```
 - 13 WPM (slower)
 - 600 Hz (deeper tone)
 
 **Fast, High Tone:**
 ```bash
-pisstvpp2 -i photo.jpg -o output.wav -C "K0ABC" -W 25 -T 1000
+slowframe -i photo.jpg -o output.wav -C "K0ABC" -W 25 -T 1000
 ```
 - 25 WPM (faster)
 - 1000 Hz (higher pitch)
 
 **Portable Operation:**
 ```bash
-pisstvpp2 -i photo.jpg -o output.wav -C "N0CALL/5"
+slowframe -i photo.jpg -o output.wav -C "N0CALL/5"
 ```
 - Callsign with portable indicator
 
@@ -791,7 +791,7 @@ If you don't need CW identification:
 
 ```bash
 # No -C option = no CW
-pisstvpp2 -i photo.jpg -o output.wav
+slowframe -i photo.jpg -o output.wav
 ```
 
 **Result:** Only SSTV image, no CW signature.
@@ -836,7 +836,7 @@ VIS (Vertical Interval Signaling) is a code sent before the SSTV image to identi
 VIS header is **enabled by default**:
 
 ```bash
-pisstvpp2 -i photo.jpg -o output.wav
+slowframe -i photo.jpg -o output.wav
 # VIS header included automatically
 ```
 
@@ -845,7 +845,7 @@ pisstvpp2 -i photo.jpg -o output.wav
 Use `-n` or `--no-vis` to disable:
 
 ```bash
-pisstvpp2 -i photo.jpg -o output.wav -n
+slowframe -i photo.jpg -o output.wav -n
 ```
 
 **When to Disable:**
@@ -903,7 +903,7 @@ sox output.wav -n spectrogram -o spectrogram.png
 Enable detailed diagnostic output:
 
 ```bash
-pisstvpp2 -i photo.jpg -o output.wav -v
+slowframe -i photo.jpg -o output.wav -v
 ```
 
 **Output Includes:**
@@ -919,7 +919,7 @@ pisstvpp2 -i photo.jpg -o output.wav -v
 
 **Example Output:**
 ```
-[INFO] PiSSTVpp2 v2.0 SSTV Encoder
+[INFO] SlowFrame v2.0 SSTV Encoder
 [INFO] Loading image: photo.jpg
 [INFO] Image format: JPEG, size: 1920x1080, bands: 3
 [INFO] Applying aspect correction: center (crop)
@@ -947,13 +947,13 @@ pisstvpp2 -i photo.jpg -o output.wav -v
 
 ### Chaining with Audio Tools
 
-PiSSTVpp2 outputs standard audio files that can be processed with other tools.
+SlowFrame outputs standard audio files that can be processed with other tools.
 
 #### Normalize Audio Levels
 
 ```bash
 # Generate SSTV
-pisstvpp2 -i photo.jpg -o transmission.wav
+slowframe -i photo.jpg -o transmission.wav
 
 # Normalize with sox
 sox transmission.wav normalized.wav gain -n
@@ -966,7 +966,7 @@ ffmpeg -i transmission.wav -af loudnorm output.wav
 
 ```bash
 # SSTV to WAV
-pisstvpp2 -i photo.jpg -o sstv.wav
+slowframe -i photo.jpg -o sstv.wav
 
 # Convert to MP3
 ffmpeg -i sstv.wav -b:a 192k transmission.mp3
@@ -979,9 +979,9 @@ ffmpeg -i sstv.wav transmission.flac
 
 ```bash
 # Generate multiple images
-pisstvpp2 -i photo1.jpg -o tx1.wav
-pisstvpp2 -i photo2.jpg -o tx2.wav
-pisstvpp2 -i photo3.jpg -o tx3.wav
+slowframe -i photo1.jpg -o tx1.wav
+slowframe -i photo2.jpg -o tx2.wav
+slowframe -i photo3.jpg -o tx3.wav
 
 # Concatenate with sox
 sox tx1.wav tx2.wav tx3.wav combined.wav
@@ -994,7 +994,7 @@ sox tx1.wav -p pad 0 5 : tx2.wav -p pad 0 5 : tx3.wav combined.wav
 
 ```bash
 # Generate base transmission
-pisstvpp2 -i photo.jpg -o base.wav
+slowframe -i photo.jpg -o base.wav
 
 # Add echo effect
 sox base.wav echo.wav echo 0.8 0.9 1000 0.3
@@ -1010,7 +1010,7 @@ sox base.wav filtered.wav lowpass 3000
 
 ```bash
 # Generate transmission
-pisstvpp2 -i photo.jpg -o transmission.wav
+slowframe -i photo.jpg -o transmission.wav
 
 # Show statistics
 sox transmission.wav -n stat
@@ -1034,7 +1034,7 @@ Process multiple images automatically:
 
 for img in *.jpg; do
     basename="${img%.jpg}"
-    pisstvpp2 -i "$img" -o "${basename}.wav" -p s2 -v
+    slowframe -i "$img" -o "${basename}.wav" -p s2 -v
 done
 ```
 
@@ -1046,7 +1046,7 @@ CALLSIGN="N0CALL"
 
 for img in photos/*.jpg; do
     basename=$(basename "$img" .jpg)
-    pisstvpp2 -i "$img" -o "sstv/${basename}.wav" \
+    slowframe -i "$img" -o "sstv/${basename}.wav" \
         -p s2 -C "$CALLSIGN" -v
 done
 ```
@@ -1061,7 +1061,7 @@ INPUT="photo.jpg"
 MODES=("m1" "m2" "s1" "s2" "sdx" "r36" "r72")
 
 for mode in "${MODES[@]}"; do
-    pisstvpp2 -i "$INPUT" -o "transmission_${mode}.wav" -p "$mode"
+    slowframe -i "$INPUT" -o "transmission_${mode}.wav" -p "$mode"
 done
 ```
 
@@ -1084,7 +1084,7 @@ for img in "$INPUT_DIR"/*.{jpg,png}; do
     name="${basename%.*}"
     
     echo "Processing: $basename"
-    pisstvpp2 -i "$img" \
+    slowframe -i "$img" \
         -o "$OUTPUT_DIR/${name}.wav" \
         -p "$MODE" \
         -C "$CALLSIGN" \
@@ -1100,7 +1100,7 @@ echo "Batch processing complete!"
 
 ```bash
 # Generate SSTV
-pisstvpp2 -i photo.jpg -o transmission.wav -p s2
+slowframe -i photo.jpg -o transmission.wav -p s2
 
 # Transmit on Raspberry Pi (requires pifm)
 # WARNING: Check local regulations before transmitting!
@@ -1111,7 +1111,7 @@ sudo ./pifm transmission.wav 145.500 22050
 
 ```bash
 # Generate SSTV transmission
-pisstvpp2 -i photo.jpg -o transmission.wav -p m1
+slowframe -i photo.jpg -o transmission.wav -p m1
 
 # Play into Fldigi (virtual audio cable or direct)
 aplay -D pulse transmission.wav
@@ -1121,7 +1121,7 @@ aplay -D pulse transmission.wav
 
 ```bash
 # Generate on local machine
-pisstvpp2 -i photo.jpg -o transmission.wav
+slowframe -i photo.jpg -o transmission.wav
 
 # Copy to remote station
 scp transmission.wav user@station:/tmp/
@@ -1164,7 +1164,7 @@ ssh user@station 'aplay /tmp/transmission.wav'
 - Output audio: Written incrementally (low memory)
 
 **Low-Memory Systems:**
-- PiSSTVpp2 runs well on 256 MB+ RAM
+- SlowFrame runs well on 256 MB+ RAM
 - Suitable for Raspberry Pi Zero
 
 ### Disk I/O
@@ -1207,10 +1207,10 @@ ssh user@station 'aplay /tmp/transmission.wav'
 **For Faster Encoding:**
 ```bash
 # Use lower sample rate
-pisstvpp2 -i photo.jpg -o output.wav -r 11025
+slowframe -i photo.jpg -o output.wav -r 11025
 
 # Use faster mode
-pisstvpp2 -i photo.jpg -o output.wav -p r36
+slowframe -i photo.jpg -o output.wav -p r36
 
 # Avoid verbose logging in batch
 # (omit -v flag)
@@ -1219,19 +1219,19 @@ pisstvpp2 -i photo.jpg -o output.wav -p r36
 **For Smaller Files:**
 ```bash
 # Use OGG format
-pisstvpp2 -i photo.jpg -o output.ogg -f ogg -r 11025
+slowframe -i photo.jpg -o output.ogg -f ogg -r 11025
 
 # Fast mode + OGG
-pisstvpp2 -i photo.jpg -o output.ogg -p r36 -f ogg -r 11025
+slowframe -i photo.jpg -o output.ogg -p r36 -f ogg -r 11025
 ```
 
 **For Best Quality:**
 ```bash
 # High sample rate + best mode
-pisstvpp2 -i photo.jpg -o output.wav -p sdx -r 48000
+slowframe -i photo.jpg -o output.wav -p sdx -r 48000
 
 # Lossless format
-pisstvpp2 -i photo.jpg -o output.wav -f wav -r 44100
+slowframe -i photo.jpg -o output.wav -f wav -r 44100
 ```
 
 ---
@@ -1263,14 +1263,14 @@ ls -l /path/to/photo.jpg
 file photo.jpg
 
 # Use absolute path
-pisstvpp2 -i /full/path/to/photo.jpg -o output.wav
+slowframe -i /full/path/to/photo.jpg -o output.wav
 
 # Check permissions
 chmod 644 photo.jpg
 
 # Try different format
 convert photo.jpg photo.png
-pisstvpp2 -i photo.png -o output.wav
+slowframe -i photo.png -o output.wav
 ```
 
 #### "Cannot create output file"
@@ -1298,7 +1298,7 @@ mkdir -p output/
 ls -ld output/
 
 # Use different location
-pisstvpp2 -i photo.jpg -o /tmp/output.wav
+slowframe -i photo.jpg -o /tmp/output.wav
 ```
 
 #### "OGG format not supported"
@@ -1309,7 +1309,7 @@ pisstvpp2 -i photo.jpg -o /tmp/output.wav
 ```
 
 **Cause:**
-- PiSSTVpp2 built without OGG libraries
+- SlowFrame built without OGG libraries
 
 **Solution:**
 ```bash
@@ -1320,7 +1320,7 @@ sudo apt-get install libogg-dev libvorbis-dev
 make clean && make all
 
 # Verify OGG support
-./bin/pisstvpp2 -h | grep -i ogg
+./bin/slowframe -h | grep -i ogg
 ```
 
 #### Output file size is huge
@@ -1337,10 +1337,10 @@ make clean && make all
 **Solutions:**
 ```bash
 # Use lower sample rate
-pisstvpp2 -i photo.jpg -o output.wav -r 11025
+slowframe -i photo.jpg -o output.wav -r 11025
 
 # Use compression
-pisstvpp2 -i photo.jpg -o output.ogg -f ogg
+slowframe -i photo.jpg -o output.ogg -f ogg
 
 # Clean up old files
 rm old_transmissions/*.wav
@@ -1359,7 +1359,7 @@ rm old_transmissions/*.wav
 **Solutions:**
 ```bash
 # Regenerate file
-pisstvpp2 -i photo.jpg -o output.wav -C "CALL"
+slowframe -i photo.jpg -o output.wav -C "CALL"
 
 # Test with different player
 aplay output.wav
@@ -1367,7 +1367,7 @@ aplay output.wav
 ffplay output.wav
 
 # Check CW settings
-pisstvpp2 -i photo.jpg -o output.wav -C "CALL" -W 18 -T 850
+slowframe -i photo.jpg -o output.wav -C "CALL" -W 18 -T 850
 ```
 
 #### Image looks wrong when decoded
@@ -1386,17 +1386,17 @@ pisstvpp2 -i photo.jpg -o output.wav -C "CALL" -W 18 -T 850
 **Solutions:**
 ```bash
 # Ensure VIS header enabled
-pisstvpp2 -i photo.jpg -o output.wav
+slowframe -i photo.jpg -o output.wav
 # (no -n flag)
 
 # Try different mode
-pisstvpp2 -i photo.jpg -o output.wav -p m1
+slowframe -i photo.jpg -o output.wav -p m1
 
 # Use standard sample rate
-pisstvpp2 -i photo.jpg -o output.wav -r 22050
+slowframe -i photo.jpg -o output.wav -r 22050
 
 # Check aspect ratio
-pisstvpp2 -i photo.jpg -o output.wav -a center
+slowframe -i photo.jpg -o output.wav -a center
 
 # Manually select mode in receiver
 # Match mode to -p setting
@@ -1415,9 +1415,9 @@ pisstvpp2 -i photo.jpg -o output.wav -a center
 **Solutions:**
 ```bash
 # Try all modes to compare
-pisstvpp2 -i photo.jpg -o center.wav -a center
-pisstvpp2 -i photo.jpg -o pad.wav -a pad
-pisstvpp2 -i photo.jpg -o stretch.wav -a stretch
+slowframe -i photo.jpg -o center.wav -a center
+slowframe -i photo.jpg -o pad.wav -a pad
+slowframe -i photo.jpg -o stretch.wav -a stretch
 
 # Decode all three and compare results
 
@@ -1436,13 +1436,13 @@ file photo.jpg
 **Solutions:**
 ```bash
 # Remove -v flag
-pisstvpp2 -i photo.jpg -o output.wav
+slowframe -i photo.jpg -o output.wav
 
 # Redirect to file
-pisstvpp2 -i photo.jpg -o output.wav -v > log.txt 2>&1
+slowframe -i photo.jpg -o output.wav -v > log.txt 2>&1
 
 # Filter output
-pisstvpp2 -i photo.jpg -o output.wav -v 2>&1 | grep ERROR
+slowframe -i photo.jpg -o output.wav -v 2>&1 | grep ERROR
 ```
 
 ### Debugging Steps
@@ -1450,13 +1450,13 @@ pisstvpp2 -i photo.jpg -o output.wav -v 2>&1 | grep ERROR
 **Step 1: Verify Installation**
 ```bash
 # Check binary exists
-which pisstvpp2
+which slowframe
 
 # Check version
-pisstvpp2 --version
+slowframe --version
 
 # Check help
-pisstvpp2 -h
+slowframe -h
 ```
 
 **Step 2: Test with Known-Good Image**
@@ -1465,7 +1465,7 @@ pisstvpp2 -h
 convert -size 320x256 xc:blue test.png
 
 # Encode
-pisstvpp2 -i test.png -o test.wav -v
+slowframe -i test.png -o test.wav -v
 ```
 
 **Step 3: Check Dependencies**
@@ -1477,13 +1477,13 @@ pkg-config --modversion vips
 pkg-config --modversion vorbis
 
 # Check linking
-ldd bin/pisstvpp2
+ldd bin/slowframe
 ```
 
 **Step 4: Enable Verbose Logging**
 ```bash
 # Run with -v for diagnostics
-pisstvpp2 -i photo.jpg -o output.wav -v
+slowframe -i photo.jpg -o output.wav -v
 ```
 
 **Step 5: Test Output File**
@@ -1644,7 +1644,7 @@ tar czf sstv-backup-$(date +%Y%m%d).tar.gz sstv/
 convert raw-photo.jpg -resize 800x600^ -gravity center -extent 800x600 prepared.jpg
 
 # 2. Generate transmission
-pisstvpp2 -i prepared.jpg -o transmission.wav \
+slowframe -i prepared.jpg -o transmission.wav \
     -p s2 -C "N0CALL" -r 44100 -v
 
 # 3. Verify quality
@@ -1653,7 +1653,7 @@ aplay transmission.wav
 
 # 4. Archive
 cp transmission.wav archive/$(date +%Y%m%d)-prepared-s2.wav
-pisstvpp2 -i prepared.jpg -o archive/$(date +%Y%m%d)-prepared-s2.ogg -f ogg
+slowframe -i prepared.jpg -o archive/$(date +%Y%m%d)-prepared-s2.ogg -f ogg
 
 # 5. Transmit
 # (via radio/online/etc.)
@@ -1719,19 +1719,19 @@ Robot modes (YCrCb):
 **Code Structure:**
 
 ```
-pisstvpp2_image.c/.h
+slowframe_image.c/.h
 ├── Image loading (libvips)
 ├── Color space conversion
 ├── Aspect ratio correction
 └── Scaling/resizing
 
-pisstvpp2_sstv.c/.h
+slowframe_sstv.c/.h
 ├── VIS header generation
 ├── Line-by-line encoding
 ├── Frequency generation
 └── Sample buffer management
 
-pisstvpp2_audio_encoder.c/.h
+slowframe_audio_encoder.c/.h
 ├── Format handlers (WAV/AIFF/OGG)
 ├── Sample writing
 └── File I/O
@@ -1741,7 +1741,7 @@ audio_encoder_*.c
 ├── AIFF encoder
 └── OGG encoder
 
-pisstvpp2.c
+slowframe.c
 ├── Main program
 ├── Argument parsing
 ├── CW generation
@@ -1867,27 +1867,27 @@ Typically 20-30% of WAV size at quality 0.4.
 
 ```bash
 # Basic encoding
-pisstvpp2 -i input.jpg -o output.wav
+slowframe -i input.jpg -o output.wav
 
 # All options
-pisstvpp2 -i input.jpg -o output.wav -p s2 -f wav -r 22050 \
+slowframe -i input.jpg -o output.wav -p s2 -f wav -r 22050 \
     -a center -C "CALL" -W 18 -T 850 -v
 
 # Fast mode, small file
-pisstvpp2 -i input.jpg -o output.ogg -p r36 -f ogg -r 11025
+slowframe -i input.jpg -o output.ogg -p r36 -f ogg -r 11025
 
 # Best quality
-pisstvpp2 -i input.jpg -o output.wav -p sdx -r 48000
+slowframe -i input.jpg -o output.wav -p sdx -r 48000
 
 # Portrait with padding
-pisstvpp2 -i portrait.jpg -o output.wav -a pad
+slowframe -i portrait.jpg -o output.wav -a pad
 
 # No VIS header
-pisstvpp2 -i input.jpg -o output.wav -n
+slowframe -i input.jpg -o output.wav -n
 
 # Batch processing
 for img in *.jpg; do
-    pisstvpp2 -i "$img" -o "${img%.jpg}.wav" -p s2
+    slowframe -i "$img" -o "${img%.jpg}.wav" -p s2
 done
 ```
 
@@ -1941,7 +1941,7 @@ done
 
 ## License
 
-PiSSTVpp2 is licensed under the GNU General Public License v3.0 or later.
+SlowFrame is licensed under the GNU General Public License v3.0 or later.
 
 See [docs/LICENSE.md](LICENSE.md) for full license text.
 
@@ -1956,6 +1956,6 @@ See [docs/LICENSE.md](LICENSE.md) for full license text.
 
 ---
 
-**73 de PiSSTVpp2!** 📡🖼️📻
+**73 de SlowFrame!** 📡🖼️📻
 
 *End of User Guide*

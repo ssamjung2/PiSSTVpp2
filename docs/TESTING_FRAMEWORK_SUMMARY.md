@@ -1,8 +1,8 @@
-# PiSSTVpp2 - Comprehensive Testing Framework Summary
+# SlowFrame - Comprehensive Testing Framework Summary
 
 ## Overview
 
-Created an aggressive and comprehensive testing framework for PiSSTVpp2 with focus on:
+Created an aggressive and comprehensive testing framework for SlowFrame with focus on:
 - Edge case and boundary value testing
 - Security vulnerability detection
 - Input validation robustness
@@ -13,7 +13,7 @@ Created an aggressive and comprehensive testing framework for PiSSTVpp2 with foc
 ## Test Suites Created
 
 ### 1. test_edge_cases.py
-**File:** `/Users/ssamjung/Desktop/WIP/PiSSTVpp2/tests/test_edge_cases.py`  
+**File:** `/Users/ssamjung/Desktop/WIP/SlowFrame/tests/test_edge_cases.py`  
 **Size:** 550+ lines  
 **Tests:** 46 test cases across 10 categories
 
@@ -34,7 +34,7 @@ Created an aggressive and comprehensive testing framework for PiSSTVpp2 with foc
 ---
 
 ### 2. test_security_exploits.py
-**File:** `/Users/ssamjung/Desktop/WIP/PiSSTVpp2/tests/test_security_exploits.py`  
+**File:** `/Users/ssamjung/Desktop/WIP/SlowFrame/tests/test_security_exploits.py`  
 **Size:** 600+ lines  
 **Tests:** 50 security-focused test cases
 
@@ -84,7 +84,7 @@ Created an aggressive and comprehensive testing framework for PiSSTVpp2 with foc
 ---
 
 ### 3. test_error_codes.py
-**File:** `/Users/ssamjung/Desktop/WIP/PiSSTVpp2/tests/test_error_codes.py`  
+**File:** `/Users/ssamjung/Desktop/WIP/SlowFrame/tests/test_error_codes.py`  
 **Size:** 350+ lines  
 **Tests:** Framework ready for error code verification
 
@@ -133,7 +133,7 @@ Created an aggressive and comprehensive testing framework for PiSSTVpp2 with foc
 ## Code Changes
 
 ### Files Modified
-- **src/pisstvpp2_config.c** - Enhanced input validation
+- **src/slowframe_config.c** - Enhanced input validation
 
 ### Changes Summary
 1. **Callsign validation** (lines 203-211)
@@ -162,8 +162,8 @@ Created an aggressive and comprehensive testing framework for PiSSTVpp2 with foc
 
 ### Running Edge Case Tests
 ```bash
-cd /Users/ssamjung/Desktop/WIP/PiSSTVpp2/tests
-python3 test_edge_cases.py /Users/ssamjung/Desktop/WIP/PiSSTVpp2/bin/pisstvpp2
+cd /Users/ssamjung/Desktop/WIP/SlowFrame/tests
+python3 test_edge_cases.py /Users/ssamjung/Desktop/WIP/SlowFrame/bin/slowframe
 
 # Output:
 # ✓ All tests passed!
@@ -172,7 +172,7 @@ python3 test_edge_cases.py /Users/ssamjung/Desktop/WIP/PiSSTVpp2/bin/pisstvpp2
 
 ### Running Security Tests
 ```bash
-cd /Users/ssamjung/Desktop/WIP/PiSSTVpp2/tests
+cd /Users/ssamjung/Desktop/WIP/SlowFrame/tests
 python3 test_security_exploits.py
 
 # Output:
@@ -300,13 +300,13 @@ Documentation/
 
 ### Run All Tests
 ```bash
-cd PiSSTVpp2/tests
+cd SlowFrame/tests
 
 # Run comprehensive edge case tests (46 tests)
-python3 test_edge_cases.py /path/to/pisstvpp2
+python3 test_edge_cases.py /path/to/slowframe
 
 # Run aggressive security tests (50 tests)
-python3 test_security_exploits.py /path/to/pisstvpp2
+python3 test_security_exploits.py /path/to/slowframe
 
 # Run original test suite (18 tests)
 python3 -m pytest test_suite.py -v
@@ -315,21 +315,21 @@ python3 -m pytest test_suite.py -v
 ### Verify Applications
 ```bash
 # Check callsign validation
-./pisstvpp2 -i image.ppm -C "N0CALL"      # PASS
-./pisstvpp2 -i image.ppm -C "N0 CALL"     # FAIL (space rejected)
-./pisstvpp2 -i image.ppm -C "N0%x"        # FAIL (% rejected)
+./slowframe -i image.ppm -C "N0CALL"      # PASS
+./slowframe -i image.ppm -C "N0 CALL"     # FAIL (space rejected)
+./slowframe -i image.ppm -C "N0%x"        # FAIL (% rejected)
 
 # Check numeric validation
-./pisstvpp2 -i image.ppm -r 22050         # PASS
-./pisstvpp2 -i image.ppm -r 022050        # FAIL (leading zero rejected)
-./pisstvpp2 -i image.ppm -r 0x5622        # FAIL (hex rejected)
+./slowframe -i image.ppm -r 22050         # PASS
+./slowframe -i image.ppm -r 022050        # FAIL (leading zero rejected)
+./slowframe -i image.ppm -r 0x5622        # FAIL (hex rejected)
 ```
 
 ---
 
 ## Conclusion
 
-The PiSSTVpp2 application now has:
+The SlowFrame application now has:
 - ✅ Comprehensive test coverage (96+ test cases)
 - ✅ Zero identified vulnerabilities
 - ✅ Hardened input validation

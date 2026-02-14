@@ -174,7 +174,7 @@ if (vips_colourspace(image, &rgb_image, VIPS_INTERPRETATION_sRGB, NULL)) {
 **image_loader.c** is completely standalone:
 - ✅ No circular dependencies
 - ✅ Only includes standard C + libvips + error.h
-- ✅ No references to pisstvpp2_image.c (old code)
+- ✅ No references to slowframe_image.c (old code)
 - ✅ Can be tested/used independently
 
 **API Design:**
@@ -277,7 +277,7 @@ if (debug_output_dir && debug_output_dir[0] != '\0') {
 ### Backward Compatibility ✅
 
 **Old Code Still Works:**
-- `pisstvpp2_image.c` unchanged
+- `slowframe_image.c` unchanged
 - Old image_load_from_file() function still exists in image.c
 - All existing tests pass unchanged: 54/55 ✓
 - No breaking changes to public API
@@ -450,7 +450,7 @@ All 9 test image formats will automatically be supported by:
 
 ---
 
-**Author:** PiSSTVpp2 Development  
+**Author:** SlowFrame Development  
 **Date:** February 11, 2026  
 **Session Duration:** ~4 hours  
 **Build Status:** ✅ Production Ready
