@@ -98,6 +98,13 @@
 #include "slowframe_sstv.h"
 #include "slowframe_audio_encoder.h"
 #include "slowframe_config.h"
+#include "slowframe_context.h"
+#include "sstv/mode_registry.h"
+#include "sstv/modes_martin.h"
+#include "sstv/modes_scottie.h"
+#include "sstv/modes_robot.h"
+#include "mmsstv/mmsstv_loader.h"
+#include "mmsstv/mmsstv_adapter.h"
 #include "logging.h"
 #include "error.h"
 
@@ -179,6 +186,36 @@ enum {
  * @note Always exits normally after display (does not return error)
  */
 static void show_help(void);
+
+/**
+ * @brief Display all available SSTV modes from the registry.
+ *
+ * Lists all registered SSTV modes with their metadata:
+ * - Mode code (e.g., m1, s1, r36)
+ * - Full mode name
+ * - VIS code (for decoder recognition)
+ * - Image dimensions
+ * - Encoding duration
+ * - Color/grayscale indicator
+ * - Source (native or MMSSTV)
+ *
+ * @note Requires context initialization to access mode registry
+ */
+static void list_available_modes(void);
+
+/**
+ * @brief Display MMSSTV library detection status and diagnostic information.
+ *
+ * Initializes a context to load the MMSSTV library and displays:
+ * - Library detection status (DETECTED / NOT DETECTED)
+ * - Library version (if available)
+ * - Library path (if available)
+ * - Number of MMSSTV modes available
+ * - Troubleshooting help (if library not found)
+ *
+ * @note Requires context initialization to load MMSSTV adapter
+ */
+static void show_mmsstv_status(void);
 
 // ===========================================================================
 // VERBOSE OUTPUT HELPER
@@ -272,7 +309,8 @@ static void show_help(void) {
     printf("  -O                        Text-only overlay (no resizing, requires -N)\n\n");
 
     printf("HELP:\n");
-    printf("  -h                        Show detailed help with all options and examples\n\n");
+    printf("  -h                        Show detailed help with all options and examples\n");
+    printf("  -L                        List all available SSTV modes\n\n");
 
     printf("QUICK EXAMPLES:\n");
     printf("  ./slowframe -i photo.jpg\n");
@@ -282,6 +320,197 @@ static void show_help(void) {
     printf("  ./slowframe -i photo.jpg -v -Z > encoder.log\n");
     printf("  ./slowframe -i photo.jpg -T \"Test|size=32|color=yellow|bg=black\" -N\n\n");
     printf("For detailed help: Check documentation or use slowframe_config -h for advanced options.\n");
+}
+
+/**
+ * @brief Display all available SSTV modes from the mode registry.
+ */
+static void list_available_modes(void) {
+    printf("════════════════════════════════════════════════════════════════\n");
+    printf("SlowFrame v2.1.0 - Available SSTV Modes\n");
+    printf("════════════════════════════════════════════════════════════════\n\n");
+
+    // Initialize minimal context to access registry
+    SlowframeContext ctx;
+    SlowframeConfig dummy_config;
+    memset(&dummy_config, 0, sizeof(SlowframeConfig));
+    
+    // Set minimal config to pass validation
+    strncpy(dummy_config.input_file, "dummy.png", sizeof(dummy_config.input_file) - 1);
+    strncpy(dummy_config.protocol, "m1", sizeof(dummy_config.protocol) - 1);
+    dummy_config.sample_rate = 22050;
+    
+    int result = slowframe_context_init(&ctx, &dummy_config);
+    if (result != SLOWFRAME_OK) {
+        fprintf(stderr, "Error: Failed to initialize context for mode listing\n");
+        return;
+    }
+
+    // Get registry and adapter from context
+    mode_registry_t *registry = slowframe_context_get_mode_registry(&ctx);
+    if (!registry) {
+        fprintf(stderr, "Error: Mode registry not available\n");
+        slowframe_context_cleanup(&ctx);
+        return;
+    }
+
+    mmsstv_adapter_t *adapter = slowframe_context_get_mmsstv_adapter(&ctx);
+    
+    // Show MMSSTV library status
+    if (mmsstv_adapter_is_available(adapter)) {
+        size_t mmsstv_count = mmsstv_adapter_get_mode_count(adapter);
+        printf("MMSSTV Library: ✓ LOADED (%zu additional modes available)\n\n", mmsstv_count);
+    } else {
+        printf("MMSSTV Library: ✗ NOT LOADED (use -M for details)\n\n");
+    }
+
+    // Get all registered modes
+    mode_list_t modes = mode_registry_list_all(registry);
+    
+    if (modes.count == 0) {
+        printf("No modes registered.\n");
+    } else {
+        // Count modes by source
+        size_t native_count = 0;
+        size_t mmsstv_count = 0;
+        for (size_t i = 0; i < modes.count; i++) {
+            if (strcmp(modes.modes[i].source, "native") == 0) {
+                native_count++;
+            } else if (strcmp(modes.modes[i].source, "mmsstv") == 0) {
+                mmsstv_count++;
+            }
+        }
+        
+        // Print native modes
+        if (native_count > 0) {
+            printf("NATIVE MODES (%zu):\n", native_count);
+            printf("%-12s %-24s %-10s %-14s %-12s %-8s\n",
+                   "Code", "Mode Name", "VIS", "Resolution", "Duration", "Color");
+            printf("%-12s %-24s %-10s %-14s %-12s %-8s\n",
+                   "────────────", "────────────────────────", "──────────", "──────────────", "────────────", "────────");
+            
+            for (size_t i = 0; i < modes.count; i++) {
+                const mode_definition_t *mode = &modes.modes[i];
+                if (strcmp(mode->source, "native") == 0) {
+                    char resolution[15];
+                    char duration[13];
+                    snprintf(resolution, sizeof(resolution), "%ux%u", mode->width, mode->height);
+                    snprintf(duration, sizeof(duration), "%.1fs", mode->duration_sec);
+                    printf("%-12s %-24s 0x%02X       %-14s %-12s %-8s\n",
+                           mode->code,
+                           mode->name,
+                           mode->vis_code,
+                           resolution,
+                           duration,
+                           mode->is_color ? "color" : "mono");
+                }
+            }
+            printf("\n");
+        }
+        
+        // Print MMSSTV modes
+        if (mmsstv_count > 0) {
+            printf("MMSSTV MODES (%zu):\n", mmsstv_count);
+            printf("%-12s %-24s %-10s %-14s %-12s %-8s\n",
+                   "Code", "Mode Name", "VIS", "Resolution", "Duration", "Color");
+            printf("%-12s %-24s %-10s %-14s %-12s %-8s\n",
+                   "────────────", "────────────────────────", "──────────", "──────────────", "────────────", "────────");
+            
+            for (size_t i = 0; i < modes.count; i++) {
+                const mode_definition_t *mode = &modes.modes[i];
+                if (strcmp(mode->source, "mmsstv") == 0) {
+                    char resolution[15];
+                    char duration[13];
+                    snprintf(resolution, sizeof(resolution), "%ux%u", mode->width, mode->height);
+                    snprintf(duration, sizeof(duration), "%.1fs", mode->duration_sec);
+                    printf("%-12s %-24s 0x%02X       %-14s %-12s %-8s\n",
+                           mode->code,
+                           mode->name,
+                           mode->vis_code,
+                           resolution,
+                           duration,
+                           mode->is_color ? "color" : "mono");
+                }
+            }
+            printf("\n");
+        }
+    }
+    
+    printf("Total modes: %zu\n", modes.count);
+    printf("\nUsage: ./slowframe -i <image> -p <code> [options]\n");
+    printf("Example: ./slowframe -i photo.jpg -p s1\n\n");
+
+    // Cleanup
+    slowframe_context_cleanup(&ctx);
+}
+
+static void show_mmsstv_status(void) {
+    printf("════════════════════════════════════════════════════════════════\n");
+    printf("SlowFrame v2.1.0 - MMSSTV Library Status\n");
+    printf("════════════════════════════════════════════════════════════════\n\n");
+
+    // Initialize minimal context to load MMSSTV adapter
+    SlowframeContext ctx;
+    SlowframeConfig dummy_config;
+    memset(&dummy_config, 0, sizeof(SlowframeConfig));
+    
+    // Set minimal config to pass validation
+    strncpy(dummy_config.input_file, "dummy.png", sizeof(dummy_config.input_file) - 1);
+    strncpy(dummy_config.protocol, "m1", sizeof(dummy_config.protocol) - 1);
+    dummy_config.sample_rate = 22050;
+    
+    int result = slowframe_context_init(&ctx, &dummy_config);
+    if (result != SLOWFRAME_OK) {
+        fprintf(stderr, "Error: Failed to initialize context for MMSSTV status check\n");
+        return;
+    }
+
+    // Get MMSSTV adapter from context
+    mmsstv_adapter_t *adapter = slowframe_context_get_mmsstv_adapter(&ctx);
+    
+    if (mmsstv_adapter_is_available(adapter)) {
+        printf("Library Status:      ✓ DETECTED\n");
+        
+        const char *version = mmsstv_adapter_get_version(adapter);
+        if (version) {
+            printf("Library Version:     %s\n", version);
+        }
+        
+        const char *path = mmsstv_adapter_get_library_path(adapter);
+        if (path) {
+            printf("Library Path:        %s\n", path);
+        }
+        
+        size_t mode_count = mmsstv_adapter_get_mode_count(adapter);
+        printf("MMSSTV Modes:        %zu\n", mode_count);
+        
+        printf("\n");
+        printf("MMSSTV library is loaded and operational.\n");
+        printf("Additional modes are available. Use -L to list all modes.\n");
+        
+    } else {
+        printf("Library Status:      ✗ NOT DETECTED\n");
+        printf("MMSSTV Modes:        0\n");
+        
+        printf("\n");
+        printf("The MMSSTV library was not found on this system.\n");
+        printf("SlowFrame will work with %d built-in modes only.\n", 7);
+        printf("\n");
+        printf("To enable additional MMSSTV modes:\n");
+        printf("  1. Install the mmsstv-portable library package\n");
+        printf("  2. Or set the MMSSTV_LIB_PATH environment variable:\n");
+        printf("     export MMSSTV_LIB_PATH=/path/to/libmmsstv.dylib\n");
+        printf("\n");
+        printf("Detection attempted:\n");
+        printf("  • $MMSSTV_LIB_PATH environment variable\n");
+        printf("  • pkg-config --variable=libdir mmsstv-portable\n");
+        printf("  • Standard library paths: /usr/local/lib, /usr/lib, /opt/homebrew/lib\n");
+    }
+    
+    printf("\n");
+
+    // Cleanup
+    slowframe_context_cleanup(&ctx);
 }
 
 /**
@@ -337,7 +566,11 @@ int main(int argc, char *argv[]) {
     // Show short help if no arguments provided
     if (argc == 1) {
         show_help();
-        return SLOWFRAME_OK;
+        fprintf(stderr, "\n[ERROR] Error code %d: (%s)\n", 
+                SLOWFRAME_ERR_NO_INPUT_FILE, 
+                error_string(SLOWFRAME_ERR_NO_INPUT_FILE));
+        fprintf(stderr, "        Context: Input file (-i) is required\n");
+        return SLOWFRAME_ERR_NO_INPUT_FILE;
     }
 
     // Initialize libvips
@@ -349,6 +582,8 @@ int main(int argc, char *argv[]) {
     }
 
     int error_code = 0;  // For centralized error cleanup
+    SlowframeContext ctx = {0};  // Application context
+    int context_initialized = 0;  // Track context lifecycle
 
     // ======================================================================
     // CONFIGURATION INITIALIZATION
@@ -374,41 +609,70 @@ int main(int argc, char *argv[]) {
     }
 
     // ======================================================================
-    // PROTOCOL MAPPING: STRING TO VIS CODE
+    // LIST MODES (if requested, then exit)
     // ======================================================================
-    // Map user-friendly protocol strings to SSTV VIS (Vertical Interval
-    // Signaling) codes defined in SSTV specification. VIS codes tell the
-    // decoder which mode to use. Config module stores protocol as string.
-    uint8_t protocol_code = 44;  // Default: Martin 1
-    if (strcmp(config.protocol, "m1") == 0) {
-        protocol_code = 44; // Martin 1
+    if (config.list_modes) {
+        list_available_modes();
+        return SLOWFRAME_OK;
     }
-    else if (strcmp(config.protocol, "m2") == 0) {
-        protocol_code = 40; // Martin 2
+
+    // ======================================================================
+    // MMSSTV STATUS: DISPLAY LIBRARY DETECTION INFORMATION
+    // ======================================================================
+    if (config.mmsstv_status) {
+        show_mmsstv_status();
+        return SLOWFRAME_OK;
     }
-    else if (strcmp(config.protocol, "s1") == 0) {
-        protocol_code = 60; // Scottie 1
+
+    // ======================================================================
+    // CONTEXT INITIALIZATION
+    // ======================================================================
+    // Initialize the application context (this loads MMSSTV adapter and builds
+    // the complete mode registry with both native and MMSSTV modes)
+    int result = slowframe_context_init(&ctx, &config);
+    if (result != SLOWFRAME_OK) {
+        // Error already logged by slowframe_context_init()
+        error_code = result;
+        goto cleanup;
     }
-    else if (strcmp(config.protocol, "s2") == 0) {
-        protocol_code = 56; // Scottie 2
+    context_initialized = 1;
+
+    // ======================================================================
+    // PROTOCOL VALIDATION: LOOKUP IN REGISTRY
+    // ======================================================================
+    // Validate protocol against registered modes (native + MMSSTV) and map to VIS code.
+    mode_registry_t *registry = slowframe_context_get_mode_registry(&ctx);
+    if (!registry) {
+        error_log(SLOWFRAME_ERR_IMAGE_LOAD, "Mode registry not available");
+        error_code = SLOWFRAME_ERR_IMAGE_LOAD;
+        goto cleanup;
     }
-    else if (strcmp(config.protocol, "sdx") == 0) {
-        protocol_code = 76; // Scottie DX
-    }
-    else if (strcmp(config.protocol, "r36") == 0) {
-        protocol_code = 8; // Robot 36
-    }
-    else if (strcmp(config.protocol, "r72") == 0) {
-        protocol_code = 12; // Robot 72
-    }
-    else {
-        error_log(SLOWFRAME_ERR_ARG_INVALID_PROTOCOL, "Unrecognized protocol: %s (must be m1, m2, s1, s2, sdx, r36, r72)", config.protocol);
-        show_help();
+
+    const mode_definition_t *selected_mode =
+        mode_registry_lookup_by_code(registry, config.protocol);
+    if (!selected_mode) {
+        // Check if MMSSTV modes are available to provide better error message
+        mmsstv_adapter_t *adapter = slowframe_context_get_mmsstv_adapter(&ctx);
+        int has_mmsstv = mmsstv_adapter_is_available(adapter);
+        
+        if (has_mmsstv) {
+            error_log(SLOWFRAME_ERR_ARG_INVALID_PROTOCOL,
+                      "Mode '%s' not recognized. Use -L to list all available modes.",
+                      config.protocol);
+        } else {
+            error_log(SLOWFRAME_ERR_ARG_INVALID_PROTOCOL,
+                      "Mode '%s' not recognized.\n"
+                      "• Use -L to list available modes\n"
+                      "• Use -M to check MMSSTV library status (for additional modes)",
+                      config.protocol);
+        }
+        
         error_code = SLOWFRAME_ERR_ARG_INVALID_PROTOCOL;
         goto cleanup;
     }
 
-    // Note: SSTV module initialization is deferred to main encoding phase
+    // Set protocol VIS code from selected mode definition
+    uint8_t protocol_code = selected_mode->vis_code;
     sstv_set_protocol(protocol_code);
 
     // locals - use gettimeofday for millisecond precision
@@ -531,7 +795,7 @@ int main(int argc, char *argv[]) {
         if (!config.skip_audio_encoding) {
             printf("  Audio format:     %s at %d Hz\n", format_display, config.sample_rate);
             printf("  SSTV protocol:    %s (VIS code %d)\n", config.protocol, protocol_code);
-            printf("  Image dimensions: 320x256 pixels\n");
+            printf("  Image dimensions: %ux%u pixels\n", selected_mode->width, selected_mode->height);
             printf("Mode Details:\n");
             sstv_get_mode_details(protocol_code, 0, 0);
         }
@@ -550,16 +814,9 @@ int main(int argc, char *argv[]) {
     // ======================================================================
     // IMAGE DIMENSION REQUIREMENTS
     // ======================================================================
-    // SSTV modes have fixed pixel dimensions per specification:
-    // - Martin/Scottie: 320x256 (4:3.2 aspect ~1.25:1)
-    // - Robot: 320x240 (standard 4:3 aspect)
-    int required_width = 320, required_height = 256;
-    if (protocol_code == 8 || protocol_code == 12) { // Robot 36 or Robot 72
-        required_height = 240;  // Robot modes use 4:3 aspect ratio
-    }
-    
-    // ======================================================================
-    // INTERMEDIATE IMAGE PATH CONSTRUCTION
+    // Get required dimensions from selected mode definition
+    int required_width = (int)selected_mode->width;
+    int required_height = (int)selected_mode->height;
     // ======================================================================
     // Build path for intermediate resized image preserving original format.
     // Structure: {output_dir}/{output_base}{suffix}{original_extension}
@@ -705,7 +962,9 @@ int main(int argc, char *argv[]) {
     verbose_print(config.verbose, config.timestamp_logging, "   --> Processing pixels...\n");
     fflush(stdout);
     
-    int encode_result = sstv_encode_frame(config.verbose, config.timestamp_logging);
+    int encode_result = sstv_encode_frame_with_mode(selected_mode,
+                                                    config.verbose,
+                                                    config.timestamp_logging);
     if (encode_result != SLOWFRAME_OK) {
         // Error already logged by sstv_encode_frame()
         error_code = encode_result;
@@ -826,6 +1085,9 @@ cleanup:
     // proper cleanup regardless of where failure occurs. Each cleanup function
     // is safe to call multiple times (idempotent) and handles NULL/uninitialized
     // state gracefully.
+    if (context_initialized) {
+        slowframe_context_cleanup(&ctx);  // Free context (includes MMSSTV adapter)
+    }
     image_free();                       // Free libvips image resources
     sstv_cleanup();                     // Free SSTV audio buffer
     slowframe_config_cleanup(&config);   // Free config resources

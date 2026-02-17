@@ -16,6 +16,11 @@
 #include <errno.h>
 #include <time.h>
 
+/* Forward declaration from image_aspect.c */
+extern int image_aspect_correct(VipsImage *image, int target_width, int target_height,
+                                AspectMode mode, VipsImage **out_corrected,
+                                int verbose, int timestamp_logging);
+
 /* ============================================================================
    INTERNAL STATE
    ============================================================================ */
@@ -42,20 +47,6 @@ static ImageState g_img = {
 /* ============================================================================
    INTERNAL HELPERS
    ============================================================================ */
-
-/**
- * get_file_extension
- * Extract file extension from a filename path
- * Returns pointer to extension (including the dot), or empty string if no extension
- */
-static const char *get_file_extension(const char *filename) {
-    if (!filename) return "";
-    
-    const char *dot = strrchr(filename, '.');
-    if (!dot || dot == filename) return "";
-    
-    return dot;
-}
 
 /**
  * clear_image_state
@@ -257,11 +248,21 @@ void image_get_pixel_rgb(int x, int y, uint8_t *r, uint8_t *g, uint8_t *b) {
     *b = pixel[2];
 }
 
+const ImageBuffer* image_get_rgb_data(void) {
+    return g_img.buffer;
+}
+
 const char *image_get_original_extension(void) {
     if (g_img.original_filename[0] == '\0') {
         return "";
     }
-    return get_file_extension(g_img.original_filename);
+    
+    /* Extract file extension from original filename */
+    const char *dot = strrchr(g_img.original_filename, '.');
+    if (!dot || dot == g_img.original_filename) {
+        return "";
+    }
+    return dot;
 }
 
 void image_free(void) {
@@ -271,125 +272,6 @@ void image_free(void) {
 /* ============================================================================
    PUBLIC: IMAGE TRANSFORMATION
    ============================================================================ */
-
-/**
- * apply_center_transformation
- * Crop from center to exact target dimensions
- */
-static int apply_center_transformation(int target_width, int target_height, 
-                                       int *crop_left, int *crop_top, 
-                                       int *crop_width, int *crop_height,
-                                       VipsImage **out_corrected, int verbose, int timestamp_logging) {
-    VipsImage *cropped = NULL;
-    VipsImage *resized = NULL;
-
-    log_verbose(verbose, timestamp_logging, "   --> CENTER mode: center-crop to exact target dimensions\n");
-    log_verbose(verbose, timestamp_logging, "       Crop box: x=%d y=%d w=%d h=%d\n", *crop_left, *crop_top, *crop_width, *crop_height);
-
-    /* Ensure crop dimensions are valid */
-    int actual_crop_width = *crop_width;
-    int actual_crop_height = *crop_height;
-    
-    if (actual_crop_width > target_width) {
-        actual_crop_width = target_width;
-    }
-    if (actual_crop_height > target_height) {
-        actual_crop_height = target_height;
-    }
-
-    /* Crop from center to extract the requested region */
-    if (vips_crop(g_img.image, &cropped, *crop_left, *crop_top, actual_crop_width, actual_crop_height, NULL)) {
-        error_log(SLOWFRAME_ERR_IMAGE_ASPECT_CORRECTION, "Image cropping",
-                 "vips_crop failed: %s", vips_error_buffer());
-        vips_error_clear();
-        return SLOWFRAME_ERR_IMAGE_ASPECT_CORRECTION;
-    }
-
-    /* Resize to exact target dimensions if needed */
-    if (cropped->Xsize != target_width || cropped->Ysize != target_height) {
-        double scale_x = (double)target_width / cropped->Xsize;
-        double scale_y = (double)target_height / cropped->Ysize;
-
-        if (vips_resize(cropped, &resized, scale_x, "vscale", scale_y, NULL)) {
-            error_log(SLOWFRAME_ERR_IMAGE_ASPECT_CORRECTION, "Image resizing",
-                     "vips_resize failed: %s", vips_error_buffer());
-            vips_error_clear();
-            g_object_unref(cropped);
-            return SLOWFRAME_ERR_IMAGE_ASPECT_CORRECTION;
-        }
-
-        g_object_unref(cropped);
-        *out_corrected = resized;
-
-        if (verbose) {
-            log_verbose(verbose, timestamp_logging, "       Result: %dx%d (cropped + resized)\n", target_width, target_height);
-        }
-    } else {
-        if (verbose) {
-            log_verbose(verbose, timestamp_logging, "       Result: %dx%d (cropped, no resize)\n", actual_crop_width, actual_crop_height);
-        }
-        *out_corrected = cropped;
-    }
-    return SLOWFRAME_OK;
-}
-
-/**
- * apply_pad_transformation
- * Add black padding to reach target, preserving original aspect ratio
- */
-static int apply_pad_transformation(int target_width, int target_height,
-                                    int *pad_left, int *pad_top,
-                                    int *pad_width, int *pad_height,
-                                    VipsImage **out_corrected, int verbose, int timestamp_logging) {
-    VipsImage *padded = NULL;
-
-    log_verbose(verbose, timestamp_logging, "   --> PAD mode: add black padding to reach target\n");
-    log_verbose(verbose, timestamp_logging, "       Padding: x=%d y=%d total_w=%d total_h=%d\n", *pad_left, *pad_top, *pad_width, *pad_height);
-    log_verbose(verbose, timestamp_logging, "       (Preserves original image aspect ratio, centers image with black bars)\n");
-
-    /* Pad with black bars to exact target dimensions */
-    if (vips_embed(g_img.image, &padded, *pad_left, *pad_top, target_width, target_height, 
-                   "extend", VIPS_EXTEND_BLACK, NULL)) {
-        error_log(SLOWFRAME_ERR_IMAGE_ASPECT_CORRECTION, "Image padding",
-                 "vips_embed failed: %s", vips_error_buffer());
-        vips_error_clear();
-        return SLOWFRAME_ERR_IMAGE_ASPECT_CORRECTION;
-    }
-
-    if (verbose) {
-        log_verbose(verbose, timestamp_logging, "       Result: %dx%d with black padding\n", target_width, target_height);
-    }
-
-    *out_corrected = padded;
-    return SLOWFRAME_OK;
-}
-
-/**
- * apply_stretch_transformation
- * Direct resize without aspect correction
- */
-static int apply_stretch_transformation(int target_width, int target_height,
-                                         VipsImage **out_corrected, int verbose, int timestamp_logging) {
-    VipsImage *resized = NULL;
-
-    log_verbose(verbose, timestamp_logging, "   --> STRETCH mode: direct non-uniform resize\n");
-    log_verbose(verbose, timestamp_logging, "       WARNING: Image will be distorted\n");
-
-    double scale_x = (double)target_width / g_img.image->Xsize;
-    double scale_y = (double)target_height / g_img.image->Ysize;
-
-    log_verbose(verbose, timestamp_logging, "       Resize scales: x=%.4f y=%.4f\n", scale_x, scale_y);
-
-    if (vips_resize(g_img.image, &resized, scale_x, "vscale", scale_y, NULL)) {
-        error_log(SLOWFRAME_ERR_IMAGE_ASPECT_CORRECTION, "Image stretching",
-                 "vips_resize failed: %s", vips_error_buffer());
-        vips_error_clear();
-        return SLOWFRAME_ERR_IMAGE_ASPECT_CORRECTION;
-    }
-
-    *out_corrected = resized;
-    return SLOWFRAME_OK;
-}
 
 int image_correct_aspect_and_resize(int target_width, int target_height, AspectMode mode, 
                                     int verbose, int timestamp_logging, const char *debug_output_dir) {
@@ -417,54 +299,10 @@ int image_correct_aspect_and_resize(int target_width, int target_height, AspectM
         return SLOWFRAME_OK;
     }
 
+    /* Use modular aspect correction function */
     VipsImage *corrected = NULL;
-
-    /* Pre-calculate transformation parameters */
-    int crop_left, crop_top, crop_width, crop_height;
-    int pad_left, pad_top, pad_width, pad_height;
-
-    /* For CENTER mode: crop to exact target dimensions from center */
-    if (mode == ASPECT_CENTER) {
-        /* Calculate centered crop box to match target aspect ratio */
-        image_calculate_crop_box(img_width, img_height, target_aspect, 
-                                &crop_left, &crop_top, &crop_width, &crop_height);
-        
-        if (verbose) {
-            log_verbose(verbose, timestamp_logging, "   CENTER crop calculation: src %dx%d → crop box %dx%d at (%d,%d)\n",
-                   img_width, img_height, crop_width, crop_height, crop_left, crop_top);
-        }
-    } else {
-        /* For other modes: calculate based on aspect ratio */
-        image_calculate_crop_box(img_width, img_height, target_aspect, 
-                                &crop_left, &crop_top, &crop_width, &crop_height);
-    }
-
-    /* For padding, center image within target dimensions */
-    pad_width = target_width;
-    pad_height = target_height;
-    pad_left = (target_width - img_width) / 2;
-    pad_top = (target_height - img_height) / 2;
-
-    /* Apply transformation based on mode */
-    int result = SLOWFRAME_OK;
-    switch (mode) {
-        case ASPECT_CENTER:
-            result = apply_center_transformation(target_width, target_height, 
-                                                &crop_left, &crop_top, &crop_width, &crop_height,
-                                                &corrected, verbose, timestamp_logging);
-            break;
-        case ASPECT_PAD:
-            result = apply_pad_transformation(target_width, target_height,
-                                             &pad_left, &pad_top, &pad_width, &pad_height,
-                                             &corrected, verbose, timestamp_logging);
-            break;
-        case ASPECT_STRETCH:
-            result = apply_stretch_transformation(target_width, target_height, &corrected, verbose, timestamp_logging);
-            break;
-        default:
-            error_log(SLOWFRAME_ERR_IMAGE_ASPECT_CORRECTION, "Unknown aspect mode: %d", mode);
-            return SLOWFRAME_ERR_IMAGE_ASPECT_CORRECTION;
-    }
+    int result = image_aspect_correct(g_img.image, target_width, target_height, mode,
+                                     &corrected, verbose, timestamp_logging);
 
     if (result != SLOWFRAME_OK) {
         error_log(result, "Image aspect correction transformation failed");

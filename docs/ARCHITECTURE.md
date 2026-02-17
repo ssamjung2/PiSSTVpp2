@@ -1,6 +1,8 @@
 # SlowFrame Architecture Documentation
 
-**Internal design and structure of SlowFrame v2.0**
+**Internal design and structure of SlowFrame v2.1**
+
+**Last Updated:** February 16, 2026
 
 ---
 
@@ -15,6 +17,7 @@
 7. [Build System](#build-system)
 8. [Extension Points](#extension-points)
 9. [Testing Framework](#testing-framework)
+10. [v2.1 Enhancements](#v21-enhancements)
 
 ---
 
@@ -22,60 +25,206 @@
 
 ### Design Philosophy
 
-SlowFrame v2.0 follows these principles:
+SlowFrame v2.1 follows these principles:
 
-**Modularity**: Clear separation of concerns (image, SSTV, audio)
+**Modularity**: Clear separation of concerns with dedicated subsystems (error, config, context, image, SSTV, audio, overlay)
 
-**Simplicity**: Straightforward data flow with minimal abstraction
+**Extensibility**: Mode registry enables easy addition of new SSTV modes; plugin architecture for MMSSTV integration
 
-**Portability**: Standard C11, minimal dependencies
+**Reliability**: Comprehensive error handling, input validation, resource lifecycle management
 
-**Testability**: Modular design enables comprehensive testing
+**Portability**: Standard C11, minimal dependencies, graceful feature degradation
 
-**Maintainability**: Clean code structure, consistent patterns
+**Testability**: Modular design with 167+ tests across multiple test suites
 
-### High-Level Architecture
+**Maintainability**: Consistent patterns, clear ownership, comprehensive documentation
+
+### High-Level Architecture (v2.1)
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    slowframe (main)                     │
-│  - Argument parsing                                     │
-│  - Module coordination                                  │
-│  - CW identification                                    │
-└───────┬─────────────────────────────┬───────────────────┘
-        │                             │
-        ▼                             ▼
-┌──────────────────┐         ┌────────────────────┐
-│  Image Module    │         │   SSTV Module      │
-│  (slowframe_     │────────▶│   (slowframe_      │
-│   image.c/.h)    │         │    sstv.c/.h)      │
-│                  │         │                    │
-│ - Load image     │         │ - VIS generation   │
-│ - Aspect corr.   │         │ - Scan encoding    │
-│ - Scaling        │         │ - Sample output    │
-└──────────────────┘         └──────────┬─────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│                      slowframe (main)                                │
+│  - Argument parsing & validation                                     │
+│  - Context initialization                                            │
+│  - Module coordination                                               │
+│  - CW identification                                                 │
+└───┬─────────┬──────────┬──────────┬──────────┬────────┬─────────────┘
+    │         │          │          │          │        │
+    ▼         ▼          ▼          ▼          ▼        ▼
+┌────────┐ ┌────────┐ ┌────────┐ ┌──────┐ ┌────────┐ ┌──────────┐
+│ Error  │ │ Config │ │Context │ │Image │ │ SSTV   │ │ Overlay  │
+│ System │ │ Mgmt   │ │ Mgmt   │ │Module│ │ Module │ │ Module   │
+└────────┘ └────────┘ └────────┘ └───┬──┘ └───┬────┘ └──────────┘
+                                      │        │
+                                      │        ▼
+                                      │  ┌──────────────┐
+                                      │  │Mode Registry │
+                                      │  │              │
+                                      │  │ Native Modes │
+                                      │  │ (8 modes)    │
+                                      │  └──────┬───────┘
+                                      │         │
+                                      ▼         ▼
+                             ┌─────────────────────────┐
+                             │   Image Processing      │
+                             │                         │
+                             │  ┌──────────────────┐   │
+                             │  │ Image Loader     │   │
+                             │  │ (libvips-based)  │   │
+                             │  └──────────────────┘   │
+                             │  ┌──────────────────┐   │
+                             │  │ Image Processor  │   │
+                             │  │ (color, scale)   │   │
+                             │  └──────────────────┘   │
+                             │  ┌──────────────────┐   │
+                             │  │ Aspect Handler   │   │
+                             │  │ (center/pad/str) │   │
+                             │  └──────────────────┘   │
+                             │  ┌──────────────────┐   │
+                             │  │ Text Overlay     │   │
+                             │  │ (libcairo)       │   │
+                             │  └──────────────────┘   │
+                             └──────────┬──────────────┘
                                         │
                                         ▼
-                             ┌────────────────────┐
-                             │  Audio Encoder     │
-                             │  (slowframe_audio_ │
-                             │   encoder.c/.h)    │
-                             │                    │
-                             │ - Format handling  │
-                             │ - File writing     │
-                             └──────────┬─────────┘
+                             ┌─────────────────────────┐
+                             │   SSTV Encoding         │
+                             │                         │
+                             │  ┌──────────────────┐   │
+                             │  │ VIS Generation   │   │
+                             │  └──────────────────┘   │
+                             │  ┌──────────────────┐   │
+                             │  │ Native Encoders  │   │
+                             │  │ Martin, Scottie, │   │
+                             │  │ Robot (8 modes)  │   │
+                             │  └──────────────────┘   │
+                             │  ┌──────────────────┐   │
+                             │  │ MMSSTV Adapter   │   │
+                             │  │ (43 modes via    │   │
+                             │  │  dynamic lib)    │   │
+                             │  └──────────────────┘   │
+                             └──────────┬──────────────┘
                                         │
-                    ┌──────────┬────────┼────────┬──────────┐
-                    ▼          ▼        ▼        ▼          ▼
-              ┌─────────┐ ┌──────┐ ┌─────┐  [Other formats]
-              │ WAV     │ │ AIFF │ │ OGG │
-              │ Encoder │ │ Enc. │ │ Enc.│
-              └─────────┘ └──────┘ └─────┘
+                                        ▼
+                             ┌──────────────────────┐
+                             │  Audio Encoder       │
+                             │  (Multi-format)      │
+                             │                      │
+                             │ - WAV (wave)         │
+                             │ - AIFF (aiff)        │
+                             │ - OGG (vorbisenc)    │
+                             └──────────────────────┘
 ```
+
+### Key Features (v2.1)
+
+- **51 SSTV Modes**: 8 native + 43 MMSSTV (when library available)
+- **Text Overlay**: Customizable text with background bars (FCC Part 97 compliance)
+- **Mode Registry**: Extensible architecture for adding new modes
+- **Error Handling**: Comprehensive error codes (100-799+ range)
+- **Runtime Detection**: Automatic MMSSTV library discovery with graceful fallback
+- **Multi-format**: WAV, AIFF, OGG output support
+- **Aspect Correction**: Center, pad, stretch modes
+- **CW Identification**: Optional Morse code station ID
 
 ---
 
 ## System Architecture
+
+### Core Components (v2.1)
+
+SlowFrame v2.1 introduces a layered architecture with clear separation of concerns:
+
+#### Foundation Layer
+
+**1. Error System** (`src/util/error.h/c`)
+- Unified error codes (100-799+ range)
+- Error categories: general, file, image, config, encoding
+- Functions: `error_string()`, `error_log()`, `error_get_category()`
+- Enables consistent error handling across all modules
+
+**2. Config Management** (`src/slowframe_config.h/c`)
+- Centralized configuration structure
+- Input validation and sanity checks
+- Inter-parameter dependency checking
+- Handles all 12+ command-line options
+
+**3. Context Management** (`src/slowframe_context.h/c`)
+- Application state container
+- Subsystem lifecycle management (init/cleanup)
+- Resource ownership tracking
+- Ensures proper initialization order
+
+#### Image Processing Layer
+
+**4. Image Loader** (`src/image/image_loader.h/c`)
+- libvips-based image loading
+- Supports: PNG, JPEG, GIF, BMP, TIFF, WebP
+- Format detection and validation
+- Color space conversion
+
+**5. Image Processor** (`src/image/image_processor.h/c`)
+- RGB color space conversion
+- Scaling operations
+- Resolution normalization
+- Pixel data extraction
+
+**6. Aspect Ratio Handler** (`src/image/image_aspect.h/c`)
+- Three correction modes:
+  - `center`: Center-crop to target aspect
+  - `pad`: Add black bars (letterbox/pillarbox)
+  - `stretch`: Force resize (may distort)
+
+**7. Text Overlay** (`src/overlay/overlay_spec.h/c`)
+- libcairo-based text rendering
+- Customizable styling (color, size, font, opacity)
+- Background bars for visibility
+- Multi-overlay support
+- FCC Part 97 compliance features
+
+#### SSTV Encoding Layer
+
+**8. Mode Registry** (`src/sstv/mode_registry.h/c`)
+- Central mode registration system
+- Mode lookup by name or VIS code
+- Mode enumeration
+- Extensible architecture for new modes
+
+**9. Native Mode Families** (`src/sstv/modes_*.c`)
+- **Martin** (`modes_martin.c`): Martin 1, Martin 2
+- **Scottie** (`modes_scottie.c`): Scottie 1, Scottie 2, Scottie DX
+- **Robot** (`modes_robot.c`): Robot 36, Robot 72, Robot B&W 24
+
+**10. MMSSTV Integration** (`src/mmsstv/*.c`)
+- Dynamic library loading (`mmsstv_loader.c`)
+- API adapter layer (`mmsstv_adapter.c`)
+- 43 additional modes when library available
+- Graceful fallback to native-only
+
+**11. SSTV Encoder** (`src/slowframe_sstv.c/h`)
+- VIS header generation
+- Tone synthesis (sync, porch, pixels)
+- Mode-specific encoding functions
+- Sample buffer management
+
+#### Audio Output Layer
+
+**12. Audio Encoder** (`src/audio/slowframe_audio_encoder.c/h`)
+- Multi-format abstraction
+- Sample buffer coordination
+- Format-specific encoder delegation
+
+**13. Format Encoders**
+- **WAV** (`audio_encoder_wav.c`): PCM WAVE format
+- **AIFF** (`audio_encoder_aiff.c`): Apple AIFF format  
+- **OGG** (`audio_encoder_ogg.c`): Ogg Vorbis format
+
+---
+
+### v2.0 Legacy Documentation
+
+<details>
+<summary>Original v2.0 Component Descriptions (click to expand)</summary>
 
 ### Core Components
 
@@ -1251,6 +1400,120 @@ SlowFrame v2.0 architecture is:
 - Follow coding standards
 - Submit pull requests with tests
 - Update relevant documentation
+
+---
+
+## v2.1 Enhancements
+
+### Overview
+
+SlowFrame v2.1 represents a major architectural evolution from v2.0, introducing:
+- **6-fold mode expansion**: 7 → 51 SSTV modes (8 native + 43 MMSSTV)
+- **Text overlay system**: FCC Part 97 compliance features
+- **Mode registry architecture**: Extensible design for future modes
+- **Enhanced reliability**: Comprehensive error handling and validation
+- **Runtime detection**: MMSSTV library with graceful fallback
+
+### Error System (Phase 1)
+
+**Location**: `src/util/error.h/c`
+
+**Features:**
+- 40+ error codes in categorized ranges (100-799+)
+- Categories: General, File, Image, Config, Encoding
+- Helper functions: `error_string()`, `error_log()`, `error_get_category()`
+
+### Config Management (Phase 1)
+
+**Location**: `src/slowframe_config.h/c`
+
+**Features:**
+- Centralized configuration structure
+- Input validation and sanity checks
+- Inter-parameter dependency checking
+- Default value management
+
+### Text Overlay System (Phase 2.4)
+
+**Location**: `src/overlay/overlay_spec.h/c`
+
+**Features:**
+- Multiple overlay support
+- Customizable styling (text, font, color, position, opacity)
+- Background bars for visibility
+- FCC Part 97 compliance
+
+**CLI Example:**
+```bash
+./bin/slowframe -i input.jpg -p m1 -T "text:K9ABC|size:24|color:255,255,0|pos:LT"
+```
+
+### Mode Registry (Phase 3)
+
+**Location**: `src/sstv/mode_registry.h/c`
+
+**Features:**
+- Central mode database with 51 total modes
+- Extensible architecture
+- Mode lookup by name or VIS code
+- Family-based organization
+
+**Native Modes (8)**:
+- Martin: M1, M2
+- Scottie: S1, S2, SDX
+- Robot: R36, R72, **B&W 24** ⭐ NEW
+
+### MMSSTV Integration (Phase 4)
+
+**Location**: `src/mmsstv/*.c`
+
+**Features:**
+- Runtime library detection (43 additional modes)
+- No compile-time dependency
+- Graceful fallback to native-only
+- Environment variable override
+
+**MMSSTV Modes**: 43 modes including PD, extended Martin/Scottie, Wraase SC2, MP, FAX, MR, ML, AVT families
+
+### Testing (Phase 6)
+
+**Coverage**: **167/169 tests passing (98.8%)**
+- Backward compatibility: 69/71
+- Modernization: 54/54
+- MMSSTV integration: 22/22
+- Robot B&W 24: 22/22
+
+### Performance
+
+**Encoding Speed** (macOS M1):
+- Native modes: 5-15ms
+- MMSSTV modes: 50-200ms
+- Text overlay: <5ms
+
+**File Sizes** (320×256, 22050 Hz):
+- Martin 1: ~5.0 MB (114s)
+- Robot 36: ~1.6 MB (36s)
+- Robot B&W 24: ~1.1 MB (24s)
+
+### Mode Count Summary
+
+| Version | Native | MMSSTV | Total |
+|---------|--------|--------|-------|
+| v2.0    | 7      | 0      | 7     |
+| v2.1    | 8      | 43     | **51** |
+| Growth  | +14%   | +∞     | **+629%** |
+
+---
+
+## Document Metadata
+
+**Version**: 2.1  
+**Last Updated**: February 16, 2026  
+**Status**: Current
+
+**Change Log**:
+- **Feb 16, 2026**: Updated for v2.1 with Phases 1-6 changes
+- **Previous**: v2.0 documentation
 
 ---
 

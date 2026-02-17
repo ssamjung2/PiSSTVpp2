@@ -5,8 +5,14 @@
 
 set -e  # Exit on error
 
+# Get script directory and determine binary path
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_ROOT="$( dirname "$SCRIPT_DIR" )/.."
+BIN="${1:-.}/$PROJECT_ROOT/bin/slowframe"
+[ -z "$1" ] && BIN="$PROJECT_ROOT/bin/slowframe"
+
 TEST_DIR="test_outputs"
-EXECUTABLE="${1:-./../bin}/slowframe"
+EXECUTABLE="$BIN"
 FAILED=0
 PASSED=0
 

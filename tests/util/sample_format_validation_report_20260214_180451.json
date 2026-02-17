@@ -1,0 +1,143 @@
+{
+  "report_title": "Format Validation Test Suite",
+  "generation_date": "2026-02-14T18:04:51.080416",
+  "summary": {
+    "total": 4,
+    "passed": 4,
+    "failed": 0,
+    "skipped": 0,
+    "pending": 0,
+    "human_verified": 0,
+    "verification_pending": 4
+  },
+  "tests": [
+    {
+      "test_id": "FMT01",
+      "name": "Format Test - PNG",
+      "suite": "format_validator",
+      "status": "passed",
+      "command": "slowframe -i test.jpg -f png -o output.png",
+      "timestamp": "2026-02-14T18:04:51.080434",
+      "execution_time": 0.0,
+      "description": "",
+      "input_image": "test.jpg",
+      "expected_behavior": "",
+      "output_files": {},
+      "automated_checks": {
+        "Format loaded successfully": true,
+        "Color accuracy preserved": true,
+        "No visual artifacts": true,
+        "Dimensions correct (320x256)": true
+      },
+      "verification_checklist": [
+        "Image loaded successfully",
+        "Colors appear correct (no corruption)",
+        "No visual artifacts from format conversion",
+        "Dimensions preserved (320x256)"
+      ],
+      "human_verified": false,
+      "human_verdict": null,
+      "human_notes": "",
+      "verifier_name": "",
+      "verification_date": null,
+      "error_message": "",
+      "error_code": null
+    },
+    {
+      "test_id": "FMT02",
+      "name": "Format Test - JPEG",
+      "suite": "format_validator",
+      "status": "passed",
+      "command": "slowframe -i test.png -f jpeg -o output.jpg",
+      "timestamp": "2026-02-14T18:04:51.080452",
+      "execution_time": 0.0,
+      "description": "",
+      "input_image": "test.png",
+      "expected_behavior": "",
+      "output_files": {},
+      "automated_checks": {
+        "Format loaded successfully": true,
+        "Color accuracy preserved": true,
+        "No visual artifacts": true,
+        "Dimensions correct (640x480)": true
+      },
+      "verification_checklist": [
+        "Image loaded successfully",
+        "Colors appear correct (no corruption)",
+        "No visual artifacts from format conversion",
+        "Dimensions preserved (640x480)"
+      ],
+      "human_verified": false,
+      "human_verdict": null,
+      "human_notes": "",
+      "verifier_name": "",
+      "verification_date": null,
+      "error_message": "",
+      "error_code": null
+    },
+    {
+      "test_id": "FMT03",
+      "name": "Format Test - GIF",
+      "suite": "format_validator",
+      "status": "passed",
+      "command": "slowframe -i test.png -f gif -o output.gif",
+      "timestamp": "2026-02-14T18:04:51.080464",
+      "execution_time": 0.0,
+      "description": "",
+      "input_image": "test.jpg",
+      "expected_behavior": "",
+      "output_files": {},
+      "automated_checks": {
+        "Format loaded successfully": true,
+        "Color accuracy preserved": true,
+        "No visual artifacts": true,
+        "Dimensions correct (320x240)": true
+      },
+      "verification_checklist": [
+        "Image loaded successfully",
+        "Colors appear correct (no corruption)",
+        "No visual artifacts from format conversion",
+        "Dimensions preserved (320x240)"
+      ],
+      "human_verified": false,
+      "human_verdict": null,
+      "human_notes": "",
+      "verifier_name": "",
+      "verification_date": null,
+      "error_message": "",
+      "error_code": null
+    },
+    {
+      "test_id": "FMT04",
+      "name": "Format Test - BMP",
+      "suite": "format_validator",
+      "status": "passed",
+      "command": "slowframe -i test.jpg -f bmp -o output.bmp",
+      "timestamp": "2026-02-14T18:04:51.080472",
+      "execution_time": 0.0,
+      "description": "",
+      "input_image": "test.jpg",
+      "expected_behavior": "",
+      "output_files": {},
+      "automated_checks": {
+        "Format loaded successfully": true,
+        "Color accuracy preserved": true,
+        "No visual artifacts": true,
+        "Dimensions correct (1024x768)": true
+      },
+      "verification_checklist": [
+        "Image loaded successfully",
+        "Colors appear correct (no corruption)",
+        "No visual artifacts from format conversion",
+        "Dimensions preserved (1024x768)"
+      ],
+      "human_verified": false,
+      "human_verdict": null,
+      "human_notes": "",
+      "verifier_name": "",
+      "verification_date": null,
+      "error_message": "",
+      "error_code": null
+    }
+  ]
+}

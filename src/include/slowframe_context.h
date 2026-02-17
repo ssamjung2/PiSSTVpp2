@@ -83,6 +83,8 @@
 typedef struct SlowframeImageState SlowframeImageState;
 typedef struct SlowframeSSTVState SlowframeSSTVState;
 typedef struct SlowframeAudioState SlowframeAudioState;
+typedef struct mode_registry_s mode_registry_t;  /* From mode_registry.h */
+typedef struct mmsstv_adapter mmsstv_adapter_t;  /* From mmsstv_adapter.h */
 
 // ===========================================================================
 // STRUCTURES
@@ -259,6 +261,35 @@ SlowframeImageState* slowframe_context_get_image_state(SlowframeContext *ctx);
  *       exposed in header to prevent circular dependencies
  */
 SlowframeSSTVState* slowframe_context_get_sstv_state(SlowframeContext *ctx);
+
+/**
+ * @brief Get mode registry from SSTV module
+ *
+ * Provides access to the mode registry for mode lookup and enumeration.
+ * The registry is initialized during slowframe_context_init() and populated
+ * with all native SSTV modes.
+ *
+ * @param ctx Context to query
+ * @return Pointer to mode registry (may be NULL if not initialized)
+ *
+ * @note The registry is owned by the context and will be freed during cleanup.
+ *       Do not call mode_registry_free() on the returned pointer.
+ */
+mode_registry_t* slowframe_context_get_mode_registry(SlowframeContext *ctx);
+
+/**
+ * @brief Get pointer to MMSSTV adapter instance
+ *
+ * Provides access to the MMSSTV adapter for checking library status and
+ * accessing MMSSTV mode information.
+ *
+ * @param ctx Context to query
+ * @return Pointer to MMSSTV adapter (may be NULL if not initialized)
+ *
+ * @note The adapter is owned by the context and will be freed during cleanup.
+ *       Do not call mmsstv_adapter_destroy() on the returned pointer.
+ */
+mmsstv_adapter_t* slowframe_context_get_mmsstv_adapter(SlowframeContext *ctx);
 
 /**
  * @brief Get opaque pointer to audio encoder state

@@ -317,10 +317,9 @@ TextOverlaySpec overlay_spec_create_default(void);
  * @brief Create a station ID overlay specification
  *
  * Convenience function to create a standard FCC station ID overlay
- * with callsign and grid square.
+ * with callsign display.
  *
  * @param callsign Amateur radio callsign (e.g., "W5ZZZ")
- * @param grid_square Grid square locator (e.g., "EM12ab")
  * @param placement Where to place the station ID
  *
  * @return TextOverlaySpec configured for station ID display

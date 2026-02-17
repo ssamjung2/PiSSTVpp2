@@ -27,9 +27,9 @@
  * on VipsImage objects for memory efficiency.
  */
 
-#include "../include/image/image_aspect.h"
-#include "../util/error.h"
-#include "../include/logging.h"
+#include "image/image_aspect.h"
+#include "error.h"
+#include "logging.h"
 #include <math.h>
 #include <stdio.h>
 
@@ -160,24 +160,52 @@ static int correct_center_mode(VipsImage *image, int target_width, int target_he
 static int correct_pad_mode(VipsImage *image, int target_width, int target_height,
                            VipsImage **out_corrected, int verbose, int timestamp_logging) {
     int pad_left, pad_top;
+    double img_aspect = (double)image->Xsize / image->Ysize;
+    double target_aspect = (double)target_width / target_height;
 
     log_verbose(verbose, timestamp_logging,
                "   --> PAD mode: preserve aspect ratio, add black padding\n");
 
-    /* Calculate centering offset */
-    calculate_centered_padding(image->Xsize, image->Ysize, target_width, target_height,
+    /* Calculate size to fit image within target while maintaining aspect ratio */
+    int fit_width, fit_height;
+    if (img_aspect > target_aspect) {
+        /* Image is wider - fit to width, add top/bottom padding */
+        fit_width = target_width;
+        fit_height = (int)(target_width / img_aspect + 0.5);
+    } else {
+        /* Image is taller - fit to height, add left/right padding */
+        fit_height = target_height;
+        fit_width = (int)(target_height * img_aspect + 0.5);
+    }
+
+    if (verbose) {
+        log_verbose(verbose, timestamp_logging,
+                   "       Fitting: %dx%d → %dx%d (preserving %.3f aspect ratio)\n",
+                   image->Xsize, image->Ysize, fit_width, fit_height, img_aspect);
+    }
+
+    /* Step 1: Resize to fit within target while maintaining aspect */
+    VipsImage *resized = NULL;
+    int result = image_processor_scale(image, fit_width, fit_height, &resized, verbose);
+    if (result != SLOWFRAME_OK) {
+        return result;
+    }
+
+    /* Step 2: Calculate centering offset for padding */
+    calculate_centered_padding(fit_width, fit_height, target_width, target_height,
                               &pad_left, &pad_top);
 
     if (verbose) {
         log_verbose(verbose, timestamp_logging,
-                   "       Padding: source %dx%d → canvas %dx%d at offset (%d,%d)\n",
-                   image->Xsize, image->Ysize, target_width, target_height, pad_left, pad_top);
+                   "       Padding: %dx%d → canvas %dx%d at offset (%d,%d)\n",
+                   fit_width, fit_height, target_width, target_height, pad_left, pad_top);
     }
 
-    /* Embed image in larger canvas with black padding */
+    /* Step 3: Embed resized image in canvas with black padding */
     VipsImage *padded = NULL;
-    int result = image_processor_embed(image, pad_left, pad_top, target_width, target_height,
-                                      &padded, verbose);
+    result = image_processor_embed(resized, pad_left, pad_top, target_width, target_height,
+                                   &padded, verbose);
+    g_object_unref(resized);
     if (result != SLOWFRAME_OK) {
         return result;
     }
@@ -186,7 +214,7 @@ static int correct_pad_mode(VipsImage *image, int target_width, int target_heigh
 
     if (verbose) {
         log_verbose(verbose, timestamp_logging,
-                   "       Result: %dx%d (original centered with black bars)\n",
+                   "       Result: %dx%d (resized and centered with black bars)\n",
                    padded->Xsize, padded->Ysize);
     }
 

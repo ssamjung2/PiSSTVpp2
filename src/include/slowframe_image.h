@@ -95,6 +95,22 @@ int image_get_dimensions(int *width, int *height);
 void image_get_pixel_rgb(int x, int y, uint8_t *r, uint8_t *g, uint8_t *b);
 
 /**
+ * image_get_rgb_data
+ * 
+ * Get direct access to the loaded image's RGB pixel buffer.
+ * This is primarily used by external-encoding modules (e.g., MMSSTV library).
+ * 
+ * @return Pointer to ImageBuffer structure, or NULL if no image is loaded
+ * 
+ * Notes:
+ * - Pixel data is in row-major format with RGB bytes (R,G,B,R,G,B,...)
+ * - Rowstride may differ from width*3 due to alignment padding
+ * - Buffer remains valid until image_free() or next image_load_from_file()
+ * - Do NOT free the returned pointer or modify the buffer
+ */
+const ImageBuffer* image_get_rgb_data(void);
+
+/**
  * image_get_original_extension
  * 
  * Get the file extension of the originally loaded image.

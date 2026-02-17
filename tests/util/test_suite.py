@@ -556,16 +556,16 @@ class TestSuite:
         else:
             self._log_test("CW -W without -C (error check)", "FAILED", "Should require -C with -W")
         
-        # Test -T without -C
+        # Test -Q without -C (CW tone flag)
         ret, stdout, stderr = self._run_command([
             "-i", test_img,
-            "-T", "1000"
+            "-Q", "1000"
         ])
         
         if ret != 0 and ("-C" in stderr or "callsign" in stderr.lower()):
-            self._log_test("CW -T without -C (error check)", "PASSED", "Correctly rejected")
+            self._log_test("CW -Q without -C (error check)", "PASSED", "Correctly rejected")
         else:
-            self._log_test("CW -T without -C (error check)", "FAILED", "Should require -C with -T")
+            self._log_test("CW -Q without -C (error check)", "FAILED", "Should require -C with -Q")
     
     def test_invalid_cw_parameters(self):
         """Test rejection of invalid CW parameters"""
@@ -594,7 +594,7 @@ class TestSuite:
             ret, stdout, stderr = self._run_command([
                 "-i", test_img,
                 "-C", "TEST",
-                "-T", str(tone),
+                "-Q", str(tone),
                 "-a", "center",
                 "-v"
             ])
@@ -1053,8 +1053,8 @@ class TestSuite:
             },
             {
                 'name': 'Enable overlay flag only',
-                'args': ['-i', test_img, '-O', '-o'],
-                'expected_in_output': None  # -O alone doesn't create specs
+                'args': ['-i', test_img, '-O', '-N', '-o'],
+                'expected_in_output': None  # -O requires -N (test mode)
             },
         ]
         

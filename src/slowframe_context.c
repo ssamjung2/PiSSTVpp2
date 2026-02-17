@@ -12,10 +12,17 @@
  */
 
 #include "slowframe_context.h"
+#include "sstv/mode_registry.h"
+#include "mmsstv/mmsstv_adapter.h"
 #include "error.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+
+/* Forward declarations for mode registration */
+extern void modes_martin_register(mode_registry_t *reg);
+extern void modes_scottie_register(mode_registry_t *reg);
+extern void modes_robot_register(mode_registry_t *reg);
 
 // ===========================================================================
 // MODULE STATE STRUCTURES
@@ -37,14 +44,15 @@ struct SlowframeImageState {
 /**
  * @brief SSTV encoding module state
  *
- * Currently a placeholder; in Task 1.4, this will expand to hold:
- * - SSTV mode registry
- * - VIS code lookup table
+ * Holds the mode registry for SSTV mode lookup and dispatch.
+ * Future expansion will include:
  * - Audio sample buffer
  * - Encoding statistics
  */
 struct SlowframeSSTVState {
-    int initialized;  /**< Dummy field for now; will expand in Task 1.4 */
+    mode_registry_t *registry;       /**< SSTV mode registry */
+    mmsstv_adapter_t *mmsstv_adapter;/**< MMSSTV adapter (if available) */
+    int initialized;                 /**< Module initialized flag */
 };
 
 /**
@@ -118,6 +126,36 @@ int slowframe_context_init(SlowframeContext *ctx, SlowframeConfig *config) {
         return SLOWFRAME_ERR_MEMORY_ALLOC;
     }
     memset(ctx->sstv_state, 0, sizeof(SlowframeSSTVState));
+    
+    // Create and populate mode registry
+    ctx->sstv_state->registry = mode_registry_create();
+    if (!ctx->sstv_state->registry) {
+        error_log(SLOWFRAME_ERR_MEMORY_ALLOC,
+                "Failed to create mode registry");
+        slowframe_context_cleanup(ctx);
+        return SLOWFRAME_ERR_MEMORY_ALLOC;
+    }
+    
+    // Register all native SSTV modes
+    modes_martin_register(ctx->sstv_state->registry);
+    modes_scottie_register(ctx->sstv_state->registry);
+    modes_robot_register(ctx->sstv_state->registry);
+    
+    // Try to register MMSSTV modes (if library available)
+    ctx->sstv_state->mmsstv_adapter = mmsstv_adapter_init();
+    if (ctx->sstv_state->mmsstv_adapter && 
+        mmsstv_adapter_is_available(ctx->sstv_state->mmsstv_adapter)) {
+        mmsstv_adapter_register_modes(ctx->sstv_state->mmsstv_adapter, 
+                                     ctx->sstv_state->registry);
+        /* Keep adapter alive to maintain library references */
+    } else {
+        /* Library not found - using native modes only */
+        if (ctx->sstv_state->mmsstv_adapter) {
+            mmsstv_adapter_destroy(ctx->sstv_state->mmsstv_adapter);
+            ctx->sstv_state->mmsstv_adapter = NULL;
+        }
+    }
+    
     ctx->sstv_state->initialized = 1;
     ctx->sstv_initialized = 1;
 
@@ -159,6 +197,14 @@ void slowframe_context_cleanup(SlowframeContext *ctx) {
     // CLEANUP SSTV ENCODING MODULE
     // =====================================================================
     if (ctx->sstv_initialized && ctx->sstv_state) {
+        if (ctx->sstv_state->registry) {
+            mode_registry_free(ctx->sstv_state->registry);
+            ctx->sstv_state->registry = NULL;
+        }
+        if (ctx->sstv_state->mmsstv_adapter) {
+            mmsstv_adapter_destroy(ctx->sstv_state->mmsstv_adapter);
+            ctx->sstv_state->mmsstv_adapter = NULL;
+        }
         free(ctx->sstv_state);
         ctx->sstv_state = NULL;
         ctx->sstv_initialized = 0;
@@ -282,4 +328,20 @@ SlowframeAudioState* slowframe_context_get_audio_state(SlowframeContext *ctx) {
         return NULL;
     }
     return ctx->audio_state;
+}
+
+/**
+ * @brief Get mode registry from SSTV module
+ */
+mode_registry_t* slowframe_context_get_mode_registry(SlowframeContext *ctx) {
+    if (!ctx || !ctx->sstv_state) {
+        return NULL;
+    }
+    return ctx->sstv_state->registry;
+}
+mmsstv_adapter_t* slowframe_context_get_mmsstv_adapter(SlowframeContext *ctx) {
+    if (!ctx || !ctx->sstv_state) {
+        return NULL;
+    }
+    return ctx->sstv_state->mmsstv_adapter;
 }

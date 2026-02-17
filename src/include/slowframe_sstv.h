@@ -33,6 +33,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "error.h"
+#include "sstv/mode_registry.h"
 
 /* ============================================================================
    SSTV AUDIO CONSTANTS
@@ -72,7 +73,8 @@ enum {
     SSTV_SCOTTIE_2  = 56,   /**< Scottie 2 */
     SSTV_SCOTTIE_DX = 76,   /**< Scottie DX */
     SSTV_ROBOT_36   = 8,    /**< Robot 36 Color */
-    SSTV_ROBOT_72   = 12    /**< Robot 72 Color */
+    SSTV_ROBOT_72   = 12,   /**< Robot 72 Color */
+    SSTV_ROBOT_BW24 = 9     /**< Robot B&W 24 */
 };
 
 /* ============================================================================
@@ -157,6 +159,62 @@ uint8_t sstv_get_protocol(void);
 int sstv_encode_frame(int verbose, int timestamp_logging);
 
 /**
+ * sstv_encode_frame_with_mode
+ *
+ * Encode a complete SSTV transmission frame using a mode definition from the registry.
+ * This is the registry-backed dispatch path for native modes.
+ *
+ * @param mode_def Mode definition (must have encode_frame set)
+ * @param verbose If non-zero, print progress per scan line
+ * @param timestamp_logging If non-zero, add timestamps to verbose output
+ *
+ * @return Error code: SLOWFRAME_OK on success, or an SSTV error code on failure
+ */
+int sstv_encode_frame_with_mode(const mode_definition_t *mode_def,
+                                int verbose,
+                                int timestamp_logging);
+
+/**
+ * Native mode encoder wrappers used by the mode registry.
+ */
+int sstv_encode_martin_m1(const char *mode_code,
+                          uint16_t sample_rate,
+                          uint16_t *audio_buffer,
+                          uint32_t max_samples);
+int sstv_encode_martin_m2(const char *mode_code,
+                          uint16_t sample_rate,
+                          uint16_t *audio_buffer,
+                          uint32_t max_samples);
+int sstv_encode_scottie_s1(const char *mode_code,
+                           uint16_t sample_rate,
+                           uint16_t *audio_buffer,
+                           uint32_t max_samples);
+int sstv_encode_scottie_s2(const char *mode_code,
+                           uint16_t sample_rate,
+                           uint16_t *audio_buffer,
+                           uint32_t max_samples);
+int sstv_encode_scottie_sdx(const char *mode_code,
+                            uint16_t sample_rate,
+                            uint16_t *audio_buffer,
+                            uint32_t max_samples);
+int sstv_encode_robot_r36(const char *mode_code,
+                          uint16_t sample_rate,
+                          uint16_t *audio_buffer,
+                          uint32_t max_samples);
+int sstv_encode_robot_r72(const char *mode_code,
+                          uint16_t sample_rate,
+                          uint16_t *audio_buffer,
+                          uint32_t max_samples);
+int sstv_encode_robot_bw24(const char *mode_code,
+                           uint16_t sample_rate,
+                          uint16_t *audio_buffer,
+                          uint32_t max_samples);
+int sstv_encode_robot_r72(const char *mode_code,
+                          uint16_t sample_rate,
+                          uint16_t *audio_buffer,
+                          uint32_t max_samples);
+
+/**
  * sstv_add_cw_signature
  *
  * Append a CW Morse code signature to the audio stream.
@@ -209,6 +267,18 @@ uint32_t sstv_get_sample_count(void);
  * @return Sample rate in Hz
  */
 uint16_t sstv_get_sample_rate(void);
+
+/**
+ * sstv_add_samples_to_buffer
+ *
+ * Add pre-generated samples to the SSTV audio buffer.
+ * Used by external encoders (e.g., MMSSTV library wrapper).
+ *
+ * @param samples Array of audio samples to add
+ * @param count Number of samples to add
+ * @return SLOWFRAME_OK on success, error code on failure
+ */
+int sstv_add_samples_to_buffer(const uint16_t *samples, uint32_t count);
 
 /* ============================================================================
    CLEANUP AND DIAGNOSTICS

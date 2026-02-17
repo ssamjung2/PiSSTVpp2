@@ -1,0 +1,390 @@
+
+----------------------------------------------------------------------
+Test T001: alt3_test_panel_2310x1360.png
+Format: PNG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt3_test_panel_2310x1360.png -p m1 -o tests/test_outputs/format_validator/test_format_png_alt3_test_panel_2310x1360.wav -K
+Output image: tests/test_outputs/format_validator/test_format_png_alt3_test_panel_2310x1360.png
+Output audio: tests/test_outputs/format_validator/test_format_png_alt3_test_panel_2310x1360.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 2310x1360
+Output image created: yes
+Output audio created: yes
+
+----------------------------------------------------------------------
+Test T002: alt2_color_bars_2000x1125.png
+Format: PNG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt2_color_bars_2000x1125.png -p m1 -o tests/test_outputs/format_validator/test_format_png_alt2_color_bars_2000x1125.wav -K
+Output image: tests/test_outputs/format_validator/test_format_png_alt2_color_bars_2000x1125.png
+Output audio: tests/test_outputs/format_validator/test_format_png_alt2_color_bars_2000x1125.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 320x256
+Output image created: yes
+Output audio created: yes
+
+----------------------------------------------------------------------
+Test T003: alt6_test_panel_1920x1080.png
+Format: PNG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt6_test_panel_1920x1080.png -p m1 -o tests/test_outputs/format_validator/test_format_png_alt6_test_panel_1920x1080.wav -K
+Output image: tests/test_outputs/format_validator/test_format_png_alt6_test_panel_1920x1080.png
+Output audio: tests/test_outputs/format_validator/test_format_png_alt6_test_panel_1920x1080.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 1920x1080
+Output image created: yes
+Output audio created: yes
+
+----------------------------------------------------------------------
+Test T004: alt2_color_bars_680×1209.png
+Format: PNG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i 'tests/images/alt2_color_bars_680×1209.png' -p m1 -o 'tests/test_outputs/format_validator/test_format_png_alt2_color_bars_680×1209.wav' -K
+Output image: tests/test_outputs/format_validator/test_format_png_alt2_color_bars_680×1209.png
+Output audio: tests/test_outputs/format_validator/test_format_png_alt2_color_bars_680×1209.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 320x256
+Output image created: yes
+Output audio created: yes
+
+----------------------------------------------------------------------
+Test T005: alt_color_bars_320x256.png
+Format: PNG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt_color_bars_320x256.png -p m1 -o tests/test_outputs/format_validator/test_format_png_alt_color_bars_320x256.wav -K
+Output image: tests/test_outputs/format_validator/test_format_png_alt_color_bars_320x256.png
+Output audio: tests/test_outputs/format_validator/test_format_png_alt_color_bars_320x256.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 320x256
+Output image created: yes
+Output audio created: yes
+
+----------------------------------------------------------------------
+Test T006: test_400x300.png
+Format: PNG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/test_400x300.png -p m1 -o tests/test_outputs/format_validator/test_format_png_test_400x300.wav -K
+Output image: tests/test_outputs/format_validator/test_format_png_test_400x300.png
+Output audio: tests/test_outputs/format_validator/test_format_png_test_400x300.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 320x256
+Output image created: yes
+Output audio created: yes
+
+----------------------------------------------------------------------
+Test T007: test_300x400.png
+Format: PNG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/test_300x400.png -p m1 -o tests/test_outputs/format_validator/test_format_png_test_300x400.wav -K
+Output image: tests/test_outputs/format_validator/test_format_png_test_300x400.png
+Output audio: tests/test_outputs/format_validator/test_format_png_test_300x400.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 300x400
+Output image created: yes
+Output audio created: yes
+
+----------------------------------------------------------------------
+Test T008: test_320x240.png
+Format: PNG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/test_320x240.png -p m1 -o tests/test_outputs/format_validator/test_format_png_test_320x240.wav -K
+Output image: tests/test_outputs/format_validator/test_format_png_test_320x240.png
+Output audio: tests/test_outputs/format_validator/test_format_png_test_320x240.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 320x240
+Output image created: yes
+Output audio created: yes
+
+----------------------------------------------------------------------
+Test T009: alt3_color_bars_1370×1080.png
+Format: PNG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i 'tests/images/alt3_color_bars_1370×1080.png' -p m1 -o 'tests/test_outputs/format_validator/test_format_png_alt3_color_bars_1370×1080.wav' -K
+Output image: tests/test_outputs/format_validator/test_format_png_alt3_color_bars_1370×1080.png
+Output audio: tests/test_outputs/format_validator/test_format_png_alt3_color_bars_1370×1080.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 1370x1080
+Output image created: yes
+Output audio created: yes
+
+----------------------------------------------------------------------
+Test T010: alt2_color_bars_2000x1125_textonly.png
+Format: PNG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt2_color_bars_2000x1125_textonly.png -p m1 -o tests/test_outputs/format_validator/test_format_png_alt2_color_bars_2000x1125_textonly.wav -K
+Output image: tests/test_outputs/format_validator/test_format_png_alt2_color_bars_2000x1125_textonly.png
+Output audio: tests/test_outputs/format_validator/test_format_png_alt2_color_bars_2000x1125_textonly.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 2000x1125
+Output image created: yes
+Output audio created: yes
+
+----------------------------------------------------------------------
+Test T011: alt4_color_bars_1435x1129.png
+Format: PNG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt4_color_bars_1435x1129.png -p m1 -o tests/test_outputs/format_validator/test_format_png_alt4_color_bars_1435x1129.wav -K
+Output image: tests/test_outputs/format_validator/test_format_png_alt4_color_bars_1435x1129.png
+Output audio: tests/test_outputs/format_validator/test_format_png_alt4_color_bars_1435x1129.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 1435x1129
+Output image created: yes
+Output audio created: yes
+
+----------------------------------------------------------------------
+Test T012: alt2_color_bars_2000x1125_overlay.png
+Format: PNG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt2_color_bars_2000x1125_overlay.png -p m1 -o tests/test_outputs/format_validator/test_format_png_alt2_color_bars_2000x1125_overlay.wav -K
+Output image: tests/test_outputs/format_validator/test_format_png_alt2_color_bars_2000x1125_overlay.png
+Output audio: tests/test_outputs/format_validator/test_format_png_alt2_color_bars_2000x1125_overlay.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 320x256
+Output image created: yes
+Output audio created: yes
+
+----------------------------------------------------------------------
+Test T013: alt_test_panel_900x692.jpg
+Format: JPEG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt_test_panel_900x692.jpg -p m1 -o tests/test_outputs/format_validator/test_format_jpg_alt_test_panel_900x692.wav -K
+Output image: tests/test_outputs/format_validator/test_format_jpg_alt_test_panel_900x692.jpg
+Output audio: tests/test_outputs/format_validator/test_format_jpg_alt_test_panel_900x692.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 900x692
+Output image created: yes
+Output audio created: yes
+
+----------------------------------------------------------------------
+Test T014: alt5_test_panel_1728x1728.jpg
+Format: JPEG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt5_test_panel_1728x1728.jpg -p m1 -o tests/test_outputs/format_validator/test_format_jpg_alt5_test_panel_1728x1728.wav -K
+Output image: tests/test_outputs/format_validator/test_format_jpg_alt5_test_panel_1728x1728.jpg
+Output audio: tests/test_outputs/format_validator/test_format_jpg_alt5_test_panel_1728x1728.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 1728x1728
+Output image created: yes
+Output audio created: yes
+
+----------------------------------------------------------------------
+Test T015: alt7_test_panel_1440x1080.jpg
+Format: JPEG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt7_test_panel_1440x1080.jpg -p m1 -o tests/test_outputs/format_validator/test_format_jpg_alt7_test_panel_1440x1080.wav -K
+Output image: tests/test_outputs/format_validator/test_format_jpg_alt7_test_panel_1440x1080.jpg
+Output audio: tests/test_outputs/format_validator/test_format_jpg_alt7_test_panel_1440x1080.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 1440x1080
+Output image created: yes
+Output audio created: yes
+
+----------------------------------------------------------------------
+Test T016: alt4_test_panel_2048x1536.jpg
+Format: JPEG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt4_test_panel_2048x1536.jpg -p m1 -o tests/test_outputs/format_validator/test_format_jpg_alt4_test_panel_2048x1536.wav -K
+Output image: tests/test_outputs/format_validator/test_format_jpg_alt4_test_panel_2048x1536.jpg
+Output audio: tests/test_outputs/format_validator/test_format_jpg_alt4_test_panel_2048x1536.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 2048x1536
+Output image created: yes
+Output audio created: yes
+
+----------------------------------------------------------------------
+Test T017: color_bars_640x480.jpg
+Format: JPEG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/color_bars_640x480.jpg -p m1 -o tests/test_outputs/format_validator/test_format_jpg_color_bars_640x480.wav -K
+Output image: tests/test_outputs/format_validator/test_format_jpg_color_bars_640x480.jpg
+Output audio: tests/test_outputs/format_validator/test_format_jpg_color_bars_640x480.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 640x480
+Output image created: yes
+Output audio created: yes
+
+----------------------------------------------------------------------
+Test T018: alt3_test_panel_9600x5400.jpg
+Format: JPEG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt3_test_panel_9600x5400.jpg -p m1 -o tests/test_outputs/format_validator/test_format_jpg_alt3_test_panel_9600x5400.wav -K
+Output image: tests/test_outputs/format_validator/test_format_jpg_alt3_test_panel_9600x5400.jpg
+Output audio: tests/test_outputs/format_validator/test_format_jpg_alt3_test_panel_9600x5400.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 9600x5400
+Output image created: yes
+Output audio created: yes
+
+----------------------------------------------------------------------
+Test T019: alt5_test_panel_1920x1230.jpg
+Format: JPEG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt5_test_panel_1920x1230.jpg -p m1 -o tests/test_outputs/format_validator/test_format_jpg_alt5_test_panel_1920x1230.wav -K
+Output image: tests/test_outputs/format_validator/test_format_jpg_alt5_test_panel_1920x1230.jpg
+Output audio: tests/test_outputs/format_validator/test_format_jpg_alt5_test_panel_1920x1230.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 1920x1230
+Output image created: yes
+Output audio created: yes
+
+----------------------------------------------------------------------
+Test T020: alt3_test_panel_9600x5400_large.jpg
+Format: JPEG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt3_test_panel_9600x5400_large.jpg -p m1 -o tests/test_outputs/format_validator/test_format_jpg_alt3_test_panel_9600x5400_large.wav -K
+Output image: tests/test_outputs/format_validator/test_format_jpg_alt3_test_panel_9600x5400_large.jpg
+Output audio: tests/test_outputs/format_validator/test_format_jpg_alt3_test_panel_9600x5400_large.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 19200x10800
+Output image created: yes
+Output audio created: yes
+
+----------------------------------------------------------------------
+Test T021: alt5_color_bars_1920x1080.jpg
+Format: JPEG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt5_color_bars_1920x1080.jpg -p m1 -o tests/test_outputs/format_validator/test_format_jpg_alt5_color_bars_1920x1080.wav -K
+Output image: tests/test_outputs/format_validator/test_format_jpg_alt5_color_bars_1920x1080.jpg
+Output audio: tests/test_outputs/format_validator/test_format_jpg_alt5_color_bars_1920x1080.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 1920x1080
+Output image created: yes
+Output audio created: yes
+
+----------------------------------------------------------------------
+Test T022: alt_color_bars_320x256.jpeg
+Format: JPEG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt_color_bars_320x256.jpeg -p m1 -o tests/test_outputs/format_validator/test_format_jpeg_alt_color_bars_320x256.wav -K
+Output image: tests/test_outputs/format_validator/test_format_jpeg_alt_color_bars_320x256.jpeg
+Output audio: tests/test_outputs/format_validator/test_format_jpeg_alt_color_bars_320x256.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 320x256
+Output image created: yes
+Output audio created: yes
+
+----------------------------------------------------------------------
+Test T023: alt_color_bars_320x256.gif
+Format: GIF
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt_color_bars_320x256.gif -p m1 -o tests/test_outputs/format_validator/test_format_gif_alt_color_bars_320x256.wav -K
+Output image: tests/test_outputs/format_validator/test_format_gif_alt_color_bars_320x256.gif
+Output audio: tests/test_outputs/format_validator/test_format_gif_alt_color_bars_320x256.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 320x256
+Output image created: yes
+Output audio created: yes
+
+----------------------------------------------------------------------
+Test T024: alt_color_bars_320x256.bmp
+Format: BMP
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt_color_bars_320x256.bmp -p m1 -o tests/test_outputs/format_validator/test_format_bmp_alt_color_bars_320x256.wav -K
+Output image: tests/test_outputs/format_validator/test_format_bmp_alt_color_bars_320x256.bmp
+Output audio: tests/test_outputs/format_validator/test_format_bmp_alt_color_bars_320x256.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 320x256
+Output image created: yes
+Output audio created: yes
+
+----------------------------------------------------------------------
+Test T025: alt_color_bars_320x256.tiff
+Format: TIFF
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt_color_bars_320x256.tiff -p m1 -o tests/test_outputs/format_validator/test_format_tiff_alt_color_bars_320x256.wav -K
+Output image: tests/test_outputs/format_validator/test_format_tiff_alt_color_bars_320x256.tiff
+Output audio: tests/test_outputs/format_validator/test_format_tiff_alt_color_bars_320x256.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 320x256
+Output image created: yes
+Output audio created: yes
+
+----------------------------------------------------------------------
+Test T026: alt_color_bars_320x256.webp
+Format: WebP
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt_color_bars_320x256.webp -p m1 -o tests/test_outputs/format_validator/test_format_webp_alt_color_bars_320x256.wav -K
+Output image: tests/test_outputs/format_validator/test_format_webp_alt_color_bars_320x256.webp
+Output audio: tests/test_outputs/format_validator/test_format_webp_alt_color_bars_320x256.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 320x256
+Output image created: yes
+Output audio created: yes
+
+----------------------------------------------------------------------
+Test T027: alt_color_bars_320x240.ppm
+Format: PPM
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt_color_bars_320x240.ppm -p m1 -o tests/test_outputs/format_validator/test_format_ppm_alt_color_bars_320x240.wav -K
+Output image: tests/test_outputs/format_validator/test_format_ppm_alt_color_bars_320x240.ppm
+Output audio: tests/test_outputs/format_validator/test_format_ppm_alt_color_bars_320x240.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 320x240
+Output image created: yes
+Output audio created: yes
+
+✓ HTML report generated: tests/test_outputs/format_validator/format_validator_report.html
+
+======================================================================
+SlowFrame Image Format Support Test
+======================================================================
+
+Results: 27/27 passed
+
+Format Coverage: 7/9
+  Tested: BMP, GIF, JPEG, PNG, PPM, TIFF, WebP
+======================================================================

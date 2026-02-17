@@ -20,10 +20,10 @@
  * Final pixel access (for SSTV encoding) uses ImageBuffer for fast O(1) access.
  */
 
-#include "../include/image/image_processor.h"
-#include "../util/error.h"
-#include "../include/logging.h"
-#include "../include/overlay_spec.h"
+#include "image/image_processor.h"
+#include "error.h"
+#include "logging.h"
+#include "overlay_spec.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -188,14 +188,34 @@ int image_processor_embed(VipsImage *image, int left, int top, int canvas_width,
                image->Xsize, image->Ysize, left, top, canvas_width, canvas_height);
 
     VipsImage *padded = NULL;
-    if (vips_embed(image, &padded, left, top, canvas_width, canvas_height,
-                   "extend", VIPS_EXTEND_BLACK, NULL)) {
+    
+    /* Create black canvas for guaranteed black padding
+     * We create a pure black image as the base, then insert the source image at offset
+     * This ensures predictable black padding regardless of extend mode behavior
+     */
+    VipsImage *black_canvas = NULL;
+    
+    /* Create a black image (all zeros) matching canvas dimensions with same bands as input */
+    if (vips_black(&black_canvas, canvas_width, canvas_height, 
+                   "bands", image->Bands, NULL)) {
         error_log(SLOWFRAME_ERR_IMAGE_PROCESS,
-                 "Image embed failed to canvas %dx%d: %s",
+                 "Failed to create black canvas %dx%d: %s",
                  canvas_width, canvas_height, vips_error_buffer());
         vips_error_clear();
         return SLOWFRAME_ERR_IMAGE_PROCESS;
     }
+    
+    /* Insert image into black canvas at the specified offset */
+    if (vips_insert(black_canvas, image, &padded, left, top, NULL)) {
+        error_log(SLOWFRAME_ERR_IMAGE_PROCESS,
+                 "Image insert into black canvas failed: %s",
+                 vips_error_buffer());
+        vips_error_clear();
+        g_object_unref(black_canvas);
+        return SLOWFRAME_ERR_IMAGE_PROCESS;
+    }
+    
+    g_object_unref(black_canvas);
 
     *out_padded = padded;
     log_verbose(verbose, 0, "   [OK] Embedded to %dx%d with black padding\n",

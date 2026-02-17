@@ -174,6 +174,8 @@ typedef struct {
     int keep_intermediate;                          /**< Keep intermediate processed images */
     int skip_audio_encoding;                        /**< 1 to skip SSTV audio encoding (overlay testing only) */
     int text_only;                                  /**< 1 to skip aspect ratio and resizing (only applies with -N) */
+    int list_modes;                                 /**< 1 to list available SSTV modes and exit */
+    int mmsstv_status;                              /**< 1 to show MMSSTV library status and exit */
 
 } SlowframeConfig;
 

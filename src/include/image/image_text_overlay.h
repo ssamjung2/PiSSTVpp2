@@ -3,7 +3,7 @@
  *
  * Text overlay and color bars for SlowFrame
  * 
- * Adds station identification, grid squares, timestamps, and other
+ * Adds station identification, timestamps, and other
  * text overlays to SSTV images for FCC Part 97 Section 97.113(a)(4) compliance.
  * 
  * Supports:

@@ -1,0 +1,236 @@
+{
+  "report_title": "SlowFrame Unified Validation Test Suite",
+  "generation_date": "2026-02-14T18:04:51.082216",
+  "summary": {
+    "total": 7,
+    "passed": 7,
+    "failed": 0,
+    "skipped": 0,
+    "pending": 0,
+    "human_verified": 0,
+    "verification_pending": 7
+  },
+  "tests": [
+    {
+      "test_id": "FMT01",
+      "name": "Format - PNG",
+      "suite": "format_validator",
+      "status": "passed",
+      "command": "slowframe -i test.jpg -f png -o output.png",
+      "timestamp": "2026-02-14T18:04:51.082224",
+      "execution_time": 0.0,
+      "description": "",
+      "input_image": "test.jpg",
+      "expected_behavior": "",
+      "output_files": {},
+      "automated_checks": {
+        "Format loaded successfully": true,
+        "Color accuracy preserved": true,
+        "No visual artifacts": true,
+        "Dimensions correct": true
+      },
+      "verification_checklist": [
+        "Image loaded successfully",
+        "Colors appear correct (no corruption)",
+        "No visual artifacts from format conversion",
+        "Dimensions preserved (320x256)"
+      ],
+      "human_verified": false,
+      "human_verdict": null,
+      "human_notes": "",
+      "verifier_name": "",
+      "verification_date": null,
+      "error_message": "",
+      "error_code": null
+    },
+    {
+      "test_id": "FMT02",
+      "name": "Format - JPEG",
+      "suite": "format_validator",
+      "status": "passed",
+      "command": "slowframe -i test.jpg -f jpeg -o output.jpg",
+      "timestamp": "2026-02-14T18:04:51.082231",
+      "execution_time": 0.0,
+      "description": "",
+      "input_image": "test.jpg",
+      "expected_behavior": "",
+      "output_files": {},
+      "automated_checks": {
+        "Format loaded successfully": true,
+        "Color accuracy preserved": true,
+        "No visual artifacts": true,
+        "Dimensions correct": true
+      },
+      "verification_checklist": [
+        "Image loaded successfully",
+        "Colors appear correct (no corruption)",
+        "No visual artifacts from format conversion",
+        "Dimensions preserved (320x256)"
+      ],
+      "human_verified": false,
+      "human_verdict": null,
+      "human_notes": "",
+      "verifier_name": "",
+      "verification_date": null,
+      "error_message": "",
+      "error_code": null
+    },
+    {
+      "test_id": "FMT03",
+      "name": "Format - GIF",
+      "suite": "format_validator",
+      "status": "passed",
+      "command": "slowframe -i test.jpg -f gif -o output.gif",
+      "timestamp": "2026-02-14T18:04:51.082236",
+      "execution_time": 0.0,
+      "description": "",
+      "input_image": "test.jpg",
+      "expected_behavior": "",
+      "output_files": {},
+      "automated_checks": {
+        "Format loaded successfully": true,
+        "Color accuracy preserved": true,
+        "No visual artifacts": true,
+        "Dimensions correct": true
+      },
+      "verification_checklist": [
+        "Image loaded successfully",
+        "Colors appear correct (no corruption)",
+        "No visual artifacts from format conversion",
+        "Dimensions preserved (320x256)"
+      ],
+      "human_verified": false,
+      "human_verdict": null,
+      "human_notes": "",
+      "verifier_name": "",
+      "verification_date": null,
+      "error_message": "",
+      "error_code": null
+    },
+    {
+      "test_id": "FMT04",
+      "name": "Format - BMP",
+      "suite": "format_validator",
+      "status": "passed",
+      "command": "slowframe -i test.jpg -f bmp -o output.bmp",
+      "timestamp": "2026-02-14T18:04:51.082240",
+      "execution_time": 0.0,
+      "description": "",
+      "input_image": "test.jpg",
+      "expected_behavior": "",
+      "output_files": {},
+      "automated_checks": {
+        "Format loaded successfully": true,
+        "Color accuracy preserved": true,
+        "No visual artifacts": true,
+        "Dimensions correct": true
+      },
+      "verification_checklist": [
+        "Image loaded successfully",
+        "Colors appear correct (no corruption)",
+        "No visual artifacts from format conversion",
+        "Dimensions preserved (320x256)"
+      ],
+      "human_verified": false,
+      "human_verdict": null,
+      "human_notes": "",
+      "verifier_name": "",
+      "verification_date": null,
+      "error_message": "",
+      "error_code": null
+    },
+    {
+      "test_id": "ASP01",
+      "name": "Aspect - CENTER",
+      "suite": "aspect_validator",
+      "status": "passed",
+      "command": "slowframe -i test.jpg -C -o output.wav",
+      "timestamp": "2026-02-14T18:04:51.082246",
+      "execution_time": 0.0,
+      "description": "",
+      "input_image": "input.jpg",
+      "expected_behavior": "",
+      "output_files": {},
+      "automated_checks": {
+        "Output dimensions correct": true,
+        "Aspect mode applied": true,
+        "No severe artifacts": true,
+        "Color quality preserved": true,
+        "Padding quality (if applicable)": true
+      },
+      "verification_checklist": [
+        "Output dimensions are exactly 320x256",
+        "Image quality is acceptable (no severe artifacts)"
+      ],
+      "human_verified": false,
+      "human_verdict": null,
+      "human_notes": "",
+      "verifier_name": "",
+      "verification_date": null,
+      "error_message": "",
+      "error_code": null
+    },
+    {
+      "test_id": "ASP02",
+      "name": "Aspect - PAD",
+      "suite": "aspect_validator",
+      "status": "passed",
+      "command": "slowframe -i test.jpg -P -o output.wav",
+      "timestamp": "2026-02-14T18:04:51.082251",
+      "execution_time": 0.0,
+      "description": "",
+      "input_image": "input.jpg",
+      "expected_behavior": "",
+      "output_files": {},
+      "automated_checks": {
+        "Output dimensions correct": true,
+        "Aspect mode applied": true,
+        "No severe artifacts": true,
+        "Color quality preserved": true,
+        "Padding quality (if applicable)": true
+      },
+      "verification_checklist": [
+        "Output dimensions are exactly 320x256",
+        "Image quality is acceptable (no severe artifacts)"
+      ],
+      "human_verified": false,
+      "human_verdict": null,
+      "human_notes": "",
+      "verifier_name": "",
+      "verification_date": null,
+      "error_message": "",
+      "error_code": null
+    },
+    {
+      "test_id": "ASP03",
+      "name": "Aspect - STRETCH",
+      "suite": "aspect_validator",
+      "status": "passed",
+      "command": "slowframe -i test.jpg -S -o output.wav",
+      "timestamp": "2026-02-14T18:04:51.082256",
+      "execution_time": 0.0,
+      "description": "",
+      "input_image": "input.jpg",
+      "expected_behavior": "",
+      "output_files": {},
+      "automated_checks": {
+        "Output dimensions correct": true,
+        "Aspect mode applied": true,
+        "No severe artifacts": true,
+        "Color quality preserved": true,
+        "Padding quality (if applicable)": true
+      },
+      "verification_checklist": [
+        "Output dimensions are exactly 320x256",
+        "Image quality is acceptable (no severe artifacts)"
+      ],
+      "human_verified": false,
+      "human_verdict": null,
+      "human_notes": "",
+      "verifier_name": "",
+      "verification_date": null,
+      "error_message": "",
+      "error_code": null
+    }
+  ]
+}

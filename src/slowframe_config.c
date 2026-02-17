@@ -96,6 +96,8 @@ int slowframe_config_init(SlowframeConfig *config) {
     config->timestamp_logging = 0;
     config->keep_intermediate = 0;
     config->text_only = 0;
+    config->list_modes = 0;
+    config->mmsstv_status = 0;
 
     return SLOWFRAME_OK;
 }
@@ -125,7 +127,7 @@ int slowframe_config_parse(SlowframeConfig *config, int argc, char *argv[]) {
     // CW: -Q (CW tone frequency)
     // Text overlays: -T (unified text overlay specification)
     // Testing: -N (skip audio encoding for overlay testing)
-    while ((option = getopt(argc, argv, "i:o:p:f:r:vC:W:Q:a:KZhNOR:T:")) != -1) {
+    while ((option = getopt(argc, argv, "i:o:p:f:r:vC:W:Q:a:KZhNOR:T:LM")) != -1) {
         switch (option) {
             // Input file (REQUIRED)
             case 'i':
@@ -170,11 +172,9 @@ int slowframe_config_parse(SlowframeConfig *config, int argc, char *argv[]) {
 
             // SSTV Protocol
             case 'p':
-                if (!is_valid_protocol(optarg)) {
-                    error_log(SLOWFRAME_ERR_ARG_INVALID_PROTOCOL,
-                            "Unknown protocol: %s", optarg);
-                    return SLOWFRAME_ERR_ARG_INVALID_PROTOCOL;
-                }
+                // Store protocol string without validation
+                // Validation happens later in main() against the full mode registry
+                // (which includes both native and MMSSTV modes)
                 strncpy(config->protocol, optarg, 
                         sizeof(config->protocol) - 1);
                 break;
@@ -476,6 +476,16 @@ int slowframe_config_parse(SlowframeConfig *config, int argc, char *argv[]) {
                 show_detailed_help(argv[0]);
                 return SLOWFRAME_OK;
 
+            // List modes
+            case 'L':
+                config->list_modes = 1;
+                return SLOWFRAME_OK;  // Early return - no further validation needed
+
+            // MMSSTV status
+            case 'M':
+                config->mmsstv_status = 1;
+                return SLOWFRAME_OK;  // Early return - no further validation needed
+
             // Unknown option
             case '?':
             default:
@@ -514,7 +524,7 @@ int slowframe_config_parse(SlowframeConfig *config, int argc, char *argv[]) {
     // CW parameters require callsign
     if ((w_flag || t_flag) && strlen(config->cw_callsign) == 0) {
         error_log(SLOWFRAME_ERR_ARG_CW_MISSING_CALLSIGN,
-                "-C <callsign> is required if -W or -T are provided");
+                "-C <callsign> is required if -W or -Q are provided");
         return SLOWFRAME_ERR_ARG_CW_MISSING_CALLSIGN;
     }
 
@@ -547,6 +557,36 @@ int slowframe_config_parse(SlowframeConfig *config, int argc, char *argv[]) {
         if (result != SLOWFRAME_OK) {
             error_log(result, "Failed to generate output filename");
             return result;
+        }
+    } else {
+        // Auto-append extension if output file doesn't have one
+        const char *output = config->output_file;
+        int output_len = strlen(output);
+        int has_extension = 0;
+        
+        // Check if filename has an extension (look for dot after last slash)
+        for (int i = output_len - 1; i >= 0; i--) {
+            if (output[i] == '.') {
+                has_extension = 1;
+                break;
+            }
+            if (output[i] == '/') {
+                break;  // Reached directory separator, no extension
+            }
+        }
+        
+        // If no extension, append one based on format
+        if (!has_extension) {
+            const char *ext = get_format_extension(config->format);
+            int new_len = output_len + strlen(ext);
+            
+            if (new_len >= (int)sizeof(config->output_file)) {
+                error_log(SLOWFRAME_ERR_ARG_FILENAME_TOO_LONG,
+                        "Output filename too long after adding extension");
+                return SLOWFRAME_ERR_ARG_FILENAME_TOO_LONG;
+            }
+            
+            strncat(config->output_file, ext, sizeof(config->output_file) - output_len - 1);
         }
     }
 
@@ -604,11 +644,11 @@ int slowframe_config_validate(const SlowframeConfig *config) {
         return SLOWFRAME_ERR_NO_INPUT_FILE;
     }
 
-    // Protocol must be valid
-    if (!is_valid_protocol(config->protocol)) {
+    // Protocol validation is deferred to main() where the full mode registry
+    // (including MMSSTV modes) is available. Just check it's not empty.
+    if (strlen(config->protocol) == 0) {
         error_log(SLOWFRAME_ERR_ARG_INVALID_PROTOCOL,
-                "Configuration contains invalid protocol: %s",
-                config->protocol);
+                "Configuration missing required protocol");
         return SLOWFRAME_ERR_ARG_INVALID_PROTOCOL;
     }
 
@@ -736,7 +776,12 @@ int slowframe_config_is_format_supported(const char *format) {
 }
 
 /**
- * @brief Check if protocol is valid
+ * @brief Check if protocol is a built-in native mode
+ * 
+ * NOTE: This only checks NATIVE modes. For full validation including MMSSTV modes,
+ * use the mode registry in the initialized context.
+ * 
+ * @deprecated Use mode_registry_lookup_by_code() instead for complete validation
  */
 int slowframe_config_is_protocol_valid(const char *protocol) {
     return is_valid_protocol(protocol);
@@ -974,7 +1019,6 @@ static void show_detailed_help(const char *program_name) {
     printf("                   Valid range: 1-50\n");
     printf("  -Q <hz>          CW tone frequency in Hz (default: 800)\n");
     printf("                   Valid range: 400-2000\n");
-    printf("                   Lower frequencies are easier to hear, especially on HF\n\n");
 
     printf("DEBUGGING AND ANALYSIS:\n");
     printf("─────────────────────────────────────────────────────────────────\n");
@@ -984,7 +1028,9 @@ static void show_detailed_help(const char *program_name) {
     printf("  -K               Keep intermediate processed images for inspection\n");
     printf("                   Useful for diagnosing image processing issues\n");
     printf("  -N               Skip audio encoding (test mode)\n");
-    printf("                   Useful for testing overlays without audio generation\n\n");
+    printf("                   Useful for testing overlays without audio generation\n");
+    printf("  -L               List all available SSTV modes and exit\n");
+    printf("  -M               Show MMSSTV library detection status and exit\n\n");
 
     printf("COMPLETE EXAMPLES:\n");
     printf("───────────────────────────────────────────────────────────────────\n");
@@ -1020,10 +1066,8 @@ static void show_detailed_help(const char *program_name) {
     printf("  • Image formats: Supports PNG, JPEG, GIF, BMP, TIFF, WebP via libvips\n");
     printf("  • Audio quality: Higher sample rates and protocols increase file size\n");
     printf("  • CW signature: Adds ~2-5 seconds based on callsign length and WPM\n");
-    printf("  • For HF transmission: Consider lower CW frequency (400-600 Hz)\n");
     printf("  • Background bars: Recommended for weak/degraded signals (HF SSTV QSOs)\n");
     printf("                     Use bgbar=true with high-contrast colors (white on black)\n\n");
-
     printf("════════════════════════════════════════════════════════════════\n");
 }
 

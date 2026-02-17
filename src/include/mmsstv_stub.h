@@ -337,6 +337,37 @@ sstv_image_t sstv_image_from_gray(
     uint32_t height
 );
 
+
+/* ============================================================================
+   DYNAMIC LOADING SUPPORT
+   ============================================================================ */
+
+/**
+ * Function pointer typedefs for dynamic loading
+ */
+typedef const char* (*sstv_encoder_version_fn)(void);
+typedef const sstv_mode_info_t* (*sstv_get_all_modes_fn)(size_t *count);
+typedef const sstv_mode_info_t* (*sstv_get_mode_info_fn)(sstv_mode_t mode);
+typedef sstv_mode_t (*sstv_find_mode_by_name_fn)(const char *name);
+
+/**
+ * SSTV library function table (real library API)
+ * 
+ * This structure holds all function pointers loaded from the library.
+ * The mmsstv_loader will populate this when loading the library.
+ */
+typedef struct mmsstv_functions {
+    /* Version info */
+    sstv_encoder_version_fn encoder_version;
+    
+    /* Mode enumeration */
+    sstv_get_all_modes_fn get_all_modes;
+    sstv_get_mode_info_fn get_mode_info;
+    sstv_find_mode_by_name_fn find_mode_by_name;
+    
+} mmsstv_functions_t;
+
+
 #ifdef __cplusplus
 }
 #endif

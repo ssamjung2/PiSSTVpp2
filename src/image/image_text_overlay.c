@@ -11,15 +11,15 @@
  * - Flexible text placement (top, bottom, left, right, custom coordinates)
  * - Color selection for text, background, and bars
  * - Opacity/transparency control (blending with original image)
- * - FCC-compliant station ID formatting (callsign/grid_square)
+ * - FCC-compliant station ID formatting (callsign display)
  * - Color bars with optional text labels
  *
  * Uses libvips for efficient image manipulation.
  */
 
-#include "../include/image/image_text_overlay.h"
-#include "../util/error.h"
-#include "../include/logging.h"
+#include "image/image_text_overlay.h"
+#include "error.h"
+#include "logging.h"
 #include <stdio.h>
 #include <string.h>
 #include <math.h>

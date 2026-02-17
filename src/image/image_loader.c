@@ -37,9 +37,9 @@
  * - All errors use standardized SLOWFRAME_ERR_* codes
  */
 
-#include "../include/image/image_loader.h"
-#include "../util/error.h"
-#include "../include/logging.h"
+#include "image/image_loader.h"
+#include "error.h"
+#include "logging.h"
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>

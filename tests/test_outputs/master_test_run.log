@@ -1,0 +1,564 @@
+  Warning: Could not annotate images: No module named 'annotate_test_images'
+======================================================================
+SLOWFRAME COMPREHENSIVE TEST SUITE
+======================================================================
+
+Running suites: aspect, formats, overlay
+Image directory: tests/images
+Output directory: tests/test_outputs
+Binary: bin/slowframe
+
+======================================================================
+ASPECT RATIO TEST SUITE
+======================================================================
+======================================================================
+SlowFrame Comprehensive Aspect Ratio Test Suite
+======================================================================
+
+Generating test cases...
+Generated 24 test cases
+
+Running tests...
+
+[1/24] center_m1_wide
+  Running: #1: center_m1_wide - CENTER mode with wide image (1.70:1)
+  ✓ CENTER mode validation passed (source 17.4% black → output 15.0% black) (0.54s)
+    Validation details: {'src_black_pct': 17.44286350903998, 'output_black_pct': 15.043945312500002, 'src_aspect': 1.6985294117647058, 'target_aspect': 1.25}
+
+[2/24] center_m1_tall
+  Running: #2: center_m1_tall - CENTER mode with tall image (0.75:1)
+  ✓ CENTER mode validation passed (source 0.0% black → output 0.0% black) (0.07s)
+    Validation details: {'src_black_pct': 0.0, 'output_black_pct': 0.0, 'src_aspect': 0.75, 'target_aspect': 1.25}
+
+[3/24] center_m1_square
+  Running: #3: center_m1_square - CENTER mode with square image (1.00:1)
+  ✓ CENTER mode validation passed (source 15.0% black → output 7.2% black) (0.10s)
+    Validation details: {'src_black_pct': 15.025633091135116, 'output_black_pct': 7.166748046875, 'src_aspect': 1.0, 'target_aspect': 1.25}
+
+[4/24] center_m1_target
+  Running: #4: center_m1_target - CENTER mode with target aspect image (1.25:1)
+  ✓ CENTER mode validation passed (source 38.9% black → output 38.9% black) (0.07s)
+    Validation details: {'src_black_pct': 38.916015625, 'output_black_pct': 38.916015625, 'src_aspect': 1.25, 'target_aspect': 1.25}
+
+[5/24] center_r36_wide
+  Running: #5: center_r36_wide - CENTER mode with wide image (1.70:1)
+  ✓ CENTER mode validation passed (source 17.4% black → output 14.2% black) (0.10s)
+    Validation details: {'src_black_pct': 17.44286350903998, 'output_black_pct': 14.190104166666668, 'src_aspect': 1.6985294117647058, 'target_aspect': 1.3333333333333333}
+
+[6/24] center_r36_tall
+  Running: #6: center_r36_tall - CENTER mode with tall image (0.75:1)
+  ✓ CENTER mode validation passed (source 0.0% black → output 0.0% black) (0.06s)
+    Validation details: {'src_black_pct': 0.0, 'output_black_pct': 0.0, 'src_aspect': 0.75, 'target_aspect': 1.3333333333333333}
+
+[7/24] center_r36_square
+  Running: #7: center_r36_square - CENTER mode with square image (1.00:1)
+  ✓ CENTER mode validation passed (source 15.0% black → output 7.8% black) (0.08s)
+    Validation details: {'src_black_pct': 15.025633091135116, 'output_black_pct': 7.817708333333333, 'src_aspect': 1.0, 'target_aspect': 1.3333333333333333}
+
+[8/24] center_r36_target
+  Running: #8: center_r36_target - CENTER mode with target aspect image (1.25:1)
+  ✓ CENTER mode validation passed (source 38.9% black → output 34.8% black) (0.06s)
+    Validation details: {'src_black_pct': 38.916015625, 'output_black_pct': 34.84375, 'src_aspect': 1.25, 'target_aspect': 1.3333333333333333}
+
+[9/24] pad_m1_wide
+  Running: #9: pad_m1_wide - PAD mode with wide image (1.70:1)
+  ✓ PAD mode validation passed (0.10s)
+    Validation details: {'black_pixels': 30644, 'total_pixels': 81920, 'percentage': 37.4072265625, 'has_padding': True, 'has_significant_padding': True, 'top_black': 100.0, 'bottom_black': 100.0, 'left_black': 26.5625, 'right_black': 26.953125, 'src_aspect': 1.6985294117647058, 'target_aspect': 1.25}
+
+[10/24] pad_m1_tall
+  Running: #10: pad_m1_tall - PAD mode with tall image (0.75:1)
+  ✓ PAD mode validation passed (0.07s)
+    Validation details: {'black_pixels': 32768, 'total_pixels': 81920, 'percentage': 40.0, 'has_padding': True, 'has_significant_padding': True, 'top_black': 40.0, 'bottom_black': 40.0, 'left_black': 100.0, 'right_black': 100.0, 'src_aspect': 0.75, 'target_aspect': 1.25}
+
+[11/24] pad_m1_square
+  Running: #11: pad_m1_square - PAD mode with square image (1.00:1)
+  ✓ PAD mode validation passed (0.09s)
+    Validation details: {'black_pixels': 26632, 'total_pixels': 81920, 'percentage': 32.509765625, 'has_padding': True, 'has_significant_padding': True, 'top_black': 20.0, 'bottom_black': 100.0, 'left_black': 100.0, 'right_black': 100.0, 'src_aspect': 1.0, 'target_aspect': 1.25}
+
+[12/24] pad_m1_target
+  Running: #12: pad_m1_target - PAD mode with target aspect image (1.25:1)
+  ✓ PAD mode validation passed (0.07s)
+    Validation details: {'black_pixels': 31880, 'total_pixels': 81920, 'percentage': 38.916015625, 'has_padding': True, 'has_significant_padding': True, 'top_black': 100.0, 'bottom_black': 100.0, 'left_black': 29.6875, 'right_black': 100.0, 'src_aspect': 1.25, 'target_aspect': 1.25}
+
+[13/24] pad_r36_wide
+  Running: #13: pad_r36_wide - PAD mode with wide image (1.70:1)
+  ✓ PAD mode validation passed (0.09s)
+    Validation details: {'black_pixels': 25524, 'total_pixels': 76800, 'percentage': 33.234375, 'has_padding': True, 'has_significant_padding': True, 'top_black': 100.0, 'bottom_black': 100.0, 'left_black': 21.666666666666668, 'right_black': 22.083333333333332, 'src_aspect': 1.6985294117647058, 'target_aspect': 1.3333333333333333}
+
+[14/24] pad_r36_tall
+  Running: #14: pad_r36_tall - PAD mode with tall image (0.75:1)
+  ✓ PAD mode validation passed (0.06s)
+    Validation details: {'black_pixels': 33600, 'total_pixels': 76800, 'percentage': 43.75, 'has_padding': True, 'has_significant_padding': True, 'top_black': 43.75, 'bottom_black': 43.75, 'left_black': 100.0, 'right_black': 100.0, 'src_aspect': 0.75, 'target_aspect': 1.3333333333333333}
+
+[15/24] pad_r36_square
+  Running: #15: pad_r36_square - PAD mode with square image (1.00:1)
+  ✓ PAD mode validation passed (0.08s)
+    Validation details: {'black_pixels': 28020, 'total_pixels': 76800, 'percentage': 36.484375, 'has_padding': True, 'has_significant_padding': True, 'top_black': 25.0, 'bottom_black': 100.0, 'left_black': 100.0, 'right_black': 100.0, 'src_aspect': 1.0, 'target_aspect': 1.3333333333333333}
+
+[16/24] pad_r36_target
+  Running: #16: pad_r36_target - PAD mode with target aspect image (1.25:1)
+  ✓ PAD mode validation passed (0.06s)
+    Validation details: {'black_pixels': 32430, 'total_pixels': 76800, 'percentage': 42.2265625, 'has_padding': True, 'has_significant_padding': True, 'top_black': 100.0, 'bottom_black': 100.0, 'left_black': 100.0, 'right_black': 100.0, 'src_aspect': 1.25, 'target_aspect': 1.3333333333333333}
+
+[17/24] stretch_m1_wide
+  Running: #17: stretch_m1_wide - STRETCH mode with wide image (1.70:1)
+  ✓ STRETCH mode validation passed (source 17.4% black → output 14.7% black) (0.11s)
+    Validation details: {'src_black_pct': 17.44286350903998, 'output_black_pct': 14.71923828125, 'black_diff': 2.723625227789981, 'src_aspect': 1.6985294117647058, 'target_aspect': 1.25}
+
+[18/24] stretch_m1_tall
+  Running: #18: stretch_m1_tall - STRETCH mode with tall image (0.75:1)
+  ✓ STRETCH mode validation passed (source 0.0% black → output 0.0% black) (0.08s)
+    Validation details: {'src_black_pct': 0.0, 'output_black_pct': 0.0, 'black_diff': 0.0, 'src_aspect': 0.75, 'target_aspect': 1.25}
+
+[19/24] stretch_m1_square
+  Running: #19: stretch_m1_square - STRETCH mode with square image (1.00:1)
+  ✓ STRETCH mode validation passed (source 15.0% black → output 15.0% black) (0.09s)
+    Validation details: {'src_black_pct': 15.025633091135116, 'output_black_pct': 15.0, 'black_diff': 0.02563309113511636, 'src_aspect': 1.0, 'target_aspect': 1.25}
+
+[20/24] stretch_m1_target
+  Running: #20: stretch_m1_target - STRETCH mode with target aspect image (1.25:1)
+  ✓ STRETCH mode validation passed (source 38.9% black → output 38.9% black) (0.07s)
+    Validation details: {'src_black_pct': 38.916015625, 'output_black_pct': 38.916015625, 'black_diff': 0.0, 'src_aspect': 1.25, 'target_aspect': 1.25}
+
+[21/24] stretch_r36_wide
+  Running: #21: stretch_r36_wide - STRETCH mode with wide image (1.70:1)
+  ✓ STRETCH mode validation passed (source 17.4% black → output 14.7% black) (0.09s)
+    Validation details: {'src_black_pct': 17.44286350903998, 'output_black_pct': 14.6875, 'black_diff': 2.755363509039981, 'src_aspect': 1.6985294117647058, 'target_aspect': 1.3333333333333333}
+
+[22/24] stretch_r36_tall
+  Running: #22: stretch_r36_tall - STRETCH mode with tall image (0.75:1)
+  ✓ STRETCH mode validation passed (source 0.0% black → output 0.0% black) (0.06s)
+    Validation details: {'src_black_pct': 0.0, 'output_black_pct': 0.0, 'black_diff': 0.0, 'src_aspect': 0.75, 'target_aspect': 1.3333333333333333}
+
+[23/24] stretch_r36_square
+  Running: #23: stretch_r36_square - STRETCH mode with square image (1.00:1)
+  ✓ STRETCH mode validation passed (source 15.0% black → output 14.9% black) (0.08s)
+    Validation details: {'src_black_pct': 15.025633091135116, 'output_black_pct': 14.901041666666668, 'black_diff': 0.12459142446844851, 'src_aspect': 1.0, 'target_aspect': 1.3333333333333333}
+
+[24/24] stretch_r36_target
+  Running: #24: stretch_r36_target - STRETCH mode with target aspect image (1.25:1)
+  ✓ STRETCH mode validation passed (source 38.9% black → output 38.5% black) (0.06s)
+    Validation details: {'src_black_pct': 38.916015625, 'output_black_pct': 38.463541666666664, 'black_diff': 0.4524739583333357, 'src_aspect': 1.25, 'target_aspect': 1.3333333333333333}
+
+Annotating aspect test images...
+
+======================================================================
+IMAGE FORMAT TEST SUITE
+======================================================================
+
+----------------------------------------------------------------------
+Test T001: alt3_test_panel_2310x1360.png
+Format: PNG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt3_test_panel_2310x1360.png -p m1 -o tests/test_outputs/formats/test_format_png_alt3_test_panel_2310x1360.wav -K -N
+Output image: tests/test_outputs/formats/test_format_png_alt3_test_panel_2310x1360_overlay.png
+Output audio: tests/test_outputs/formats/test_format_png_alt3_test_panel_2310x1360.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 2310x1360
+Output image created: yes
+Output audio created: no
+
+----------------------------------------------------------------------
+Test T002: alt2_color_bars_2000x1125.png
+Format: PNG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt2_color_bars_2000x1125.png -p m1 -o tests/test_outputs/formats/test_format_png_alt2_color_bars_2000x1125.wav -K -N
+Output image: tests/test_outputs/formats/test_format_png_alt2_color_bars_2000x1125_overlay.png
+Output audio: tests/test_outputs/formats/test_format_png_alt2_color_bars_2000x1125.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 320x256
+Output image created: yes
+Output audio created: no
+
+----------------------------------------------------------------------
+Test T003: alt6_test_panel_1920x1080.png
+Format: PNG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt6_test_panel_1920x1080.png -p m1 -o tests/test_outputs/formats/test_format_png_alt6_test_panel_1920x1080.wav -K -N
+Output image: tests/test_outputs/formats/test_format_png_alt6_test_panel_1920x1080_overlay.png
+Output audio: tests/test_outputs/formats/test_format_png_alt6_test_panel_1920x1080.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 1920x1080
+Output image created: yes
+Output audio created: no
+
+----------------------------------------------------------------------
+Test T004: alt2_color_bars_680×1209.png
+Format: PNG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i 'tests/images/alt2_color_bars_680×1209.png' -p m1 -o 'tests/test_outputs/formats/test_format_png_alt2_color_bars_680×1209.wav' -K -N
+Output image: tests/test_outputs/formats/test_format_png_alt2_color_bars_680×1209_overlay.png
+Output audio: tests/test_outputs/formats/test_format_png_alt2_color_bars_680×1209.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 320x256
+Output image created: yes
+Output audio created: no
+
+----------------------------------------------------------------------
+Test T005: alt_color_bars_320x256.png
+Format: PNG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt_color_bars_320x256.png -p m1 -o tests/test_outputs/formats/test_format_png_alt_color_bars_320x256.wav -K -N
+Output image: tests/test_outputs/formats/test_format_png_alt_color_bars_320x256_overlay.png
+Output audio: tests/test_outputs/formats/test_format_png_alt_color_bars_320x256.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 320x256
+Output image created: yes
+Output audio created: no
+
+----------------------------------------------------------------------
+Test T006: test_400x300.png
+Format: PNG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/test_400x300.png -p m1 -o tests/test_outputs/formats/test_format_png_test_400x300.wav -K -N
+Output image: tests/test_outputs/formats/test_format_png_test_400x300_overlay.png
+Output audio: tests/test_outputs/formats/test_format_png_test_400x300.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 320x256
+Output image created: yes
+Output audio created: no
+
+----------------------------------------------------------------------
+Test T007: test_300x400.png
+Format: PNG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/test_300x400.png -p m1 -o tests/test_outputs/formats/test_format_png_test_300x400.wav -K -N
+Output image: tests/test_outputs/formats/test_format_png_test_300x400_overlay.png
+Output audio: tests/test_outputs/formats/test_format_png_test_300x400.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 300x400
+Output image created: yes
+Output audio created: no
+
+----------------------------------------------------------------------
+Test T008: test_320x240.png
+Format: PNG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/test_320x240.png -p m1 -o tests/test_outputs/formats/test_format_png_test_320x240.wav -K -N
+Output image: tests/test_outputs/formats/test_format_png_test_320x240_overlay.png
+Output audio: tests/test_outputs/formats/test_format_png_test_320x240.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 320x240
+Output image created: yes
+Output audio created: no
+
+----------------------------------------------------------------------
+Test T009: alt3_color_bars_1370×1080.png
+Format: PNG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i 'tests/images/alt3_color_bars_1370×1080.png' -p m1 -o 'tests/test_outputs/formats/test_format_png_alt3_color_bars_1370×1080.wav' -K -N
+Output image: tests/test_outputs/formats/test_format_png_alt3_color_bars_1370×1080_overlay.png
+Output audio: tests/test_outputs/formats/test_format_png_alt3_color_bars_1370×1080.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 1370x1080
+Output image created: yes
+Output audio created: no
+
+----------------------------------------------------------------------
+Test T010: alt2_color_bars_2000x1125_textonly.png
+Format: PNG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt2_color_bars_2000x1125_textonly.png -p m1 -o tests/test_outputs/formats/test_format_png_alt2_color_bars_2000x1125_textonly.wav -K -N
+Output image: tests/test_outputs/formats/test_format_png_alt2_color_bars_2000x1125_textonly_overlay.png
+Output audio: tests/test_outputs/formats/test_format_png_alt2_color_bars_2000x1125_textonly.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 2000x1125
+Output image created: yes
+Output audio created: no
+
+----------------------------------------------------------------------
+Test T011: alt4_color_bars_1435x1129.png
+Format: PNG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt4_color_bars_1435x1129.png -p m1 -o tests/test_outputs/formats/test_format_png_alt4_color_bars_1435x1129.wav -K -N
+Output image: tests/test_outputs/formats/test_format_png_alt4_color_bars_1435x1129_overlay.png
+Output audio: tests/test_outputs/formats/test_format_png_alt4_color_bars_1435x1129.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 1435x1129
+Output image created: yes
+Output audio created: no
+
+----------------------------------------------------------------------
+Test T012: alt2_color_bars_2000x1125_overlay.png
+Format: PNG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt2_color_bars_2000x1125_overlay.png -p m1 -o tests/test_outputs/formats/test_format_png_alt2_color_bars_2000x1125_overlay.wav -K -N
+Output image: tests/test_outputs/formats/test_format_png_alt2_color_bars_2000x1125_overlay_overlay.png
+Output audio: tests/test_outputs/formats/test_format_png_alt2_color_bars_2000x1125_overlay.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 320x256
+Output image created: yes
+Output audio created: no
+
+----------------------------------------------------------------------
+Test T013: alt_test_panel_900x692.jpg
+Format: JPEG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt_test_panel_900x692.jpg -p m1 -o tests/test_outputs/formats/test_format_jpg_alt_test_panel_900x692.wav -K -N
+Output image: tests/test_outputs/formats/test_format_jpg_alt_test_panel_900x692_overlay.jpg
+Output audio: tests/test_outputs/formats/test_format_jpg_alt_test_panel_900x692.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 900x692
+Output image created: yes
+Output audio created: no
+
+----------------------------------------------------------------------
+Test T014: alt5_test_panel_1728x1728.jpg
+Format: JPEG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt5_test_panel_1728x1728.jpg -p m1 -o tests/test_outputs/formats/test_format_jpg_alt5_test_panel_1728x1728.wav -K -N
+Output image: tests/test_outputs/formats/test_format_jpg_alt5_test_panel_1728x1728_overlay.jpg
+Output audio: tests/test_outputs/formats/test_format_jpg_alt5_test_panel_1728x1728.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 1728x1728
+Output image created: yes
+Output audio created: no
+
+----------------------------------------------------------------------
+Test T015: alt7_test_panel_1440x1080.jpg
+Format: JPEG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt7_test_panel_1440x1080.jpg -p m1 -o tests/test_outputs/formats/test_format_jpg_alt7_test_panel_1440x1080.wav -K -N
+Output image: tests/test_outputs/formats/test_format_jpg_alt7_test_panel_1440x1080_overlay.jpg
+Output audio: tests/test_outputs/formats/test_format_jpg_alt7_test_panel_1440x1080.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 1440x1080
+Output image created: yes
+Output audio created: no
+
+----------------------------------------------------------------------
+Test T016: alt4_test_panel_2048x1536.jpg
+Format: JPEG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt4_test_panel_2048x1536.jpg -p m1 -o tests/test_outputs/formats/test_format_jpg_alt4_test_panel_2048x1536.wav -K -N
+Output image: tests/test_outputs/formats/test_format_jpg_alt4_test_panel_2048x1536_overlay.jpg
+Output audio: tests/test_outputs/formats/test_format_jpg_alt4_test_panel_2048x1536.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 2048x1536
+Output image created: yes
+Output audio created: no
+
+----------------------------------------------------------------------
+Test T017: color_bars_640x480.jpg
+Format: JPEG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/color_bars_640x480.jpg -p m1 -o tests/test_outputs/formats/test_format_jpg_color_bars_640x480.wav -K -N
+Output image: tests/test_outputs/formats/test_format_jpg_color_bars_640x480_overlay.jpg
+Output audio: tests/test_outputs/formats/test_format_jpg_color_bars_640x480.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 640x480
+Output image created: yes
+Output audio created: no
+
+----------------------------------------------------------------------
+Test T018: alt3_test_panel_9600x5400.jpg
+Format: JPEG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt3_test_panel_9600x5400.jpg -p m1 -o tests/test_outputs/formats/test_format_jpg_alt3_test_panel_9600x5400.wav -K -N
+Output image: tests/test_outputs/formats/test_format_jpg_alt3_test_panel_9600x5400_overlay.jpg
+Output audio: tests/test_outputs/formats/test_format_jpg_alt3_test_panel_9600x5400.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 9600x5400
+Output image created: yes
+Output audio created: no
+
+----------------------------------------------------------------------
+Test T019: alt5_test_panel_1920x1230.jpg
+Format: JPEG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt5_test_panel_1920x1230.jpg -p m1 -o tests/test_outputs/formats/test_format_jpg_alt5_test_panel_1920x1230.wav -K -N
+Output image: tests/test_outputs/formats/test_format_jpg_alt5_test_panel_1920x1230_overlay.jpg
+Output audio: tests/test_outputs/formats/test_format_jpg_alt5_test_panel_1920x1230.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 1920x1230
+Output image created: yes
+Output audio created: no
+
+----------------------------------------------------------------------
+Test T020: alt3_test_panel_9600x5400_large.jpg
+Format: JPEG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt3_test_panel_9600x5400_large.jpg -p m1 -o tests/test_outputs/formats/test_format_jpg_alt3_test_panel_9600x5400_large.wav -K -N
+Output image: tests/test_outputs/formats/test_format_jpg_alt3_test_panel_9600x5400_large_overlay.jpg
+Output audio: tests/test_outputs/formats/test_format_jpg_alt3_test_panel_9600x5400_large.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 19200x10800
+Output image created: yes
+Output audio created: no
+
+----------------------------------------------------------------------
+Test T021: alt5_color_bars_1920x1080.jpg
+Format: JPEG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt5_color_bars_1920x1080.jpg -p m1 -o tests/test_outputs/formats/test_format_jpg_alt5_color_bars_1920x1080.wav -K -N
+Output image: tests/test_outputs/formats/test_format_jpg_alt5_color_bars_1920x1080_overlay.jpg
+Output audio: tests/test_outputs/formats/test_format_jpg_alt5_color_bars_1920x1080.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 1920x1080
+Output image created: yes
+Output audio created: no
+
+----------------------------------------------------------------------
+Test T022: alt_color_bars_320x256.jpeg
+Format: JPEG
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt_color_bars_320x256.jpeg -p m1 -o tests/test_outputs/formats/test_format_jpeg_alt_color_bars_320x256.wav -K -N
+Output image: tests/test_outputs/formats/test_format_jpeg_alt_color_bars_320x256_overlay.jpeg
+Output audio: tests/test_outputs/formats/test_format_jpeg_alt_color_bars_320x256.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 320x256
+Output image created: yes
+Output audio created: no
+
+----------------------------------------------------------------------
+Test T023: alt_color_bars_320x256.gif
+Format: GIF
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt_color_bars_320x256.gif -p m1 -o tests/test_outputs/formats/test_format_gif_alt_color_bars_320x256.wav -K -N
+Output image: tests/test_outputs/formats/test_format_gif_alt_color_bars_320x256_overlay.gif
+Output audio: tests/test_outputs/formats/test_format_gif_alt_color_bars_320x256.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 320x256
+Output image created: yes
+Output audio created: no
+
+----------------------------------------------------------------------
+Test T024: alt_color_bars_320x256.bmp
+Format: BMP
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt_color_bars_320x256.bmp -p m1 -o tests/test_outputs/formats/test_format_bmp_alt_color_bars_320x256.wav -K -N
+Output image: tests/test_outputs/formats/test_format_bmp_alt_color_bars_320x256_overlay.bmp
+Output audio: tests/test_outputs/formats/test_format_bmp_alt_color_bars_320x256.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 320x256
+Output image created: yes
+Output audio created: no
+
+----------------------------------------------------------------------
+Test T025: alt_color_bars_320x256.tiff
+Format: TIFF
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt_color_bars_320x256.tiff -p m1 -o tests/test_outputs/formats/test_format_tiff_alt_color_bars_320x256.wav -K -N
+Output image: tests/test_outputs/formats/test_format_tiff_alt_color_bars_320x256_overlay.tiff
+Output audio: tests/test_outputs/formats/test_format_tiff_alt_color_bars_320x256.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 320x256
+Output image created: yes
+Output audio created: no
+
+----------------------------------------------------------------------
+Test T026: alt_color_bars_320x256.webp
+Format: WebP
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt_color_bars_320x256.webp -p m1 -o tests/test_outputs/formats/test_format_webp_alt_color_bars_320x256.wav -K -N
+Output image: tests/test_outputs/formats/test_format_webp_alt_color_bars_320x256_overlay.webp
+Output audio: tests/test_outputs/formats/test_format_webp_alt_color_bars_320x256.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 320x256
+Output image created: yes
+Output audio created: no
+
+----------------------------------------------------------------------
+Test T027: alt_color_bars_320x240.ppm
+Format: PPM
+Purpose: Validate format loading and processing
+Expected: Process succeeds without errors; input dimensions detected
+Command: bin/slowframe -i tests/images/alt_color_bars_320x240.ppm -p m1 -o tests/test_outputs/formats/test_format_ppm_alt_color_bars_320x240.wav -K -N
+Output image: tests/test_outputs/formats/test_format_ppm_alt_color_bars_320x240_overlay.ppm
+Output audio: tests/test_outputs/formats/test_format_ppm_alt_color_bars_320x240.wav
+----------------------------------------------------------------------
+Result: PASS - Format processed successfully
+Dimensions: 320x240
+Output image created: yes
+Output audio created: no
+
+======================================================================
+TEXT OVERLAY TEST SUITE
+======================================================================
+
+Testing: Simple text overlay
+  ✓ Simple text overlay
+
+Testing: Yellow text overlay
+  ✓ Yellow text overlay
+
+Testing: Bottom-positioned text
+  ✓ Bottom-positioned text
+
+Testing: Large text overlay
+  ✓ Large text overlay
+
+======================================================================
+COMPREHENSIVE TEST SUMMARY
+======================================================================
+
+Overall Results:
+  Total Tests: 55
+  Passed:      55 (100.0%)
+  Failed:      0
+  Execution:   14.28s
+
+Suite Breakdown:
+  ✓ Aspect Ratio   : 24/24 passed (8.38s)
+      by_mode: {'center': {'passed': 8, 'failed': 0}, 'pad': {'passed': 8, 'failed': 0}, 'stretch': {'passed': 8, 'failed': 0}}
+      results: [AspectTestResult(test_case=AspectTestCase(name='center_m1_wide', image_path='tests/images/alt3_test_panel_2310x1360.png', mode='center', protocol='m1', target_width=320, target_height=256, description='CENTER mode with wide image (1.70:1)', test_number=1), passed=True, message='CENTER mode validation passed (source 17.4% black → output 15.0% black)', execution_time=0.5429019927978516, validation=ValidationResult(passed=True, mode='center', expected_dims=(320, 256), actual_dims=(320, 256), message='CENTER mode validation passed (source 17.4% black → output 15.0% black)', details={'src_black_pct': 17.44286350903998, 'output_black_pct': 15.043945312500002, 'src_aspect': 1.6985294117647058, 'target_aspect': 1.25}), details={'audio_created': True, 'cli_command': 'bin/slowframe -i tests/images/alt3_test_panel_2310x1360.png -p m1 -a center -o tests/test_outputs/aspect/T001_center_m1_wide.wav -K', 'test_number': 1, 'output_image': 'tests/test_outputs/aspect/T001_center_m1_wide.png', 'source_image': 'tests/images/alt3_test_panel_2310x1360.png'}), AspectTestResult(test_case=AspectTestCase(name='center_m1_tall', image_path='tests/images/test_300x400.png', mode='center', protocol='m1', target_width=320, target_height=256, description='CENTER mode with tall image (0.75:1)', test_number=2), passed=True, message='CENTER mode validation passed (source 0.0% black → output 0.0% black)', execution_time=0.07485389709472656, validation=ValidationResult(passed=True, mode='center', expected_dims=(320, 256), actual_dims=(320, 256), message='CENTER mode validation passed (source 0.0% black → output 0.0% black)', details={'src_black_pct': 0.0, 'output_black_pct': 0.0, 'src_aspect': 0.75, 'target_aspect': 1.25}), details={'audio_created': True, 'cli_command': 'bin/slowframe -i tests/images/test_300x400.png -p m1 -a center -o tests/test_outputs/aspect/T002_center_m1_tall.wav -K', 'test_number': 2, 'output_image': 'tests/test_outputs/aspect/T002_center_m1_tall.png', 'source_image': 'tests/images/test_300x400.png'}), AspectTestResult(test_case=AspectTestCase(name='center_m1_square', image_path='tests/images/alt5_test_panel_1728x1728.jpg', mode='center', protocol='m1', target_width=320, target_height=256, description='CENTER mode with square image (1.00:1)', test_number=3), passed=True, message='CENTER mode validation passed (source 15.0% black → output 7.2% black)', execution_time=0.09832978248596191, validation=ValidationResult(passed=True, mode='center', expected_dims=(320, 256), actual_dims=(320, 256), message='CENTER mode validation passed (source 15.0% black → output 7.2% black)', details={'src_black_pct': 15.025633091135116, 'output_black_pct': 7.166748046875, 'src_aspect': 1.0, 'target_aspect': 1.25}), details={'audio_created': True, 'cli_command': 'bin/slowframe -i tests/images/alt5_test_panel_1728x1728.jpg -p m1 -a center -o tests/test_outputs/aspect/T003_center_m1_square.wav -K', 'test_number': 3, 'output_image': 'tests/test_outputs/aspect/T003_center_m1_square.jpg', 'source_image': 'tests/images/alt5_test_panel_1728x1728.jpg'}), AspectTestResult(test_case=AspectTestCase(name='center_m1_target', image_path='tests/images/alt2_color_bars_2000x1125.png', mode='center', protocol='m1', target_width=320, target_height=256, description='CENTER mode with target aspect image (1.25:1)', test_number=4), passed=True, message='CENTER mode validation passed (source 38.9% black → output 38.9% black)', execution_time=0.0724949836730957, validation=ValidationResult(passed=True, mode='center', expected_dims=(320, 256), actual_dims=(320, 256), message='CENTER mode validation passed (source 38.9% black → output 38.9% black)', details={'src_black_pct': 38.916015625, 'output_black_pct': 38.916015625, 'src_aspect': 1.25, 'target_aspect': 1.25}), details={'audio_created': True, 'cli_command': 'bin/slowframe -i tests/images/alt2_color_bars_2000x1125.png -p m1 -a center -o tests/test_outputs/aspect/T004_center_m1_target.wav -K', 'test_number': 4, 'output_image': 'tests/test_outputs/aspect/T004_center_m1_target.png', 'source_image': 'tests/images/alt2_color_bars_2000x1125.png'}), AspectTestResult(test_case=AspectTestCase(name='center_r36_wide', image_path='tests/images/alt3_test_panel_2310x1360.png', mode='center', protocol='r36', target_width=320, target_height=240, description='CENTER mode with wide image (1.70:1)', test_number=5), passed=True, message='CENTER mode validation passed (source 17.4% black → output 14.2% black)', execution_time=0.09508800506591797, validation=ValidationResult(passed=True, mode='center', expected_dims=(320, 240), actual_dims=(320, 240), message='CENTER mode validation passed (source 17.4% black → output 14.2% black)', details={'src_black_pct': 17.44286350903998, 'output_black_pct': 14.190104166666668, 'src_aspect': 1.6985294117647058, 'target_aspect': 1.3333333333333333}), details={'audio_created': True, 'cli_command': 'bin/slowframe -i tests/images/alt3_test_panel_2310x1360.png -p r36 -a center -o tests/test_outputs/aspect/T005_center_r36_wide.wav -K', 'test_number': 5, 'output_image': 'tests/test_outputs/aspect/T005_center_r36_wide.png', 'source_image': 'tests/images/alt3_test_panel_2310x1360.png'}), AspectTestResult(test_case=AspectTestCase(name='center_r36_tall', image_path='tests/images/test_300x400.png', mode='center', protocol='r36', target_width=320, target_height=240, description='CENTER mode with tall image (0.75:1)', test_number=6), passed=True, message='CENTER mode validation passed (source 0.0% black → output 0.0% black)', execution_time=0.06427383422851562, validation=ValidationResult(passed=True, mode='center', expected_dims=(320, 240), actual_dims=(320, 240), message='CENTER mode validation passed (source 0.0% black → output 0.0% black)', details={'src_black_pct': 0.0, 'output_black_pct': 0.0, 'src_aspect': 0.75, 'target_aspect': 1.3333333333333333}), details={'audio_created': True, 'cli_command': 'bin/slowframe -i tests/images/test_300x400.png -p r36 -a center -o tests/test_outputs/aspect/T006_center_r36_tall.wav -K', 'test_number': 6, 'output_image': 'tests/test_outputs/aspect/T006_center_r36_tall.png', 'source_image': 'tests/images/test_300x400.png'}), AspectTestResult(test_case=AspectTestCase(name='center_r36_square', image_path='tests/images/alt5_test_panel_1728x1728.jpg', mode='center', protocol='r36', target_width=320, target_height=240, description='CENTER mode with square image (1.00:1)', test_number=7), passed=True, message='CENTER mode validation passed (source 15.0% black → output 7.8% black)', execution_time=0.07894396781921387, validation=ValidationResult(passed=True, mode='center', expected_dims=(320, 240), actual_dims=(320, 240), message='CENTER mode validation passed (source 15.0% black → output 7.8% black)', details={'src_black_pct': 15.025633091135116, 'output_black_pct': 7.817708333333333, 'src_aspect': 1.0, 'target_aspect': 1.3333333333333333}), details={'audio_created': True, 'cli_command': 'bin/slowframe -i tests/images/alt5_test_panel_1728x1728.jpg -p r36 -a center -o tests/test_outputs/aspect/T007_center_r36_square.wav -K', 'test_number': 7, 'output_image': 'tests/test_outputs/aspect/T007_center_r36_square.jpg', 'source_image': 'tests/images/alt5_test_panel_1728x1728.jpg'}), AspectTestResult(test_case=AspectTestCase(name='center_r36_target', image_path='tests/images/alt2_color_bars_2000x1125.png', mode='center', protocol='r36', target_width=320, target_height=240, description='CENTER mode with target aspect image (1.25:1)', test_number=8), passed=True, message='CENTER mode validation passed (source 38.9% black → output 34.8% black)', execution_time=0.06241202354431152, validation=ValidationResult(passed=True, mode='center', expected_dims=(320, 240), actual_dims=(320, 240), message='CENTER mode validation passed (source 38.9% black → output 34.8% black)', details={'src_black_pct': 38.916015625, 'output_black_pct': 34.84375, 'src_aspect': 1.25, 'target_aspect': 1.3333333333333333}), details={'audio_created': True, 'cli_command': 'bin/slowframe -i tests/images/alt2_color_bars_2000x1125.png -p r36 -a center -o tests/test_outputs/aspect/T008_center_r36_target.wav -K', 'test_number': 8, 'output_image': 'tests/test_outputs/aspect/T008_center_r36_target.png', 'source_image': 'tests/images/alt2_color_bars_2000x1125.png'}), AspectTestResult(test_case=AspectTestCase(name='pad_m1_wide', image_path='tests/images/alt3_test_panel_2310x1360.png', mode='pad', protocol='m1', target_width=320, target_height=256, description='PAD mode with wide image (1.70:1)', test_number=9), passed=True, message='PAD mode validation passed', execution_time=0.10401177406311035, validation=ValidationResult(passed=True, mode='pad', expected_dims=(320, 256), actual_dims=(320, 256), message='PAD mode validation passed', details={'black_pixels': 30644, 'total_pixels': 81920, 'percentage': 37.4072265625, 'has_padding': True, 'has_significant_padding': True, 'top_black': 100.0, 'bottom_black': 100.0, 'left_black': 26.5625, 'right_black': 26.953125, 'src_aspect': 1.6985294117647058, 'target_aspect': 1.25}), details={'audio_created': True, 'cli_command': 'bin/slowframe -i tests/images/alt3_test_panel_2310x1360.png -p m1 -a pad -o tests/test_outputs/aspect/T009_pad_m1_wide.wav -K', 'test_number': 9, 'output_image': 'tests/test_outputs/aspect/T009_pad_m1_wide.png', 'source_image': 'tests/images/alt3_test_panel_2310x1360.png'}), AspectTestResult(test_case=AspectTestCase(name='pad_m1_tall', image_path='tests/images/test_300x400.png', mode='pad', protocol='m1', target_width=320, target_height=256, description='PAD mode with tall image (0.75:1)', test_number=10), passed=True, message='PAD mode validation passed', execution_time=0.07358098030090332, validation=ValidationResult(passed=True, mode='pad', expected_dims=(320, 256), actual_dims=(320, 256), message='PAD mode validation passed', details={'black_pixels': 32768, 'total_pixels': 81920, 'percentage': 40.0, 'has_padding': True, 'has_significant_padding': True, 'top_black': 40.0, 'bottom_black': 40.0, 'left_black': 100.0, 'right_black': 100.0, 'src_aspect': 0.75, 'target_aspect': 1.25}), details={'audio_created': True, 'cli_command': 'bin/slowframe -i tests/images/test_300x400.png -p m1 -a pad -o tests/test_outputs/aspect/T010_pad_m1_tall.wav -K', 'test_number': 10, 'output_image': 'tests/test_outputs/aspect/T010_pad_m1_tall.png', 'source_image': 'tests/images/test_300x400.png'}), AspectTestResult(test_case=AspectTestCase(name='pad_m1_square', image_path='tests/images/alt5_test_panel_1728x1728.jpg', mode='pad', protocol='m1', target_width=320, target_height=256, description='PAD mode with square image (1.00:1)', test_number=11), passed=True, message='PAD mode validation passed', execution_time=0.09194707870483398, validation=ValidationResult(passed=True, mode='pad', expected_dims=(320, 256), actual_dims=(320, 256), message='PAD mode validation passed', details={'black_pixels': 26632, 'total_pixels': 81920, 'percentage': 32.509765625, 'has_padding': True, 'has_significant_padding': True, 'top_black': 20.0, 'bottom_black': 100.0, 'left_black': 100.0, 'right_black': 100.0, 'src_aspect': 1.0, 'target_aspect': 1.25}), details={'audio_created': True, 'cli_command': 'bin/slowframe -i tests/images/alt5_test_panel_1728x1728.jpg -p m1 -a pad -o tests/test_outputs/aspect/T011_pad_m1_square.wav -K', 'test_number': 11, 'output_image': 'tests/test_outputs/aspect/T011_pad_m1_square.jpg', 'source_image': 'tests/images/alt5_test_panel_1728x1728.jpg'}), AspectTestResult(test_case=AspectTestCase(name='pad_m1_target', image_path='tests/images/alt2_color_bars_2000x1125.png', mode='pad', protocol='m1', target_width=320, target_height=256, description='PAD mode with target aspect image (1.25:1)', test_number=12), passed=True, message='PAD mode validation passed', execution_time=0.07273387908935547, validation=ValidationResult(passed=True, mode='pad', expected_dims=(320, 256), actual_dims=(320, 256), message='PAD mode validation passed', details={'black_pixels': 31880, 'total_pixels': 81920, 'percentage': 38.916015625, 'has_padding': True, 'has_significant_padding': True, 'top_black': 100.0, 'bottom_black': 100.0, 'left_black': 29.6875, 'right_black': 100.0, 'src_aspect': 1.25, 'target_aspect': 1.25}), details={'audio_created': True, 'cli_command': 'bin/slowframe -i tests/images/alt2_color_bars_2000x1125.png -p m1 -a pad -o tests/test_outputs/aspect/T012_pad_m1_target.wav -K', 'test_number': 12, 'output_image': 'tests/test_outputs/aspect/T012_pad_m1_target.png', 'source_image': 'tests/images/alt2_color_bars_2000x1125.png'}), AspectTestResult(test_case=AspectTestCase(name='pad_r36_wide', image_path='tests/images/alt3_test_panel_2310x1360.png', mode='pad', protocol='r36', target_width=320, target_height=240, description='PAD mode with wide image (1.70:1)', test_number=13), passed=True, message='PAD mode validation passed', execution_time=0.09163594245910645, validation=ValidationResult(passed=True, mode='pad', expected_dims=(320, 240), actual_dims=(320, 240), message='PAD mode validation passed', details={'black_pixels': 25524, 'total_pixels': 76800, 'percentage': 33.234375, 'has_padding': True, 'has_significant_padding': True, 'top_black': 100.0, 'bottom_black': 100.0, 'left_black': 21.666666666666668, 'right_black': 22.083333333333332, 'src_aspect': 1.6985294117647058, 'target_aspect': 1.3333333333333333}), details={'audio_created': True, 'cli_command': 'bin/slowframe -i tests/images/alt3_test_panel_2310x1360.png -p r36 -a pad -o tests/test_outputs/aspect/T013_pad_r36_wide.wav -K', 'test_number': 13, 'output_image': 'tests/test_outputs/aspect/T013_pad_r36_wide.png', 'source_image': 'tests/images/alt3_test_panel_2310x1360.png'}), AspectTestResult(test_case=AspectTestCase(name='pad_r36_tall', image_path='tests/images/test_300x400.png', mode='pad', protocol='r36', target_width=320, target_height=240, description='PAD mode with tall image (0.75:1)', test_number=14), passed=True, message='PAD mode validation passed', execution_time=0.06393599510192871, validation=ValidationResult(passed=True, mode='pad', expected_dims=(320, 240), actual_dims=(320, 240), message='PAD mode validation passed', details={'black_pixels': 33600, 'total_pixels': 76800, 'percentage': 43.75, 'has_padding': True, 'has_significant_padding': True, 'top_black': 43.75, 'bottom_black': 43.75, 'left_black': 100.0, 'right_black': 100.0, 'src_aspect': 0.75, 'target_aspect': 1.3333333333333333}), details={'audio_created': True, 'cli_command': 'bin/slowframe -i tests/images/test_300x400.png -p r36 -a pad -o tests/test_outputs/aspect/T014_pad_r36_tall.wav -K', 'test_number': 14, 'output_image': 'tests/test_outputs/aspect/T014_pad_r36_tall.png', 'source_image': 'tests/images/test_300x400.png'}), AspectTestResult(test_case=AspectTestCase(name='pad_r36_square', image_path='tests/images/alt5_test_panel_1728x1728.jpg', mode='pad', protocol='r36', target_width=320, target_height=240, description='PAD mode with square image (1.00:1)', test_number=15), passed=True, message='PAD mode validation passed', execution_time=0.0810079574584961, validation=ValidationResult(passed=True, mode='pad', expected_dims=(320, 240), actual_dims=(320, 240), message='PAD mode validation passed', details={'black_pixels': 28020, 'total_pixels': 76800, 'percentage': 36.484375, 'has_padding': True, 'has_significant_padding': True, 'top_black': 25.0, 'bottom_black': 100.0, 'left_black': 100.0, 'right_black': 100.0, 'src_aspect': 1.0, 'target_aspect': 1.3333333333333333}), details={'audio_created': True, 'cli_command': 'bin/slowframe -i tests/images/alt5_test_panel_1728x1728.jpg -p r36 -a pad -o tests/test_outputs/aspect/T015_pad_r36_square.wav -K', 'test_number': 15, 'output_image': 'tests/test_outputs/aspect/T015_pad_r36_square.jpg', 'source_image': 'tests/images/alt5_test_panel_1728x1728.jpg'}), AspectTestResult(test_case=AspectTestCase(name='pad_r36_target', image_path='tests/images/alt2_color_bars_2000x1125.png', mode='pad', protocol='r36', target_width=320, target_height=240, description='PAD mode with target aspect image (1.25:1)', test_number=16), passed=True, message='PAD mode validation passed', execution_time=0.06412601470947266, validation=ValidationResult(passed=True, mode='pad', expected_dims=(320, 240), actual_dims=(320, 240), message='PAD mode validation passed', details={'black_pixels': 32430, 'total_pixels': 76800, 'percentage': 42.2265625, 'has_padding': True, 'has_significant_padding': True, 'top_black': 100.0, 'bottom_black': 100.0, 'left_black': 100.0, 'right_black': 100.0, 'src_aspect': 1.25, 'target_aspect': 1.3333333333333333}), details={'audio_created': True, 'cli_command': 'bin/slowframe -i tests/images/alt2_color_bars_2000x1125.png -p r36 -a pad -o tests/test_outputs/aspect/T016_pad_r36_target.wav -K', 'test_number': 16, 'output_image': 'tests/test_outputs/aspect/T016_pad_r36_target.png', 'source_image': 'tests/images/alt2_color_bars_2000x1125.png'}), AspectTestResult(test_case=AspectTestCase(name='stretch_m1_wide', image_path='tests/images/alt3_test_panel_2310x1360.png', mode='stretch', protocol='m1', target_width=320, target_height=256, description='STRETCH mode with wide image (1.70:1)', test_number=17), passed=True, message='STRETCH mode validation passed (source 17.4% black → output 14.7% black)', execution_time=0.1086881160736084, validation=ValidationResult(passed=True, mode='stretch', expected_dims=(320, 256), actual_dims=(320, 256), message='STRETCH mode validation passed (source 17.4% black → output 14.7% black)', details={'src_black_pct': 17.44286350903998, 'output_black_pct': 14.71923828125, 'black_diff': 2.723625227789981, 'src_aspect': 1.6985294117647058, 'target_aspect': 1.25}), details={'audio_created': True, 'cli_command': 'bin/slowframe -i tests/images/alt3_test_panel_2310x1360.png -p m1 -a stretch -o tests/test_outputs/aspect/T017_stretch_m1_wide.wav -K', 'test_number': 17, 'output_image': 'tests/test_outputs/aspect/T017_stretch_m1_wide.png', 'source_image': 'tests/images/alt3_test_panel_2310x1360.png'}), AspectTestResult(test_case=AspectTestCase(name='stretch_m1_tall', image_path='tests/images/test_300x400.png', mode='stretch', protocol='m1', target_width=320, target_height=256, description='STRETCH mode with tall image (0.75:1)', test_number=18), passed=True, message='STRETCH mode validation passed (source 0.0% black → output 0.0% black)', execution_time=0.07815003395080566, validation=ValidationResult(passed=True, mode='stretch', expected_dims=(320, 256), actual_dims=(320, 256), message='STRETCH mode validation passed (source 0.0% black → output 0.0% black)', details={'src_black_pct': 0.0, 'output_black_pct': 0.0, 'black_diff': 0.0, 'src_aspect': 0.75, 'target_aspect': 1.25}), details={'audio_created': True, 'cli_command': 'bin/slowframe -i tests/images/test_300x400.png -p m1 -a stretch -o tests/test_outputs/aspect/T018_stretch_m1_tall.wav -K', 'test_number': 18, 'output_image': 'tests/test_outputs/aspect/T018_stretch_m1_tall.png', 'source_image': 'tests/images/test_300x400.png'}), AspectTestResult(test_case=AspectTestCase(name='stretch_m1_square', image_path='tests/images/alt5_test_panel_1728x1728.jpg', mode='stretch', protocol='m1', target_width=320, target_height=256, description='STRETCH mode with square image (1.00:1)', test_number=19), passed=True, message='STRETCH mode validation passed (source 15.0% black → output 15.0% black)', execution_time=0.09153509140014648, validation=ValidationResult(passed=True, mode='stretch', expected_dims=(320, 256), actual_dims=(320, 256), message='STRETCH mode validation passed (source 15.0% black → output 15.0% black)', details={'src_black_pct': 15.025633091135116, 'output_black_pct': 15.0, 'black_diff': 0.02563309113511636, 'src_aspect': 1.0, 'target_aspect': 1.25}), details={'audio_created': True, 'cli_command': 'bin/slowframe -i tests/images/alt5_test_panel_1728x1728.jpg -p m1 -a stretch -o tests/test_outputs/aspect/T019_stretch_m1_square.wav -K', 'test_number': 19, 'output_image': 'tests/test_outputs/aspect/T019_stretch_m1_square.jpg', 'source_image': 'tests/images/alt5_test_panel_1728x1728.jpg'}), AspectTestResult(test_case=AspectTestCase(name='stretch_m1_target', image_path='tests/images/alt2_color_bars_2000x1125.png', mode='stretch', protocol='m1', target_width=320, target_height=256, description='STRETCH mode with target aspect image (1.25:1)', test_number=20), passed=True, message='STRETCH mode validation passed (source 38.9% black → output 38.9% black)', execution_time=0.07368087768554688, validation=ValidationResult(passed=True, mode='stretch', expected_dims=(320, 256), actual_dims=(320, 256), message='STRETCH mode validation passed (source 38.9% black → output 38.9% black)', details={'src_black_pct': 38.916015625, 'output_black_pct': 38.916015625, 'black_diff': 0.0, 'src_aspect': 1.25, 'target_aspect': 1.25}), details={'audio_created': True, 'cli_command': 'bin/slowframe -i tests/images/alt2_color_bars_2000x1125.png -p m1 -a stretch -o tests/test_outputs/aspect/T020_stretch_m1_target.wav -K', 'test_number': 20, 'output_image': 'tests/test_outputs/aspect/T020_stretch_m1_target.png', 'source_image': 'tests/images/alt2_color_bars_2000x1125.png'}), AspectTestResult(test_case=AspectTestCase(name='stretch_r36_wide', image_path='tests/images/alt3_test_panel_2310x1360.png', mode='stretch', protocol='r36', target_width=320, target_height=240, description='STRETCH mode with wide image (1.70:1)', test_number=21), passed=True, message='STRETCH mode validation passed (source 17.4% black → output 14.7% black)', execution_time=0.09401607513427734, validation=ValidationResult(passed=True, mode='stretch', expected_dims=(320, 240), actual_dims=(320, 240), message='STRETCH mode validation passed (source 17.4% black → output 14.7% black)', details={'src_black_pct': 17.44286350903998, 'output_black_pct': 14.6875, 'black_diff': 2.755363509039981, 'src_aspect': 1.6985294117647058, 'target_aspect': 1.3333333333333333}), details={'audio_created': True, 'cli_command': 'bin/slowframe -i tests/images/alt3_test_panel_2310x1360.png -p r36 -a stretch -o tests/test_outputs/aspect/T021_stretch_r36_wide.wav -K', 'test_number': 21, 'output_image': 'tests/test_outputs/aspect/T021_stretch_r36_wide.png', 'source_image': 'tests/images/alt3_test_panel_2310x1360.png'}), AspectTestResult(test_case=AspectTestCase(name='stretch_r36_tall', image_path='tests/images/test_300x400.png', mode='stretch', protocol='r36', target_width=320, target_height=240, description='STRETCH mode with tall image (0.75:1)', test_number=22), passed=True, message='STRETCH mode validation passed (source 0.0% black → output 0.0% black)', execution_time=0.06471896171569824, validation=ValidationResult(passed=True, mode='stretch', expected_dims=(320, 240), actual_dims=(320, 240), message='STRETCH mode validation passed (source 0.0% black → output 0.0% black)', details={'src_black_pct': 0.0, 'output_black_pct': 0.0, 'black_diff': 0.0, 'src_aspect': 0.75, 'target_aspect': 1.3333333333333333}), details={'audio_created': True, 'cli_command': 'bin/slowframe -i tests/images/test_300x400.png -p r36 -a stretch -o tests/test_outputs/aspect/T022_stretch_r36_tall.wav -K', 'test_number': 22, 'output_image': 'tests/test_outputs/aspect/T022_stretch_r36_tall.png', 'source_image': 'tests/images/test_300x400.png'}), AspectTestResult(test_case=AspectTestCase(name='stretch_r36_square', image_path='tests/images/alt5_test_panel_1728x1728.jpg', mode='stretch', protocol='r36', target_width=320, target_height=240, description='STRETCH mode with square image (1.00:1)', test_number=23), passed=True, message='STRETCH mode validation passed (source 15.0% black → output 14.9% black)', execution_time=0.08355498313903809, validation=ValidationResult(passed=True, mode='stretch', expected_dims=(320, 240), actual_dims=(320, 240), message='STRETCH mode validation passed (source 15.0% black → output 14.9% black)', details={'src_black_pct': 15.025633091135116, 'output_black_pct': 14.901041666666668, 'black_diff': 0.12459142446844851, 'src_aspect': 1.0, 'target_aspect': 1.3333333333333333}), details={'audio_created': True, 'cli_command': 'bin/slowframe -i tests/images/alt5_test_panel_1728x1728.jpg -p r36 -a stretch -o tests/test_outputs/aspect/T023_stretch_r36_square.wav -K', 'test_number': 23, 'output_image': 'tests/test_outputs/aspect/T023_stretch_r36_square.jpg', 'source_image': 'tests/images/alt5_test_panel_1728x1728.jpg'}), AspectTestResult(test_case=AspectTestCase(name='stretch_r36_target', image_path='tests/images/alt2_color_bars_2000x1125.png', mode='stretch', protocol='r36', target_width=320, target_height=240, description='STRETCH mode with target aspect image (1.25:1)', test_number=24), passed=True, message='STRETCH mode validation passed (source 38.9% black → output 38.5% black)', execution_time=0.06300806999206543, validation=ValidationResult(passed=True, mode='stretch', expected_dims=(320, 240), actual_dims=(320, 240), message='STRETCH mode validation passed (source 38.9% black → output 38.5% black)', details={'src_black_pct': 38.916015625, 'output_black_pct': 38.463541666666664, 'black_diff': 0.4524739583333357, 'src_aspect': 1.25, 'target_aspect': 1.3333333333333333}), details={'audio_created': True, 'cli_command': 'bin/slowframe -i tests/images/alt2_color_bars_2000x1125.png -p r36 -a stretch -o tests/test_outputs/aspect/T024_stretch_r36_target.wav -K', 'test_number': 24, 'output_image': 'tests/test_outputs/aspect/T024_stretch_r36_target.png', 'source_image': 'tests/images/alt2_color_bars_2000x1125.png'})]
+  ✓ Image Formats  : 27/27 passed (5.12s)
+      format_coverage: ['BMP', 'GIF', 'JPEG', 'PNG', 'PPM', 'TIFF', 'WebP']
+      supported_formats: ['BMP', 'GIF', 'JPEG', 'JPEG', 'PNG', 'PPM', 'TIFF', 'TIFF', 'WebP']
+  ✓ Text Overlay   : 4/4 passed (0.77s)
+      test_cases: 4
+
+✓ No issues found - all tests passed!
+======================================================================

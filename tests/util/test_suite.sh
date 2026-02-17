@@ -3,8 +3,10 @@
 echo "Running CW Audio Fix Test Suite..."
 echo "=================================="
 
-# Get the path to the executable
-EXECUTABLE="../bin/slowframe"
+# Get script directory and determine binary path
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_ROOT="$( dirname "$SCRIPT_DIR" )/.."
+EXECUTABLE="$PROJECT_ROOT/bin/slowframe"
 
 # Test 1: Standard callsign at 13 WPM
 echo -e "\n[Test 1/3] Standard callsign - K4ABC at 13 WPM"

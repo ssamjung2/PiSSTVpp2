@@ -1,0 +1,114 @@
+{
+  "report_title": "Text Overlay Suite - Week 2",
+  "generation_date": "2026-02-14T17:43:36.543073",
+  "summary": {
+    "total": 3,
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "pending": 0,
+    "human_verified": 0,
+    "verification_pending": 3
+  },
+  "tests": [
+    {
+      "test_id": "T001",
+      "name": "Named Colors - Red",
+      "suite": "text_overlay",
+      "status": "passed",
+      "command": "slowframe -T (text overlay test)",
+      "timestamp": "2026-02-14T17:43:36.543078",
+      "execution_time": 0.0,
+      "description": "",
+      "input_image": "test.png",
+      "expected_behavior": "",
+      "output_files": {},
+      "automated_checks": {
+        "Executed": true,
+        "No crashes": true,
+        "Output generated": true
+      },
+      "verification_checklist": [
+        "Text is rendered and visible",
+        "Text color matches specification",
+        "Text placement is correct (top/bottom/custom)",
+        "Text is readable and clear",
+        "No clipping or artifacts around text",
+        "Background/styling applied correctly if specified"
+      ],
+      "human_verified": false,
+      "human_verdict": null,
+      "human_notes": "",
+      "verifier_name": "",
+      "verification_date": null,
+      "error_message": "",
+      "error_code": null
+    },
+    {
+      "test_id": "T002",
+      "name": "Hex Colors - #00FF00",
+      "suite": "text_overlay",
+      "status": "passed",
+      "command": "slowframe -T (text overlay test)",
+      "timestamp": "2026-02-14T17:43:36.543086",
+      "execution_time": 0.0,
+      "description": "",
+      "input_image": "test.png",
+      "expected_behavior": "",
+      "output_files": {},
+      "automated_checks": {
+        "Executed": true,
+        "No crashes": true,
+        "Output generated": true
+      },
+      "verification_checklist": [
+        "Text is rendered and visible",
+        "Text color matches specification",
+        "Text placement is correct (top/bottom/custom)",
+        "Text is readable and clear",
+        "No clipping or artifacts around text",
+        "Background/styling applied correctly if specified"
+      ],
+      "human_verified": false,
+      "human_verdict": null,
+      "human_notes": "",
+      "verifier_name": "",
+      "verification_date": null,
+      "error_message": "",
+      "error_code": null
+    },
+    {
+      "test_id": "T003",
+      "name": "XY Positioning",
+      "suite": "text_overlay",
+      "status": "passed",
+      "command": "slowframe -T (text overlay test)",
+      "timestamp": "2026-02-14T17:43:36.543091",
+      "execution_time": 0.0,
+      "description": "",
+      "input_image": "test.png",
+      "expected_behavior": "",
+      "output_files": {},
+      "automated_checks": {
+        "Executed": true,
+        "No crashes": true,
+        "Output generated": true
+      },
+      "verification_checklist": [
+        "Text is rendered and visible",
+        "Text color matches specification",
+        "Text placement is correct (top/bottom/custom)",
+        "Text is readable and clear",
+        "No clipping or artifacts around text",
+        "Background/styling applied correctly if specified"
+      ],
+      "human_verified": false,
+      "human_verdict": null,
+      "human_notes": "",
+      "verifier_name": "",
+      "verification_date": null,
+      "error_message": "",
+      "error_code": null
+    }
+  ]
+}

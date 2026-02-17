@@ -1,0 +1,5 @@
+{
+  "placement_mode": "left",
+  "test_name": "Left placement",
+  "expected_behavior": "Text/bar should appear at left of image"
+}

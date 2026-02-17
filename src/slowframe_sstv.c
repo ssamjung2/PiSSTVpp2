@@ -17,6 +17,11 @@
 #include "error.h"
 #include "slowframe_sstv.h"
 #include "slowframe_image.h"
+#include "sstv/mode_registry.h"
+#include "sstv/modes_martin.h"
+#include "sstv/modes_scottie.h"
+#include "sstv/modes_robot.h"
+#include "mmsstv/mmsstv_adapter.h"
 
 /* ============================================================================
    MODULE-PRIVATE GLOBAL STATE
@@ -56,12 +61,19 @@ static SstvState g_sstv = {
     .initialized = 0
 };
 
+static int g_encode_verbose = 0;
+static int g_encode_timestamp = 0;
+
 /* ============================================================================
    HELPER FUNCTIONS: TONE SYNTHESIS
    ============================================================================ */
 
 /* Forward declaration */
 static int sstv_init_buffer(void);
+static mode_registry_t *sstv_get_registry(void);
+static int sstv_prepare_for_mode(uint16_t sample_rate,
+                                 uint16_t *audio_buffer,
+                                 uint32_t max_samples);
 
 /**
  * @brief Map 8-bit RGB brightness value to SSTV audio tone frequency.
@@ -530,6 +542,46 @@ static void buildaudio_r36(int verbose, int timestamp_logging) {
 }
 
 /**
+ * @brief Build audio samples for Robot B&W 24 mode.
+ * Robot B&W 24 is a monochrome mode transmitting only luminance (Y) values.
+ * Each line: Sync (9ms) + Porch (3ms) + Y pixels (88ms for 320 pixels @ 275µs each) = 100ms.
+ * Total: 240 lines × 100ms = 24 seconds
+ */
+static void buildaudio_bw24(int verbose, int timestamp_logging) {
+    const double SYNC_PULSE_US = 9000.0;
+    const double SYNC_FREQ = 1200.0;
+    const double PORCH_US = 3000.0;
+    const double PORCH_FREQ = 1500.0;
+    const double Y_PIXEL_US = 275.0;       // Per Y pixel (320 pixels)
+    const int LINES = 240;
+    
+    uint16_t x, y;
+    uint8_t r, g, b;
+    uint8_t yval[320];
+    
+    for (y = 0; y < LINES; y++) {
+        if (verbose && y > 0 && y % 32 == 0) {
+            int progress = (y * 100) / LINES;
+            log_verbose(verbose, timestamp_logging, "   --> Encoding line %d/%d (%d%%)\n", y, LINES, progress);
+        }
+        
+        // Process pixels and convert to luminance (Y) only
+        for (x = 0; x < 320; x++) {
+            get_pixel_rgb(x, y, &r, &g, &b);
+            
+            // Y (luminance) conversion: standard YUV formula
+            yval[x] = 16.0 + (0.003906 * ((65.738 * (float)r) + (129.057 * (float)g) + (25.064 * (float)b)));
+        }
+        
+        // Transmit line: Sync + Porch + Y (320 pixels)
+        playtone(SYNC_FREQ, SYNC_PULSE_US);
+        playtone(PORCH_FREQ, PORCH_US);
+        for (x = 0; x < 320; x++)
+            playtone(toneval_yuv(yval[x]), Y_PIXEL_US);
+    }
+}
+
+/**
  * @brief Build audio samples for Robot 72 (R72) mode.
  * Robot 72 transmits Y + R-Y + B-Y for each line (not alternating).
  * Per official spec: each line is Y(138ms) + R-Y(69ms) + B-Y(69ms) = 300.5ms total.
@@ -585,6 +637,187 @@ static void buildaudio_r72(int verbose, int timestamp_logging) {
         for (k = 0; k < 320; k++)                     // (9) B-Y scan
             playtone(toneval_yuv(by[k]), CHROMA_PIXEL_US);
     }
+}
+
+/* ============================================================================
+   MODE REGISTRY DISPATCH HELPERS
+   ============================================================================ */
+
+static mode_registry_t *sstv_get_registry(void) {
+    static mode_registry_t *registry = NULL;
+    static mmsstv_adapter_t *mmsstv_adapter = NULL;
+    static int mmsstv_initialized = 0;
+
+    if (!registry) {
+        registry = mode_registry_create();
+        if (!registry) {
+            return NULL;
+        }
+        
+        /* Register native modes first */
+        modes_martin_register(registry);
+        modes_scottie_register(registry);
+        modes_robot_register(registry);
+        
+        /* Try to register MMSSTV modes (if library available) */
+        if (!mmsstv_initialized) {
+            mmsstv_adapter = mmsstv_adapter_init();
+            if (mmsstv_adapter && mmsstv_adapter_is_available(mmsstv_adapter)) {
+                int mmsstv_count = mmsstv_adapter_register_modes(mmsstv_adapter, registry);
+                /* MMSSTV modes registered - count available via registry */
+                (void)mmsstv_count; /* Suppress unused warning */
+            }
+            mmsstv_initialized = 1;
+        }
+    }
+
+    return registry;
+}
+
+static int sstv_prepare_for_mode(uint16_t sample_rate,
+                                 uint16_t *audio_buffer,
+                                 uint32_t max_samples) {
+    if (!g_sstv.initialized) {
+        error_log(SLOWFRAME_ERR_SSTV_INIT, "SSTV module not initialized");
+        return SLOWFRAME_ERR_SSTV_INIT;
+    }
+
+    if (sample_rate != g_sstv.rate) {
+        error_log(SLOWFRAME_ERR_ARG_INVALID_SAMPLE_RATE,
+                  "Sample rate mismatch: %u (expected %u)",
+                  sample_rate, g_sstv.rate);
+        return SLOWFRAME_ERR_ARG_INVALID_SAMPLE_RATE;
+    }
+
+    if (audio_buffer != g_sstv.audio) {
+        error_log(SLOWFRAME_ERR_SSTV_ENCODE,
+                  "Audio buffer mismatch for mode encoding");
+        return SLOWFRAME_ERR_SSTV_ENCODE;
+    }
+
+    if (max_samples > 0) {
+        if (max_samples > g_sstv.max_samples) {
+            error_log(SLOWFRAME_ERR_SSTV_ENCODE,
+                      "Audio buffer capacity too small: %u (max %u)",
+                      max_samples, g_sstv.max_samples);
+            return SLOWFRAME_ERR_SSTV_ENCODE;
+        }
+        g_sstv.max_samples = max_samples;
+    }
+
+    return SLOWFRAME_OK;
+}
+
+int sstv_encode_martin_m1(const char *mode_code,
+                          uint16_t sample_rate,
+                          uint16_t *audio_buffer,
+                          uint32_t max_samples) {
+    (void)mode_code;
+    int result = sstv_prepare_for_mode(sample_rate, audio_buffer, max_samples);
+    if (result != SLOWFRAME_OK) {
+        return result;
+    }
+
+    buildaudio_m(457.6, g_encode_verbose, g_encode_timestamp);
+    return SLOWFRAME_OK;
+}
+
+int sstv_encode_martin_m2(const char *mode_code,
+                          uint16_t sample_rate,
+                          uint16_t *audio_buffer,
+                          uint32_t max_samples) {
+    (void)mode_code;
+    int result = sstv_prepare_for_mode(sample_rate, audio_buffer, max_samples);
+    if (result != SLOWFRAME_OK) {
+        return result;
+    }
+
+    buildaudio_m(228.8, g_encode_verbose, g_encode_timestamp);
+    return SLOWFRAME_OK;
+}
+
+int sstv_encode_scottie_s1(const char *mode_code,
+                           uint16_t sample_rate,
+                           uint16_t *audio_buffer,
+                           uint32_t max_samples) {
+    (void)mode_code;
+    int result = sstv_prepare_for_mode(sample_rate, audio_buffer, max_samples);
+    if (result != SLOWFRAME_OK) {
+        return result;
+    }
+
+    buildaudio_s(432.0, g_encode_verbose, g_encode_timestamp);
+    return SLOWFRAME_OK;
+}
+
+int sstv_encode_scottie_s2(const char *mode_code,
+                           uint16_t sample_rate,
+                           uint16_t *audio_buffer,
+                           uint32_t max_samples) {
+    (void)mode_code;
+    int result = sstv_prepare_for_mode(sample_rate, audio_buffer, max_samples);
+    if (result != SLOWFRAME_OK) {
+        return result;
+    }
+
+    buildaudio_s(275.2, g_encode_verbose, g_encode_timestamp);
+    return SLOWFRAME_OK;
+}
+
+int sstv_encode_scottie_sdx(const char *mode_code,
+                            uint16_t sample_rate,
+                            uint16_t *audio_buffer,
+                            uint32_t max_samples) {
+    (void)mode_code;
+    int result = sstv_prepare_for_mode(sample_rate, audio_buffer, max_samples);
+    if (result != SLOWFRAME_OK) {
+        return result;
+    }
+
+    buildaudio_s(1080.0, g_encode_verbose, g_encode_timestamp);
+    return SLOWFRAME_OK;
+}
+
+int sstv_encode_robot_r36(const char *mode_code,
+                          uint16_t sample_rate,
+                          uint16_t *audio_buffer,
+                          uint32_t max_samples) {
+    (void)mode_code;
+    int result = sstv_prepare_for_mode(sample_rate, audio_buffer, max_samples);
+    if (result != SLOWFRAME_OK) {
+        return result;
+    }
+
+    buildaudio_r36(g_encode_verbose, g_encode_timestamp);
+    return SLOWFRAME_OK;
+}
+
+int sstv_encode_robot_r72(const char *mode_code,
+                          uint16_t sample_rate,
+                          uint16_t *audio_buffer,
+                          uint32_t max_samples) {
+    (void)mode_code;
+    int result = sstv_prepare_for_mode(sample_rate, audio_buffer, max_samples);
+    if (result != SLOWFRAME_OK) {
+        return result;
+    }
+
+    buildaudio_r72(g_encode_verbose, g_encode_timestamp);
+    return SLOWFRAME_OK;
+}
+
+int sstv_encode_robot_bw24(const char *mode_code,
+                           uint16_t sample_rate,
+                           uint16_t *audio_buffer,
+                           uint32_t max_samples) {
+    (void)mode_code;
+    int result = sstv_prepare_for_mode(sample_rate, audio_buffer, max_samples);
+    if (result != SLOWFRAME_OK) {
+        return result;
+    }
+
+    buildaudio_bw24(g_encode_verbose, g_encode_timestamp);
+    return SLOWFRAME_OK;
 }
 
 /* ============================================================================
@@ -651,47 +884,66 @@ uint8_t sstv_get_protocol(void) {
     return g_sstv.protocol;
 }
 
-int sstv_encode_frame(int verbose, int timestamp_logging) {
+int sstv_encode_frame_with_mode(const mode_definition_t *mode_def,
+                                int verbose,
+                                int timestamp_logging) {
     if (!g_sstv.initialized) {
         error_log(SLOWFRAME_ERR_SSTV_INIT, "SSTV module not initialized");
         return SLOWFRAME_ERR_SSTV_INIT;
     }
-    
+
+    if (!mode_def || !mode_def->encode_frame) {
+        error_log(SLOWFRAME_ERR_SSTV_MODE_NOT_FOUND, "Invalid SSTV mode definition");
+        return SLOWFRAME_ERR_SSTV_MODE_NOT_FOUND;
+    }
+
     if (g_sstv.samples > 0) {
-        error_log(SLOWFRAME_ERR_SSTV_ENCODE, "Audio buffer not empty; consider calling sstv_reset_buffer()");
+        error_log(SLOWFRAME_ERR_SSTV_ENCODE,
+                  "Audio buffer not empty; consider calling sstv_reset_buffer()");
     }
-    
-    addvisheader(verbose, timestamp_logging);
-    
-    switch (g_sstv.protocol) {
-        case 44:  // Martin 1
-            buildaudio_m(457.6, verbose, timestamp_logging);
-            break;
-        case 40:  // Martin 2
-            buildaudio_m(228.8, verbose, timestamp_logging);
-            break;
-        case 60:  // Scottie 1
-            buildaudio_s(432.0, verbose, timestamp_logging);
-            break;
-        case 56:  // Scottie 2
-            buildaudio_s(275.2, verbose, timestamp_logging);
-            break;
-        case 76:  // Scottie DX
-            buildaudio_s(1080.0, verbose, timestamp_logging);
-            break;
-        case 8:   // Robot 36
-            buildaudio_r36(verbose, timestamp_logging);
-            break;
-        case 12:  // Robot 72
-            buildaudio_r72(verbose, timestamp_logging);
-            break;
-        default:
-            error_log(SLOWFRAME_ERR_SSTV_MODE_NOT_FOUND, "Unknown SSTV protocol code: %d", g_sstv.protocol);
-            return SLOWFRAME_ERR_SSTV_MODE_NOT_FOUND;
+
+    g_encode_verbose = verbose;
+    g_encode_timestamp = timestamp_logging;
+
+    int use_internal_vis = 1;
+    if (mode_def->source && strcmp(mode_def->source, "mmsstv") == 0) {
+        use_internal_vis = 0;
     }
-    
-    addvistrailer();
+
+    if (use_internal_vis) {
+        addvisheader(verbose, timestamp_logging);
+    }
+
+    int result = mode_def->encode_frame(mode_def->code,
+                                        g_sstv.rate,
+                                        g_sstv.audio,
+                                        g_sstv.max_samples);
+    if (result != SLOWFRAME_OK) {
+        return result;
+    }
+
+    if (use_internal_vis) {
+        addvistrailer();
+    }
     return SLOWFRAME_OK;
+}
+
+int sstv_encode_frame(int verbose, int timestamp_logging) {
+    mode_registry_t *registry = sstv_get_registry();
+    if (!registry) {
+        error_log(SLOWFRAME_ERR_MEMORY_ALLOC, "Failed to initialize mode registry");
+        return SLOWFRAME_ERR_MEMORY_ALLOC;
+    }
+
+    const mode_definition_t *mode_def =
+        mode_registry_lookup_by_vis(registry, g_sstv.protocol);
+    if (!mode_def) {
+        error_log(SLOWFRAME_ERR_SSTV_MODE_NOT_FOUND,
+                  "Unknown SSTV protocol code: %d", g_sstv.protocol);
+        return SLOWFRAME_ERR_SSTV_MODE_NOT_FOUND;
+    }
+
+    return sstv_encode_frame_with_mode(mode_def, verbose, timestamp_logging);
 }
 
 void sstv_add_cw_signature(const char *callsign, int wpm, uint16_t tone_freq) {
@@ -722,6 +974,27 @@ uint32_t sstv_get_sample_count(void) {
 
 uint16_t sstv_get_sample_rate(void) {
     return g_sstv.rate;
+}
+
+int sstv_add_samples_to_buffer(const uint16_t *samples, uint32_t count) {
+    if (!g_sstv.initialized || !g_sstv.audio) {
+        error_log(SLOWFRAME_ERR_SSTV_INIT, "SSTV module not initialized");
+        return SLOWFRAME_ERR_SSTV_INIT;
+    }
+    
+    if (g_sstv.samples + count > g_sstv.max_samples) {
+        error_log(SLOWFRAME_ERR_SSTV_ENCODE,
+                  "Audio buffer overflow: %u + %u > %u",
+                  g_sstv.samples, count, g_sstv.max_samples);
+        return SLOWFRAME_ERR_SSTV_ENCODE;
+    }
+    
+    /* Copy samples to buffer */
+    for (uint32_t i = 0; i < count; i++) {
+        g_sstv.audio[g_sstv.samples++] = samples[i];
+    }
+    
+    return SLOWFRAME_OK;
 }
 
 void sstv_cleanup(void) {
@@ -776,6 +1049,11 @@ void sstv_get_mode_details(uint8_t protocol, int verbose, int timestamp_logging)
             log_verbose(verbose, timestamp_logging, "  Mode name:     Robot 36 Color (R36)\n");
             log_verbose(verbose, timestamp_logging, "  Resolution:    120 scan lines, 320 pixels/line, YUV format\n");
             log_verbose(verbose, timestamp_logging, "  TX Time:       36 seconds total\n");
+            break;
+        case 9:   // Robot B&W 24
+            log_verbose(verbose, timestamp_logging, "  Mode name:     Robot B&W 24\n");
+            log_verbose(verbose, timestamp_logging, "  Resolution:    240 scan lines, 320 pixels/line, Monochrome\n");
+            log_verbose(verbose, timestamp_logging, "  TX Time:       24 seconds total\n");
             break;
         case 12:  // Robot 72
             log_verbose(verbose, timestamp_logging, "  Mode name:     Robot 72 Color (R72)\n");
