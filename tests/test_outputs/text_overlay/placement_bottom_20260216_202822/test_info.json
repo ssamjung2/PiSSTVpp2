@@ -1,5 +1,0 @@
-{
-  "placement_mode": "bottom",
-  "test_name": "Bottom placement",
-  "expected_behavior": "Text/bar should appear at bottom of image"
-}

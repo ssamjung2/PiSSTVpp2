@@ -77,18 +77,29 @@ static int buffer_vips_image(VipsImage *image, int verbose, int timestamp_loggin
         return SLOWFRAME_ERR_IMAGE_LOAD;
     }
 
-    /* Ensure image is in RGB format */
+    /* Ensure image is in sRGB format */
     VipsImage *rgb_image = NULL;
     if (vips_colourspace(image, &rgb_image, VIPS_INTERPRETATION_sRGB, NULL)) {
         error_log(SLOWFRAME_ERR_IMAGE_PROCESS, "Colorspace conversion failed: %s", vips_error_buffer());
         vips_error_clear();
         return SLOWFRAME_ERR_IMAGE_PROCESS;
     }
-
-    /* Replace with RGB version if conversion needed */
     if (rgb_image != image) {
         g_object_unref(image);
         image = rgb_image;
+    }
+
+    /* Strip alpha channel if present — buffer must be exactly 3 bytes/pixel (RGB) */
+    if (vips_image_hasalpha(image)) {
+        VipsImage *flat = NULL;
+        if (vips_flatten(image, &flat, NULL)) {
+            error_log(SLOWFRAME_ERR_IMAGE_PROCESS, "Alpha flatten failed: %s", vips_error_buffer());
+            vips_error_clear();
+            g_object_unref(image);
+            return SLOWFRAME_ERR_IMAGE_PROCESS;
+        }
+        g_object_unref(image);
+        image = flat;
     }
 
     /* Allocate buffer structure */
@@ -239,8 +250,9 @@ void image_get_pixel_rgb(int x, int y, uint8_t *r, uint8_t *g, uint8_t *b) {
         return;
     }
 
-    /* Direct buffer access: RGB format, 3 bytes per pixel */
-    int offset = (y * g_img.buffer->rowstride) + (x * 3);
+    /* Direct buffer access: always 3 bytes/pixel after alpha strip in buffer_vips_image */
+    int bytes_per_pixel = g_img.buffer->rowstride / g_img.buffer->width;
+    int offset = (y * g_img.buffer->rowstride) + (x * bytes_per_pixel);
     const uint8_t *pixel = &g_img.buffer->data[offset];
 
     *r = pixel[0];

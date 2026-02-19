@@ -440,8 +440,9 @@ static void buildaudio_s(double pixeltime, int verbose, int timestamp_logging) {
     uint8_t r_pixel, g_pixel, b_pixel;
     uint8_t r[PIXELS_PER_LINE], g[PIXELS_PER_LINE], b[PIXELS_PER_LINE];
     
+    /* Initial sync pulse (once, before the scan loop) */
     playtone(SYNC_FREQ, SYNC_PULSE_US);
-    
+
     for (y = 0; y < LINES; y++) {
         if (verbose && y > 0 && y % 64 == 0) {
             int progress = (y * 100) / LINES;
@@ -454,7 +455,9 @@ static void buildaudio_s(double pixeltime, int verbose, int timestamp_logging) {
             g[x] = g_pixel;
             b[x] = b_pixel;
         }
-        
+
+        /* Scottie scanline order per N7CXI/Barber spec:
+         * SEP(1.5ms) -> Green -> SEP(1.5ms) -> Blue -> SYNC(9ms) -> PORCH(1.5ms) -> Red */
         playtone(SEPARATOR_FREQ, SEPARATOR_US);
         for (k = 0; k < PIXELS_PER_LINE; k++)
             playtone(toneval_rgb(g[k]), pixeltime);

@@ -44,7 +44,7 @@ static const mode_definition_t scottie_s1 = {
  * - Resolution: 320x256
  * - Duration: 71.680 seconds
  * - VIS Code: 56 (0x38)
- * - Pixel time: 275.2 μs
+ * - Pixel time: 275.2 µs
  * - Color: RGB (faster than S1)
  */
 static const mode_definition_t scottie_s2 = {
@@ -66,7 +66,7 @@ static const mode_definition_t scottie_s2 = {
  * - Resolution: 320x256
  * - Duration: 268.800 seconds
  * - VIS Code: 76 (0x4C)
- * - Pixel time: 1080.0 μs
+ * - Pixel time: 1080.0 µs
  * - Color: RGB (high quality, slow speed)
  */
 static const mode_definition_t scottie_dx = {

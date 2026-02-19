@@ -11,7 +11,15 @@ UNAME_M := $(shell uname -m)
 
 
 # Common flags
-CFLAGS_COMMON = -O3 -ffast-math -funroll-loops -Wall -Wextra -Wpedantic -std=c11
+CFLAGS_COMMON = -O3 -ffast-math -funroll-loops -Wall -Wextra -Wpedantic -std=c11 -D_DEFAULT_SOURCE
+
+# Required dependency: libvips (check first)
+HAVE_VIPS = $(shell $(PKG_CONFIG) --exists vips glib-2.0 gobject-2.0 && echo 1 || echo 0)
+
+ifeq ($(HAVE_VIPS),0)
+    $(error libvips-dev not found. Install with: sudo apt install libvips-dev (Linux) or brew install vips (macOS))
+endif
+
 # Use pkg-config to get all necessary cflags and libs for vips, glib-2.0, and gobject-2.0
 CFLAGS_PKG   = $(shell $(PKG_CONFIG) --cflags vips glib-2.0 gobject-2.0)
 LDFLAGS_PKG  = $(shell $(PKG_CONFIG) --libs vips glib-2.0 gobject-2.0)
@@ -146,7 +154,11 @@ build-info:
 	@echo "Compiler:    $(CC)"
 	@echo "$(COLOR_CYAN)═══════════════════════════════════════════════════$(COLOR_RESET)"
 	@echo "Dependencies:"
+ifeq ($(HAVE_VIPS),1)
 	@echo "  $(COLOR_GREEN)$(CHECK_OK)$(COLOR_RESET) libvips      - Required (image processing)"
+else
+	@echo "  $(COLOR_RED)$(CHECK_NONE)$(COLOR_RESET) libvips      - NOT FOUND (install libvips-dev)"
+endif
 ifeq ($(HAVE_OGG_SUPPORT),1)
 	@echo "  $(COLOR_GREEN)$(CHECK_OK)$(COLOR_RESET) OGG/Vorbis   - Enabled (compressed audio)"
 else
