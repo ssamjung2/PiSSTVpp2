@@ -33,12 +33,14 @@ typedef struct {
     VipsImage *image;                  /* Current image in memory */
     ImageBuffer *buffer;                /* Buffered pixel data */
     char original_filename[1024];      /* Original image filename (to extract extension) */
+    ExifMetadata exif;                  /* Extracted EXIF metadata */
 } ImageState;
 
 static ImageState g_img = {
     .image = NULL,
     .buffer = NULL,
-    .original_filename = {0}
+    .original_filename = {0},
+    .exif = {0}
 };
 
 /* Aspect ratio tolerance for "already correct" check */
@@ -63,6 +65,213 @@ static void clear_image_state(void) {
         }
         free(g_img.buffer);
         g_img.buffer = NULL;
+    }
+}
+
+/**
+ * extract_exif_from_image
+ * Extract EXIF metadata from a VipsImage and store in ExifMetadata structure
+ * Uses defaults for any missing EXIF tags
+ * 
+ * Tries multiple metadata key variations since libvips EXIF key naming varies
+ */
+static void extract_exif_from_image(VipsImage *image, ExifMetadata *exif) {
+    if (!image || !exif) return;
+
+    /* Initialize to defaults */
+    memset(exif, 0, sizeof(ExifMetadata));
+    exif->f_stop = 28;              /* f/2.8 default */
+    exif->metering_mode = 1;        /* Average metering */
+    exif->exposure_program = 2;     /* Normal program */
+    exif->exposure_time_log = 0;    /* 1 second baseline */
+    exif->focal_length = 50;        /* 50mm default */
+    exif->brightness_ev = 10;       /* 0 EV (neutral) */
+    exif->iso_speed = 400;          /* ISO 400 */
+    exif->white_balance = 0;        /* Auto WB */
+    exif->color_space = 0;          /* sRGB */
+
+    /* Try to extract individual EXIF fields using libvips metadata API */
+    
+    /* Extract ISO Speed */
+    int iso_val = 0;
+    const char *iso_keys[] = {
+        "exif-photo-iso-speed-ratings",
+        "exif-iop-iso-speed-ratings", 
+        "Exif.Photo.ISOSpeedRatings",
+        NULL
+    };
+    for (int i = 0; iso_keys[i]; i++) {
+        if (!vips_image_get_int(image, iso_keys[i], &iso_val) && iso_val > 0) {
+            exif->iso_speed = (uint16_t)iso_val;
+            break;
+        }
+    }
+    
+    /* Extract F-Number (FNumber is stored as Rational, e.g., "2/1" for f/2) */
+    const char *fnumber = NULL;
+    const char *fnumber_keys[] = {
+        "exif-photo-f-number",
+        "exif-photo-fnumber",
+        "Exif.Photo.FNumber",
+        NULL
+    };
+    for (int i = 0; fnumber_keys[i]; i++) {
+        if (!vips_image_get_string(image, fnumber_keys[i], &fnumber) && fnumber) {
+            /* Parse rational format: "numerator/denominator" */
+            float f_val = 0;
+            if (sscanf(fnumber, "%f", &f_val) == 1 && f_val > 0) {
+                exif->f_stop = (uint8_t)(f_val * 10 + 0.5);  /* f/2.0 → 20, f/2.8 → 28 */
+            }
+            break;
+        }
+    }
+    
+    /* Extract Focal Length (Rational, e.g., "50/1" for 50mm) */
+    const char *focal = NULL;
+    const char *focal_keys[] = {
+        "exif-photo-focal-length",
+        "Exif.Photo.FocalLength",
+        NULL
+    };
+    for (int i = 0; focal_keys[i]; i++) {
+        if (!vips_image_get_string(image, focal_keys[i], &focal) && focal) {
+            float focal_val = 0;
+            if (sscanf(focal, "%f", &focal_val) == 1 && focal_val > 0) {
+                exif->focal_length = (uint16_t)(focal_val + 0.5);
+            }
+            break;
+        }
+    }
+    
+    /* Extract Exposure Time / Shutter Speed (Rational, e.g., "1/100" for 1/100s) */
+    const char *exposure_time = NULL;
+    const char *exposure_keys[] = {
+        "exif-photo-exposure-time",
+        "Exif.Photo.ExposureTime",
+        NULL
+    };
+    for (int i = 0; exposure_keys[i]; i++) {
+        if (!vips_image_get_string(image, exposure_keys[i], &exposure_time) && exposure_time) {
+            /* Parse as fraction or decimal and convert to log2 scale */
+            float exp_val = 0;
+            int num = 0, denom = 1;
+            if (sscanf(exposure_time, "%d/%d", &num, &denom) == 2 && denom > 0) {
+                exp_val = (float)num / denom;
+            } else {
+                sscanf(exposure_time, "%f", &exp_val);
+            }
+            if (exp_val > 0) {
+                /* Convert to log2 scale: log2(exposure_time) with +10 offset for range */
+                /* -10=1/1000s, 0=1s, +10=1000s */
+                float log_val = log2f(exp_val) + 10;
+                if (log_val >= -10 && log_val <= 10) {
+                    exif->exposure_time_log = (uint8_t)(log_val + 0.5);
+                }
+            }
+            break;
+        }
+    }
+    
+    /* Extract Brightness Value (Rational) */
+    const char *brightness = NULL;
+    const char *brightness_keys[] = {
+        "exif-photo-brightness-value",
+        "Exif.Photo.BrightnessValue",
+        NULL
+    };
+    for (int i = 0; brightness_keys[i]; i++) {
+        if (!vips_image_get_string(image, brightness_keys[i], &brightness) && brightness) {
+            float bright_val = 0;
+            if (sscanf(brightness, "%f", &bright_val) == 1) {
+                exif->brightness_ev = (uint8_t)(bright_val + 10 + 0.5);  /* +10 offset */
+            }
+            break;
+        }
+    }
+    
+    /* Extract Metering Mode */
+    int metering = 0;
+    const char *metering_keys[] = {
+        "exif-photo-metering-mode",
+        "Exif.Photo.MeteringMode",
+        NULL
+    };
+    for (int i = 0; metering_keys[i]; i++) {
+        if (!vips_image_get_int(image, metering_keys[i], &metering) && metering >= 0) {
+            exif->metering_mode = (uint8_t)metering;
+            break;
+        }
+    }
+    
+    /* Extract Exposure Program */
+    int exp_prog = 0;
+    const char *prog_keys[] = {
+        "exif-photo-exposure-program",
+        "Exif.Photo.ExposureProgram",
+        NULL
+    };
+    for (int i = 0; prog_keys[i]; i++) {
+        if (!vips_image_get_int(image, prog_keys[i], &exp_prog) && exp_prog >= 0) {
+            exif->exposure_program = (uint8_t)exp_prog;
+            break;
+        }
+    }
+    
+    /* Extract White Balance */
+    int wb = 0;
+    const char *wb_keys[] = {
+        "exif-photo-white-balance",
+        "Exif.Photo.WhiteBalance",
+        NULL
+    };
+    for (int i = 0; wb_keys[i]; i++) {
+        if (!vips_image_get_int(image, wb_keys[i], &wb) && wb >= 0) {
+            exif->white_balance = (uint8_t)wb;
+            break;
+        }
+    }
+    
+    /* Extract Color Space */
+    int colorspace = 0;
+    const char *cs_keys[] = {
+        "exif-photo-color-space",
+        "Exif.Photo.ColorSpace",
+        NULL
+    };
+    for (int i = 0; cs_keys[i]; i++) {
+        if (!vips_image_get_int(image, cs_keys[i], &colorspace) && colorspace >= 0) {
+            exif->color_space = (uint8_t)colorspace;
+            break;
+        }
+    }
+    
+    /* Extract Date/Time - try multiple formats */
+    const char *datetime = NULL;
+    const char *datetime_keys[] = {
+        "exif-image-datetime",
+        "exif-photo-datetime-original",
+        "exif-photo-datetime-digitized",
+        "Exif.Image.DateTime",
+        "Exif.Photo.DateTimeOriginal",
+        "Exif.Photo.DateTimeDigitized",
+        NULL
+    };
+    for (int i = 0; datetime_keys[i]; i++) {
+        if (!vips_image_get_string(image, datetime_keys[i], &datetime) && datetime) {
+            /* Parse datetime: YYYY:MM:DD HH:MM:SS */
+            int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0;
+            if (sscanf(datetime, "%d:%d:%d %d:%d:%d", &year, &month, &day, &hour, &minute, &second) == 6) {
+                if (year >= 2000 && year <= 2099) {
+                    exif->date_year = (uint8_t)(year - 2000);
+                    exif->date_month = (uint8_t)month;
+                    exif->date_day = (uint8_t)day;
+                    exif->date_hour = (uint8_t)hour;
+                    exif->date_minute = (uint8_t)minute;
+                    exif->date_second = (uint8_t)second;
+                }
+            }
+            break;
+        }
     }
 }
 
@@ -128,40 +337,33 @@ static int buffer_vips_image(VipsImage *image, int verbose, int timestamp_loggin
 
     log_verbose(verbose, timestamp_logging, "   --> Buffering %dx%d RGB image (%d bytes)...\n", buf->width, buf->height, data_size);
 
-    /* Prepare image region and copy data */
-    VipsRegion *region = vips_region_new(image);
-    if (!region) {
-        error_log(SLOWFRAME_ERR_IMAGE_PROCESS, "Failed to create VipsRegion for image");
-        free(buf->data);
-        free(buf);
-        g_object_unref(image);
-        return SLOWFRAME_ERR_IMAGE_PROCESS;
-    }
-
-    VipsRect rect = { 0, 0, image->Xsize, image->Ysize };
-    if (vips_region_prepare(region, &rect)) {
-        error_log(SLOWFRAME_ERR_IMAGE_PROCESS, "Failed to prepare image region: %s", vips_error_buffer());
+    /* Extract pixel data into a densely-packed buffer.
+     * vips_image_write_to_memory always produces a flat width×bands×height
+     * byte array with no row padding, regardless of how the image was derived
+     * (crop, embed, colourspace, etc.).
+     *
+     * Using VipsRegion + VIPS_REGION_ADDR is NOT safe here: for a lazy derived
+     * image such as one produced by vips_crop, the region data is a window
+     * into the *parent* image's memory and VIPS_REGION_LSKIP reflects the
+     * parent's wider rowstride (e.g. 2880 bytes for a 960-pixel-wide source).
+     * Treating that pointer as if it had the crop's logical rowstride (960 bytes
+     * for a 320-pixel-wide crop) causes a silent stride mismatch that manifests
+     * as a zig-zag / shear corruption in every derived tile.
+     */
+    size_t written_size = 0;
+    void *raw = vips_image_write_to_memory(image, &written_size);
+    if (!raw) {
+        error_log(SLOWFRAME_ERR_IMAGE_PROCESS,
+                  "vips_image_write_to_memory failed: %s", vips_error_buffer());
         vips_error_clear();
-        g_object_unref(region);
         free(buf->data);
         free(buf);
         g_object_unref(image);
         return SLOWFRAME_ERR_IMAGE_PROCESS;
     }
 
-    /* Copy pixel data */
-    const uint8_t *src = VIPS_REGION_ADDR(region, 0, 0);
-    if (!src) {
-        error_log(SLOWFRAME_ERR_IMAGE_PROCESS, "Failed to access pixel data from VipsRegion");
-        g_object_unref(region);
-        free(buf->data);
-        free(buf);
-        g_object_unref(image);
-        return SLOWFRAME_ERR_IMAGE_PROCESS;
-    }
-
-    memcpy(buf->data, src, data_size);
-    g_object_unref(region);
+    memcpy(buf->data, raw, data_size);
+    g_free(raw);
 
     log_verbose(verbose, timestamp_logging, "   [OK] Buffer ready: %dx%d RGB\n", buf->width, buf->height);
 
@@ -204,6 +406,13 @@ int image_load_from_file(const char *filename, int verbose, int timestamp_loggin
     }
 
     log_verbose(verbose, timestamp_logging, "   --> Loaded: %dx%d, %d-band image\n", image->Xsize, image->Ysize, image->Bands);
+
+    /* Extract EXIF metadata from loaded image */
+    extract_exif_from_image(image, &g_img.exif);
+    if (verbose) {
+        log_verbose(verbose, timestamp_logging, "   --> EXIF data available: ISO %d, f/%.1f\n", 
+                    g_img.exif.iso_speed, g_img.exif.f_stop / 10.0);
+    }
 
     /* Buffer the image (includes RGB conversion) */
     int buffer_result = buffer_vips_image(image, verbose, timestamp_logging);
@@ -275,6 +484,115 @@ const char *image_get_original_extension(void) {
         return "";
     }
     return dot;
+}
+
+VipsImage* image_get_vips_image(void) {
+    return g_img.image;
+}
+
+/**
+ * image_get_exif_f_stop
+ * Return the extracted f-stop value from EXIF
+ */
+uint8_t image_get_exif_f_stop(void) {
+    return g_img.exif.f_stop;
+}
+
+/**
+ * image_get_exif_iso
+ * Return the extracted ISO speed from EXIF
+ */
+uint16_t image_get_exif_iso(void) {
+    return g_img.exif.iso_speed;
+}
+
+/**
+ * image_get_exif_focal_length
+ * Return the extracted focal length from EXIF
+ */
+uint16_t image_get_exif_focal_length(void) {
+    return g_img.exif.focal_length;
+}
+
+/**
+ * image_get_exif_data
+ * Copy the full extracted EXIF data structure to dest
+ */
+int image_get_exif_data(void *dest) {
+    if (!dest) {
+        return SLOWFRAME_ERR_ARG_INVALID;
+    }
+    if (!g_img.buffer) {
+        return SLOWFRAME_ERR_IMAGE_LOAD;
+    }
+    memcpy(dest, &g_img.exif, sizeof(ExifMetadata));
+    return SLOWFRAME_OK;
+}
+
+/**
+ * Embed recovery position markers in the 4 corners of the buffered image.
+ * Markers are 5x5 pixels with color-coded position information.
+ * Works on the RGB buffer directly (not demand-driven VipsImage).
+ */
+int image_embed_recovery_markers(int tile_row, int tile_col) {
+    if (!g_img.buffer) {
+        return SLOWFRAME_ERR_IMAGE_LOAD;
+    }
+
+    int w = g_img.buffer->width;
+    int h = g_img.buffer->height;
+    int corner_size = 5;  /* 5x5 pixel corners for position markers */
+
+    /* Get distinctive color for this position (color-coded by row,col) */
+    uint8_t r = (uint8_t)((tile_row + 1) * 80);
+    uint8_t g = (uint8_t)((tile_col + 1) * 80);
+    uint8_t b = 128;
+
+    uint8_t *data = g_img.buffer->data;
+    int rowstride = g_img.buffer->rowstride;
+    int bytes_per_pixel = 3;  /* RGB */
+
+    /* Top-left corner */
+    for (int y = 0; y < corner_size && y < h; y++) {
+        for (int x = 0; x < corner_size && x < w; x++) {
+            int offset = y * rowstride + x * bytes_per_pixel;
+            data[offset + 0] = r;
+            data[offset + 1] = g;
+            data[offset + 2] = b;
+        }
+    }
+
+    /* Top-right corner */
+    for (int y = 0; y < corner_size && y < h; y++) {
+        for (int x = (w >= corner_size ? w - corner_size : 0); x < w; x++) {
+            int offset = y * rowstride + x * bytes_per_pixel;
+            data[offset + 0] = r;
+            data[offset + 1] = g;
+            data[offset + 2] = b;
+        }
+    }
+
+    /* Bottom-left corner */
+    for (int y = (h >= corner_size ? h - corner_size : 0); y < h; y++) {
+        for (int x = 0; x < corner_size && x < w; x++) {
+            int offset = y * rowstride + x * bytes_per_pixel;
+            data[offset + 0] = r;
+            data[offset + 1] = g;
+            data[offset + 2] = b;
+        }
+    }
+
+    /* Bottom-right corner */
+    for (int y = (h >= corner_size ? h - corner_size : 0); y < h; y++) {
+        for (int x = (w >= corner_size ? w - corner_size : 0); x < w; x++) {
+            int offset = y * rowstride + x * bytes_per_pixel;
+            data[offset + 0] = r;
+            data[offset + 1] = g;
+            data[offset + 2] = b;
+        }
+    }
+
+    return SLOWFRAME_OK;
 }
 
 void image_free(void) {
@@ -362,19 +680,380 @@ int image_correct_aspect_and_resize(int target_width, int target_height, AspectM
    PUBLIC: DEBUG AND INSPECTION
    ============================================================================ */
 
+int image_rotate(int degrees, int verbose, int timestamp_logging) {
+    if (!g_img.image) {
+        error_log(SLOWFRAME_ERR_IMAGE_LOAD, "No image loaded");
+        return SLOWFRAME_ERR_IMAGE_LOAD;
+    }
+
+    if (degrees == 0) {
+        return SLOWFRAME_OK;
+    }
+
+    log_verbose(verbose, timestamp_logging,
+                "   Rotating image %+d degrees (clockwise)\n", degrees);
+
+    /* vips_similarity angle is counter-clockwise, so negate for clockwise */
+    double angle = -(double)degrees;
+
+    VipsImage *rotated = NULL;
+    if (vips_similarity(g_img.image, &rotated, "angle", angle, NULL)) {
+        error_log(SLOWFRAME_ERR_IMAGE_PROCESS,
+                  "Failed to rotate image: %s", vips_error_buffer());
+        vips_error_clear();
+        return SLOWFRAME_ERR_IMAGE_PROCESS;
+    }
+
+    /* Release old state and buffer the rotated result */
+    clear_image_state();
+
+    int buffer_result = buffer_vips_image(rotated, verbose, timestamp_logging);
+    if (buffer_result != SLOWFRAME_OK) {
+        error_log(buffer_result, "Failed to buffer rotated image");
+        g_object_unref(rotated);
+        return buffer_result;
+    }
+
+    log_verbose(verbose, timestamp_logging,
+                "   [OK] Image rotated, new size: %dx%d\n",
+                g_img.buffer->width, g_img.buffer->height);
+
+    return SLOWFRAME_OK;
+}
+
+/* ============================================================================
+   PUBLIC: TILING SUPPORT
+   ============================================================================ */
+
+int image_crop_region(int left, int top, int width, int height,
+                      int verbose, int timestamp_logging) {
+    if (!g_img.image) {
+        error_log(SLOWFRAME_ERR_IMAGE_LOAD, "No image loaded for crop");
+        return SLOWFRAME_ERR_IMAGE_LOAD;
+    }
+
+    log_verbose(verbose, timestamp_logging,
+                "   Cropping tile region: left=%d top=%d %dx%d\n",
+                left, top, width, height);
+
+    VipsImage *cropped = NULL;
+    if (vips_crop(g_img.image, &cropped, left, top, width, height, NULL)) {
+        error_log(SLOWFRAME_ERR_IMAGE_PROCESS,
+                  "vips_crop failed: %s", vips_error_buffer());
+        vips_error_clear();
+        return SLOWFRAME_ERR_IMAGE_PROCESS;
+    }
+
+    /* Release old state and buffer the cropped region */
+    clear_image_state();
+
+    int buffer_result = buffer_vips_image(cropped, verbose, timestamp_logging);
+    if (buffer_result != SLOWFRAME_OK) {
+        error_log(buffer_result, "Failed to buffer cropped tile");
+        g_object_unref(cropped);
+        return buffer_result;
+    }
+
+    log_verbose(verbose, timestamp_logging,
+                "   [OK] Tile cropped: %dx%d\n",
+                g_img.buffer->width, g_img.buffer->height);
+
+    return SLOWFRAME_OK;
+}
+
+int image_pad_top(int rows, int verbose, int timestamp_logging) {
+    if (!g_img.image) {
+        error_log(SLOWFRAME_ERR_IMAGE_LOAD, "No image loaded for pad_top");
+        return SLOWFRAME_ERR_IMAGE_LOAD;
+    }
+    if (rows <= 0) return SLOWFRAME_OK;
+
+    int w = vips_image_get_width(g_img.image);
+    int h = vips_image_get_height(g_img.image);
+
+    log_verbose(verbose, timestamp_logging,
+                "   Padding top: adding %d black rows (%dx%d -> %dx%d)\n",
+                rows, w, h, w, h + rows);
+
+    /* Place current image at (0, rows) within a (w x h+rows) black canvas */
+    VipsImage *padded = NULL;
+    if (vips_embed(g_img.image, &padded, 0, rows, w, h + rows,
+                   "extend", VIPS_EXTEND_BLACK, NULL)) {
+        error_log(SLOWFRAME_ERR_IMAGE_PROCESS,
+                  "vips_embed (pad_top) failed: %s", vips_error_buffer());
+        vips_error_clear();
+        return SLOWFRAME_ERR_IMAGE_PROCESS;
+    }
+
+    clear_image_state();
+
+    int buffer_result = buffer_vips_image(padded, verbose, timestamp_logging);
+    if (buffer_result != SLOWFRAME_OK) {
+        error_log(buffer_result, "Failed to buffer padded image");
+        g_object_unref(padded);
+        return buffer_result;
+    }
+
+    log_verbose(verbose, timestamp_logging,
+                "   [OK] Image padded: %dx%d\n",
+                g_img.buffer->width, g_img.buffer->height);
+
+    return SLOWFRAME_OK;
+}
+
+/* CRC-8/CCITT (polynomial 0x07) used for tile header rows */
+static uint8_t sf_crc8(const uint8_t *data, size_t len) {
+    uint8_t crc = 0x00;
+    for (size_t i = 0; i < len; i++) {
+        crc ^= data[i];
+        for (int b = 0; b < 8; b++) {
+            if (crc & 0x80) crc = (uint8_t)((crc << 1) ^ 0x07);
+            else            crc = (uint8_t)(crc << 1);
+        }
+    }
+    return crc;
+}
+
+int image_apply_tile_header(const SFTileInfo *info,
+                            int verbose, int timestamp_logging) {
+    if (!g_img.buffer) {
+        error_log(SLOWFRAME_ERR_IMAGE_LOAD, "No image loaded for tile header");
+        return SLOWFRAME_ERR_IMAGE_LOAD;
+    }
+
+    int W = g_img.buffer->width;
+    int H = g_img.buffer->height;
+
+    if (H < SF_TILE_HEADER_ROWS) {
+        error_log(SLOWFRAME_ERR_IMAGE_PROCESS,
+                  "Image height %d < required tile header rows %d",
+                  H, SF_TILE_HEADER_ROWS);
+        return SLOWFRAME_ERR_IMAGE_PROCESS;
+    }
+
+    /* Macroblock width: now divide row into 16 blocks (20px each) for EXIF support.
+     * This allows encoding all 14 EXIF metadata fields + tile geometry.
+     * Any remainder pixels at right edge use the last block's color. */
+    int blk = W / 16;
+    if (blk < 1) blk = 1;
+
+    /* ----------------------------------------------------------------
+     * Row 0 — Sync: 16 fixed-color blocks repeated R G B Y C M W K
+     * These specific primaries/secondaries identify a SlowFrame tile.
+     * ---------------------------------------------------------------- */
+    static const uint8_t sync[8][3] = {
+        {255,   0,   0},  /* R */
+        {  0, 255,   0},  /* G */
+        {  0,   0, 255},  /* B */
+        {255, 255,   0},  /* Y */
+        {  0, 255, 255},  /* C */
+        {255,   0, 255},  /* M */
+        {255, 255, 255},  /* W */
+        {  0,   0,   0},  /* K */
+    };
+
+    for (int x = 0; x < W; x++) {
+        int b = (x / blk < 16) ? (x / blk) : 15;
+        uint8_t *px = g_img.buffer->data + (size_t)(0 * g_img.buffer->rowstride + x * 3);
+        px[0] = sync[b % 8][0];
+        px[1] = sync[b % 8][1];
+        px[2] = sync[b % 8][2];
+    }
+
+    /* ================================================================
+     * Row 1 — Grid / position / basic EXIF (16 bytes)
+     *   [0] version       [1] grid_cols     [2] grid_rows     [3] tile_col
+     *   [4] tile_row      [5] total_tiles   [6] seq_num       [7] exif_version
+     *   [8] f_stop        [9] metering_mode [10] exposure_prog [11] exposure_time_log
+     *   [12] focal_len_hi [13] reserved     [14] reserved     [15] CRC-8
+     * ================================================================ */
+    uint8_t r1[16] = {
+        info->version,
+        info->grid_cols,
+        info->grid_rows,
+        info->tile_col,
+        info->tile_row,
+        info->total_tiles,
+        info->seq_num,
+        info->exif_version,
+        info->f_stop,
+        info->metering_mode,
+        info->exposure_program,
+        info->exposure_time_log,
+        (uint8_t)((info->focal_length >> 8) & 0xFF),  /* focal_length hi byte */
+        0,  /* reserved */
+        0,  /* reserved */
+        0   /* CRC placeholder */
+    };
+    r1[15] = sf_crc8(r1, 15);
+
+    /* ================================================================
+     * Row 2 — Image dimensions + session ID + additional EXIF (16 bytes)
+     *   [0] orig_width hi     [1] orig_width lo
+     *   [2] orig_height hi    [3] orig_height lo
+     *   [4..7] session_id bytes (big-endian)
+     *   [8] overlap_px        [9] brightness_ev [10] iso_hi    [11] iso_lo
+     *   [12] white_balance    [13] color_space  [14] color_profile_id [15] CRC-8
+     * ================================================================ */
+    uint8_t r2[16] = {
+        (uint8_t)((info->orig_width  >> 8) & 0xFF),
+        (uint8_t)( info->orig_width        & 0xFF),
+        (uint8_t)((info->orig_height >> 8) & 0xFF),
+        (uint8_t)( info->orig_height       & 0xFF),
+        (uint8_t)((info->session_id >> 24) & 0xFF),
+        (uint8_t)((info->session_id >> 16) & 0xFF),
+        (uint8_t)((info->session_id >>  8) & 0xFF),
+        (uint8_t)( info->session_id        & 0xFF),
+        info->overlap_px,
+        info->brightness_ev,
+        (uint8_t)((info->iso_speed >> 8) & 0xFF),
+        (uint8_t)( info->iso_speed       & 0xFF),
+        info->white_balance,
+        info->color_space,
+        info->color_profile_id,
+        0   /* CRC placeholder */
+    };
+    r2[15] = sf_crc8(r2, 15);
+
+    /* ================================================================
+     * Row 3 — Device & timestamp info (16 bytes)
+     *   [0] device_make_hi     [1] device_make_lo
+     *   [2] device_model_hi    [3] device_model_lo
+     *   [4] date_year          [5] date_month   [6] date_day
+     *   [7] date_hour          [8] date_minute  [9] date_second
+     *   [10] focal_len_lo      [11..]  reserved
+     * ================================================================ */
+    uint8_t r3[16] = {
+        (uint8_t)((info->device_make_id >> 8) & 0xFF),
+        (uint8_t)( info->device_make_id       & 0xFF),
+        (uint8_t)((info->device_model_id >> 8) & 0xFF),
+        (uint8_t)( info->device_model_id       & 0xFF),
+        info->date_year,
+        info->date_month,
+        info->date_day,
+        info->date_hour,
+        info->date_minute,
+        info->date_second,
+        (uint8_t)(info->focal_length & 0xFF),  /* focal_length lo byte */
+        0, 0, 0, 0,
+        0   /* CRC placeholder */
+    };
+    r3[15] = sf_crc8(r3, 15);
+
+    /* Paint data rows 1-3 as grayscale macroblocks */
+    const uint8_t *rows[3] = { r1, r2, r3 };
+    for (int row_idx = 0; row_idx < 3; row_idx++) {
+        const uint8_t *bytes = rows[row_idx];
+        int y = 1 + row_idx;
+        for (int x = 0; x < W; x++) {
+            int b = (x / blk < 16) ? (x / blk) : 15;
+            uint8_t v = bytes[b];
+            uint8_t *px = g_img.buffer->data +
+                          (size_t)(y * g_img.buffer->rowstride + x * 3);
+            px[0] = v;
+            px[1] = v;
+            px[2] = v;
+        }
+    }
+
+    /* ================================================================
+     * Rows 4-7 — Redundant backup copy of rows 0-3.
+     * If the primary header is corrupted during transmission (SSTV burst
+     * noise, tape dropout, RF fade), the decoder can fall back to this
+     * second copy to recover grid geometry, dimensions, and session ID.
+     * ================================================================ */
+    {
+        size_t row_bytes = (size_t)W * 3;
+        for (int src_row = 0; src_row < 4; src_row++) {
+            const uint8_t *src_p = g_img.buffer->data +
+                                   (size_t)(src_row * g_img.buffer->rowstride);
+            uint8_t       *dst_p = g_img.buffer->data +
+                                   (size_t)((src_row + 4) * g_img.buffer->rowstride);
+            memcpy(dst_p, src_p, row_bytes);
+        }
+    }
+
+    log_verbose(verbose, timestamp_logging,
+                "   [OK] Tile header applied: %dx%d grid  tile r%dc%d  seq %d/%d  "
+                "session 0x%08X  ISO %d  fnumber %.1f  (16-block EXIF format)\n",
+                info->grid_cols, info->grid_rows,
+                info->tile_row, info->tile_col,
+                info->seq_num, info->total_tiles,
+                info->session_id, info->iso_speed, info->f_stop / 10.0);
+
+    return SLOWFRAME_OK;
+}
+
 int image_save_to_file(const char *output_path, int verbose) {
     if (!output_path) {
         error_log(SLOWFRAME_ERR_ARG_FILENAME_INVALID, "Output path pointer is NULL");
         return SLOWFRAME_ERR_ARG_FILENAME_INVALID;
     }
 
-    if (!g_img.image) {
+    if (!g_img.buffer || !g_img.buffer->data) {
         error_log(SLOWFRAME_ERR_IMAGE_LOAD, "No image loaded");
         return SLOWFRAME_ERR_IMAGE_LOAD;
     }
 
-    if (vips_image_write_to_file(g_img.image, output_path, NULL)) {
-        error_log(SLOWFRAME_ERR_FILE_WRITE, "Failed to save image to '%s' (Details: %s)", output_path, vips_error_buffer());
+    /* Construct the output image from the pixel buffer so that in-place
+     * modifications (e.g. tile header rows written by image_apply_tile_header)
+     * are reflected in the saved file.  vips_image_new_from_memory shares the
+     * caller's buffer pointer; the write completes synchronously before we
+     * unref, so the pointer remains valid throughout. */
+    VipsImage *save_img = vips_image_new_from_memory(
+        g_img.buffer->data,
+        (size_t)(g_img.buffer->height * g_img.buffer->rowstride),
+        g_img.buffer->width,
+        g_img.buffer->height,
+        3,
+        VIPS_FORMAT_UCHAR);
+    if (!save_img) {
+        error_log(SLOWFRAME_ERR_IMAGE_PROCESS,
+                  "Failed to build VipsImage from pixel buffer: %s",
+                  vips_error_buffer());
+        vips_error_clear();
+        return SLOWFRAME_ERR_IMAGE_PROCESS;
+    }
+
+    /* Try to preserve EXIF metadata from the original image */
+    if (g_img.image) {
+        const void *exif_blob = NULL;
+        size_t exif_size = 0;
+        
+        /* Extract EXIF from original image */
+        if (!vips_image_get_blob(g_img.image, "exif-data", &exif_blob, &exif_size) &&
+            exif_blob && exif_size > 0) {
+            /* Copy EXIF blob to the save image
+             * Note: vips_image_set_blob requires a free function and takes ownership */
+            void *exif_copy = malloc(exif_size);
+            if (exif_copy) {
+                memcpy(exif_copy, exif_blob, exif_size);
+                vips_image_set_blob(save_img, "exif-data", 
+                                   (VipsCallbackFn)free, exif_copy, exif_size);
+            }
+        }
+        
+        /* Try to copy ICC profile if available */
+        const void *icc_blob = NULL;
+        size_t icc_size = 0;
+        if (!vips_image_get_blob(g_img.image, "icc-profile-data", &icc_blob, &icc_size) &&
+            icc_blob && icc_size > 0) {
+            void *icc_copy = malloc(icc_size);
+            if (icc_copy) {
+                memcpy(icc_copy, icc_blob, icc_size);
+                vips_image_set_blob(save_img, "icc-profile-data",
+                                   (VipsCallbackFn)free, icc_copy, icc_size);
+            }
+        }
+    }
+
+    int write_err = vips_image_write_to_file(save_img, output_path, NULL);
+    g_object_unref(save_img);
+
+    if (write_err) {
+        error_log(SLOWFRAME_ERR_FILE_WRITE,
+                  "Failed to save image to '%s' (Details: %s)",
+                  output_path, vips_error_buffer());
         vips_error_clear();
         return SLOWFRAME_ERR_FILE_WRITE;
     }

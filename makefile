@@ -113,10 +113,12 @@ TARGET = $(BIN_DIR)/slowframe
 TARGET_LIBGD = $(BIN_DIR)/slowframe_libgd
 TARGET_SAN = $(BIN_DIR)/slowframe_san
 TARGET_VIPS_TEST = $(BIN_DIR)/vips_test
+TARGET_STITCH_TILES = $(BIN_DIR)/stitch_tiles
 SRC_FILES = $(SRC_DIR)/slowframe.c $(SRC_DIR)/slowframe_image.c $(SRC_DIR)/slowframe_sstv.c \
             $(SRC_DIR)/slowframe_audio_encoder.c $(SRC_DIR)/audio_encoder_wav.c \
             $(SRC_DIR)/audio_encoder_aiff.c $(SRC_DIR)/audio_encoder_ogg.c \
             $(SRC_DIR)/slowframe_config.c $(SRC_DIR)/slowframe_context.c $(SRC_DIR)/overlay_spec.c \
+            $(SRC_DIR)/recovery_strategies.c \
             $(IMG_DIR)/image_loader.c $(IMG_DIR)/image_processor.c $(IMG_DIR)/image_aspect.c \
             $(SSTV_DIR)/mode_registry.c $(SSTV_DIR)/modes_martin.c \
             $(SSTV_DIR)/modes_scottie.c $(SSTV_DIR)/modes_robot.c \
@@ -126,6 +128,7 @@ OBJ_FILES = $(BIN_DIR)/slowframe.o $(BIN_DIR)/slowframe_image.o $(BIN_DIR)/slowf
             $(BIN_DIR)/slowframe_audio_encoder.o $(BIN_DIR)/audio_encoder_wav.o \
             $(BIN_DIR)/audio_encoder_aiff.o $(BIN_DIR)/audio_encoder_ogg.o \
             $(BIN_DIR)/slowframe_config.o $(BIN_DIR)/slowframe_context.o $(BIN_DIR)/overlay_spec.o \
+            $(BIN_DIR)/recovery_strategies.o \
             $(BIN_DIR)/image_loader.o $(BIN_DIR)/image_processor.o $(BIN_DIR)/image_aspect.o \
             $(BIN_DIR)/mode_registry.o $(BIN_DIR)/modes_martin.o \
             $(BIN_DIR)/modes_scottie.o $(BIN_DIR)/modes_robot.o \
@@ -144,7 +147,7 @@ COLOR_RED     = \033[31m
 CHECK_OK   = ✓
 CHECK_NONE = ✗
 
-all: build-info $(TARGET) build-success
+all: build-info $(TARGET) $(TARGET_STITCH_TILES) build-success
 
 build-info:
 	@echo "$(COLOR_CYAN)═══════════════════════════════════════════════════$(COLOR_RESET)"
@@ -195,6 +198,11 @@ build-success:
 	@filesize=$$(stat -f%z "$(TARGET)" 2>/dev/null || stat -c%s "$(TARGET)" 2>/dev/null); \
 	filesizekb=$$(($$filesize / 1024)); \
 	echo "Binary: $(TARGET) ($${filesizekb} KB)"
+	@if [ -f "$(TARGET_STITCH_TILES)" ]; then \
+		filesize=$$(stat -f%z "$(TARGET_STITCH_TILES)" 2>/dev/null || stat -c%s "$(TARGET_STITCH_TILES)" 2>/dev/null); \
+		filesizekb=$$(($$filesize / 1024)); \
+		echo "Utility: $(TARGET_STITCH_TILES) ($${filesizekb} KB)"; \
+	fi
 	@echo "Run:    ./bin/slowframe -h"
 ifeq ($(MMSSTV_LIB_DETECTED),0)
 	@echo ""
@@ -227,6 +235,10 @@ $(BIN_DIR)/%.o: $(IMG_DIR)/%.c
 
 $(TARGET): $(OBJ_FILES)
 	@echo "  LINK  $@"
+	@$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
+
+$(TARGET_STITCH_TILES): $(SRC_DIR)/stitch_tiles.c $(BIN_DIR)/error.o $(BIN_DIR)/image_loader.o $(BIN_DIR)/image_processor.o $(BIN_DIR)/recovery_strategies.o
+	@echo "  CC    $<"
 	@$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
 debug: CFLAGS += -g -O0 -DDEBUG
@@ -262,7 +274,7 @@ help:
 	@echo "$(COLOR_CYAN)═══════════════════════════════════════════════════$(COLOR_RESET)"
 	@echo ""
 	@echo "$(COLOR_BOLD)Build Targets:$(COLOR_RESET)"
-	@echo "  $(COLOR_GREEN)make [all]$(COLOR_RESET)      - Build SlowFrame (default, optimized)"
+	@echo "  $(COLOR_GREEN)make [all]$(COLOR_RESET)      - Build SlowFrame and utilities (default, optimized)"
 	@echo "  $(COLOR_GREEN)make debug$(COLOR_RESET)      - Build with debug symbols (-g -O0)"
 	@echo "  $(COLOR_GREEN)make sanitize$(COLOR_RESET)   - Build with AddressSanitizer & UBSan"
 	@echo "  $(COLOR_GREEN)make verbose$(COLOR_RESET)    - Build with full compiler output"
@@ -421,7 +433,7 @@ test-ci: $(TARGET)
 
 clean:
 	@echo "$(COLOR_YELLOW)[CLEAN]$(COLOR_RESET) Removing build artifacts..."
-	@rm -f $(BIN_DIR)/slowframe* $(BIN_DIR)/*.o
+	@rm -f $(BIN_DIR)/slowframe* $(BIN_DIR)/stitch_tiles $(BIN_DIR)/*.o
 	@rm -rf $(BIN_DIR)/*.dSYM
 	@echo "$(COLOR_GREEN)$(CHECK_OK)$(COLOR_RESET) Clean complete"
 

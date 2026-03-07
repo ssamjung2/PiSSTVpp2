@@ -71,15 +71,24 @@ mmsstv_library_t* mmsstv_loader_init(void) {
         if (try_load_library(lib, library_path)) {
             /* Successfully loaded */
             snprintf(lib->status_message, sizeof(lib->status_message),
-                     "Loaded from %s (v%s)",
+                     "Loaded from %.180s (v%.20s)",
                      lib->library_path,
                      lib->version[0] ? lib->version : "unknown");
         }
     } else {
-        /* Library not found - this is OK! */
-        snprintf(lib->status_message, sizeof(lib->status_message),
-                 "Not detected (searched: $MMSSTV_LIB_PATH, pkg-config, "
-                 "/usr/local/lib, /usr/lib, /opt/mmsstv/lib)");
+        /* Library not found - this is OK, but give a specific hint if the
+         * user set MMSSTV_LIB_PATH to a non-existent file so they can
+         * diagnose it immediately instead of seeing a generic message. */
+        const char *env_path = getenv("MMSSTV_LIB_PATH");
+        if (env_path && env_path[0]) {
+            snprintf(lib->status_message, sizeof(lib->status_message),
+                     "MMSSTV_LIB_PATH set but file not found: %.180s",
+                     env_path);
+        } else {
+            snprintf(lib->status_message, sizeof(lib->status_message),
+                     "Not detected (searched: $MMSSTV_LIB_PATH, pkg-config, "
+                     "/usr/local/lib, /usr/lib, /opt/mmsstv/lib)");
+        }
     }
     
     return lib;
@@ -178,7 +187,7 @@ const mmsstv_functions_t* mmsstv_loader_get_functions(const mmsstv_library_t *li
  */
 static const char* find_library_path(mmsstv_library_t *lib) {
     (void)lib;  /* Unused parameter - reserved for future logging */
-    static char path_buffer[512];
+    static char path_buffer[1024];
     
     /* Strategy 1: MMSSTV_LIB_PATH environment variable */
     const char *env_path = getenv("MMSSTV_LIB_PATH");

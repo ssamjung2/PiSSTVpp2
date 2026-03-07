@@ -13,6 +13,8 @@
 #include <stdint.h>
 #include <math.h>
 #include <tgmath.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include "logging.h"
 #include "error.h"
 #include "slowframe_sstv.h"
@@ -63,6 +65,71 @@ static SstvState g_sstv = {
 
 static int g_encode_verbose = 0;
 static int g_encode_timestamp = 0;
+
+/* ============================================================================
+   SUPPRESS STDOUT/STDERR (for MMSSTV library debug output)
+   ============================================================================ */
+
+/**
+ * @brief Structure to hold saved file descriptors for stdout/stderr suppression
+ */
+typedef struct {
+    int stdout_fd;      /**< Saved stdout file descriptor */
+    int stderr_fd;      /**< Saved stderr file descriptor */
+    int dev_null;       /**< /dev/null file descriptor */
+} suppress_output_t;
+
+/**
+ * @brief Suppress stdout and stderr output
+ * @return Saved state for restoration, or NULL on error
+ */
+static suppress_output_t* suppress_output_start(void) {
+    suppress_output_t *state = malloc(sizeof(suppress_output_t));
+    if (!state) return NULL;
+    
+    /* Save current file descriptors */
+    state->stdout_fd = dup(STDOUT_FILENO);
+    state->stderr_fd = dup(STDERR_FILENO);
+    
+    if (state->stdout_fd < 0 || state->stderr_fd < 0) {
+        free(state);
+        return NULL;
+    }
+    
+    /* Open /dev/null for redirection */
+    state->dev_null = open("/dev/null", O_WRONLY);
+    if (state->dev_null < 0) {
+        close(state->stdout_fd);
+        close(state->stderr_fd);
+        free(state);
+        return NULL;
+    }
+    
+    /* Redirect stdout and stderr to /dev/null */
+    dup2(state->dev_null, STDOUT_FILENO);
+    dup2(state->dev_null, STDERR_FILENO);
+    
+    return state;
+}
+
+/**
+ * @brief Restore stdout and stderr output
+ * @param state State from suppress_output_start()
+ */
+static void suppress_output_end(suppress_output_t *state) {
+    if (!state) return;
+    
+    /* Restore original file descriptors */
+    dup2(state->stdout_fd, STDOUT_FILENO);
+    dup2(state->stderr_fd, STDERR_FILENO);
+    
+    /* Close saved descriptors */
+    close(state->stdout_fd);
+    close(state->stderr_fd);
+    close(state->dev_null);
+    
+    free(state);
+}
 
 /* ============================================================================
    HELPER FUNCTIONS: TONE SYNTHESIS
@@ -917,10 +984,22 @@ int sstv_encode_frame_with_mode(const mode_definition_t *mode_def,
         addvisheader(verbose, timestamp_logging);
     }
 
+    /* Suppress MMSSTV library debug output (e.g., [ENCODER SEG] messages) */
+    suppress_output_t *suppress_state = NULL;
+    if (mode_def->source && strcmp(mode_def->source, "mmsstv") == 0) {
+        suppress_state = suppress_output_start();
+    }
+
     int result = mode_def->encode_frame(mode_def->code,
                                         g_sstv.rate,
                                         g_sstv.audio,
                                         g_sstv.max_samples);
+    
+    /* Restore output if it was suppressed */
+    if (suppress_state) {
+        suppress_output_end(suppress_state);
+    }
+    
     if (result != SLOWFRAME_OK) {
         return result;
     }

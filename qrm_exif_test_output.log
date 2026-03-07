@@ -1,0 +1,214 @@
+================================================================================
+QRM EXIF & TILE PLACEMENT RECOVERY TEST SUITE
+================================================================================
+
+Testing 4 QRM presets...
+Source tiles: /Users/ssamjung/Desktop/WIP/SlowFrame/tests/test_outputs/tiling
+
+================================================================================
+STAGE 1: Generating CLEAN corrupted tiles
+================================================================================
+✓ Generated 18 noisy tiles
+
+================================================================================
+STAGE 2: Discovering tile sets (clean)
+================================================================================
+✓ Found session: 0x69AB1283
+✓ Found session: 0x69A98C9E
+
+================================================================================
+STAGE 3: Analyzing header recovery (clean)
+================================================================================
+✓ Header detection rate: 5.6%
+  Avg header corruption: 61.97
+
+================================================================================
+STAGE 4: Checking EXIF preservation in noisy tiles (clean)
+================================================================================
+✓ EXIF preservation in noisy tiles: 5/5 (100.0%)
+
+================================================================================
+STAGE 5: Stitching clean tiles
+================================================================================
+Using session: 0x69AB1283
+✓ Stitching successful
+  Output size: 1167968 bytes
+
+================================================================================
+STAGE 6: Checking EXIF in stitched output (clean)
+================================================================================
+✓ Stitched output HAS EXIF data
+  Date/Time: 2016:12:29 19:52:50
+
+================================================================================
+STAGE 7: Evaluating visual quality (clean)
+================================================================================
+✓ Output dimensions: (960, 696)
+  File size: 1140.6 KB
+
+================================================================================
+STAGE 1: Generating LIGHT_QRM corrupted tiles
+================================================================================
+✓ Generated 18 noisy tiles
+
+================================================================================
+STAGE 2: Discovering tile sets (light_qrm)
+================================================================================
+✓ Found session: 0x69AB1283
+✓ Found session: 0x69A98C9E
+
+================================================================================
+STAGE 3: Analyzing header recovery (light_qrm)
+================================================================================
+✓ Header detection rate: 5.6%
+  Avg header corruption: 62.78
+
+================================================================================
+STAGE 4: Checking EXIF preservation in noisy tiles (light_qrm)
+================================================================================
+✓ EXIF preservation in noisy tiles: 5/5 (100.0%)
+
+================================================================================
+STAGE 5: Stitching light_qrm tiles
+================================================================================
+Using session: 0x69AB1283
+✓ Stitching successful
+  Output size: 1404210 bytes
+
+================================================================================
+STAGE 6: Checking EXIF in stitched output (light_qrm)
+================================================================================
+✓ Stitched output HAS EXIF data
+  Date/Time: 2016:12:29 19:52:50
+
+================================================================================
+STAGE 7: Evaluating visual quality (light_qrm)
+================================================================================
+✓ Output dimensions: (960, 696)
+  File size: 1371.3 KB
+
+================================================================================
+STAGE 1: Generating MEDIUM_QRM corrupted tiles
+================================================================================
+✓ Generated 18 noisy tiles
+
+================================================================================
+STAGE 2: Discovering tile sets (medium_qrm)
+================================================================================
+✓ Found session: 0x69AB1283
+✓ Found session: 0x69A98C9E
+
+================================================================================
+STAGE 3: Analyzing header recovery (medium_qrm)
+================================================================================
+✓ Header detection rate: 5.6%
+  Avg header corruption: 78.45
+
+================================================================================
+STAGE 4: Checking EXIF preservation in noisy tiles (medium_qrm)
+================================================================================
+✓ EXIF preservation in noisy tiles: 5/5 (100.0%)
+
+================================================================================
+STAGE 5: Stitching medium_qrm tiles
+================================================================================
+Using session: 0x69AB1283
+✓ Stitching successful
+  Output size: 1738169 bytes
+
+================================================================================
+STAGE 6: Checking EXIF in stitched output (medium_qrm)
+================================================================================
+✓ Stitched output HAS EXIF data
+  Date/Time: 2016:12:29 19:52:50
+
+================================================================================
+STAGE 7: Evaluating visual quality (medium_qrm)
+================================================================================
+✓ Output dimensions: (960, 696)
+  File size: 1697.4 KB
+
+================================================================================
+STAGE 1: Generating HEAVY_QRM corrupted tiles
+================================================================================
+✓ Generated 18 noisy tiles
+
+================================================================================
+STAGE 2: Discovering tile sets (heavy_qrm)
+================================================================================
+✓ Found session: 0x69AB1283
+✓ Found session: 0x69A98C9E
+
+================================================================================
+STAGE 3: Analyzing header recovery (heavy_qrm)
+================================================================================
+✓ Header detection rate: 5.6%
+  Avg header corruption: 85.98
+
+================================================================================
+STAGE 4: Checking EXIF preservation in noisy tiles (heavy_qrm)
+================================================================================
+✓ EXIF preservation in noisy tiles: 5/5 (100.0%)
+
+================================================================================
+STAGE 5: Stitching heavy_qrm tiles
+================================================================================
+Using session: 0x69AB1283
+✗ Stitching failed: [ERROR] 1 tile(s) missing from grid
+[ERROR] Stitching failed
+
+
+================================================================================
+STAGE 6: Checking EXIF in stitched output (heavy_qrm)
+================================================================================
+
+================================================================================
+STAGE 7: Evaluating visual quality (heavy_qrm)
+================================================================================
+
+================================================================================
+TEST SUMMARY
+================================================================================
+
+CLEAN:
+  ✓ Generated 18 tiles
+  ✓ Discovered 2 tile set(s)
+      - 0x69AB1283
+      - 0x69A98C9E
+  Header detection: 5.6%
+  EXIF in noisy tiles: 5/5
+  ✓ Stitching succeeded
+  ✓ EXIF in stitched output: True
+
+LIGHT_QRM:
+  ✓ Generated 18 tiles
+  ✓ Discovered 2 tile set(s)
+      - 0x69AB1283
+      - 0x69A98C9E
+  Header detection: 5.6%
+  EXIF in noisy tiles: 5/5
+  ✓ Stitching succeeded
+  ✓ EXIF in stitched output: True
+
+MEDIUM_QRM:
+  ✓ Generated 18 tiles
+  ✓ Discovered 2 tile set(s)
+      - 0x69AB1283
+      - 0x69A98C9E
+  Header detection: 5.6%
+  EXIF in noisy tiles: 5/5
+  ✓ Stitching succeeded
+  ✓ EXIF in stitched output: True
+
+HEAVY_QRM:
+  ✓ Generated 18 tiles
+  ✓ Discovered 2 tile set(s)
+      - 0x69AB1283
+      - 0x69A98C9E
+  Header detection: 5.6%
+  EXIF in noisy tiles: 5/5
+  ✗ Stitching failed
+
+✓ Detailed results saved to: /Users/ssamjung/Desktop/WIP/SlowFrame/tests/test_outputs/qrm_exif_recovery_results.json
+
+Test completed.

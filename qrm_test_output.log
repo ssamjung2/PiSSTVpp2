@@ -1,0 +1,71 @@
+================================================================================
+QRM STITCHING TEST
+================================================================================
+
+Found 9 tiles to process
+  as13.png
+  asdf.png
+  asdfq.png
+  ... and 6 more
+
+================================================================================
+Processing CLEAN
+================================================================================
+
+Generating clean tile variants...
+✓ Generated 9 clean tiles
+
+Stitching clean tiles...
+✓ Stitching succeeded: stitch_clean.png (1.27 MB)
+
+================================================================================
+Processing LIGHT_QRM
+================================================================================
+
+Generating light_qrm tile variants...
+✓ Generated 9 light_qrm tiles
+
+Stitching light_qrm tiles...
+✓ Stitching succeeded: stitch_light_qrm.png (1.48 MB)
+
+================================================================================
+Processing MEDIUM_QRM
+================================================================================
+
+Generating medium_qrm tile variants...
+✓ Generated 9 medium_qrm tiles
+
+Stitching medium_qrm tiles...
+✓ Stitching succeeded: stitch_medium_qrm.png (1.69 MB)
+
+================================================================================
+Processing HEAVY_QRM
+================================================================================
+
+Generating heavy_qrm tile variants...
+✓ Generated 9 heavy_qrm tiles
+
+Stitching heavy_qrm tiles...
+✓ Stitching succeeded: stitch_heavy_qrm.png (1.67 MB)
+
+================================================================================
+SUMMARY
+================================================================================
+
+Results: 4/4 presets succeeded
+
+✓ clean           → success
+    Output: /Users/ssamjung/Desktop/WIP/SlowFrame/tests/test_outputs/stitch_clean.png
+    Size: 1.27 MB
+✓ light_qrm       → success
+    Output: /Users/ssamjung/Desktop/WIP/SlowFrame/tests/test_outputs/stitch_light_qrm.png
+    Size: 1.48 MB
+✓ medium_qrm      → success
+    Output: /Users/ssamjung/Desktop/WIP/SlowFrame/tests/test_outputs/stitch_medium_qrm.png
+    Size: 1.69 MB
+✓ heavy_qrm       → success
+    Output: /Users/ssamjung/Desktop/WIP/SlowFrame/tests/test_outputs/stitch_heavy_qrm.png
+    Size: 1.67 MB
+
+================================================================================
+✓ SUCCESS: All QRM levels produced valid stitched images!

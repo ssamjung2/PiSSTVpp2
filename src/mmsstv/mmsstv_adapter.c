@@ -456,14 +456,23 @@ static int mmsstv_encode_wrapper(
     typedef sstv_image_t (*image_from_rgb_fn)(uint8_t*, uint32_t, uint32_t);
     typedef sstv_image_t (*image_from_gray_fn)(uint8_t*, uint32_t, uint32_t);
     
-    create_fn encoder_create = (create_fn)dlsym(lib_handle, "sstv_encoder_create");
-    free_fn encoder_free = (free_fn)dlsym(lib_handle, "sstv_encoder_free");
-    set_image_fn set_image = (set_image_fn)dlsym(lib_handle, "sstv_encoder_set_image");
-    generate_fn encoder_generate = (generate_fn)dlsym(lib_handle, "sstv_encoder_generate");
-    set_vis_fn encoder_set_vis = (set_vis_fn)dlsym(lib_handle, "sstv_encoder_set_vis_enabled");
-    is_complete_fn encoder_is_complete = (is_complete_fn)dlsym(lib_handle, "sstv_encoder_is_complete");
-    image_from_rgb_fn image_from_rgb = (image_from_rgb_fn)dlsym(lib_handle, "sstv_image_from_rgb");
-    image_from_gray_fn image_from_gray = (image_from_gray_fn)dlsym(lib_handle, "sstv_image_from_gray");
+    create_fn encoder_create;
+    free_fn encoder_free;
+    set_image_fn set_image;
+    generate_fn encoder_generate;
+    set_vis_fn encoder_set_vis;
+    is_complete_fn encoder_is_complete;
+    image_from_rgb_fn image_from_rgb;
+    image_from_gray_fn image_from_gray;
+    /* Use POSIX-idiomatic cast to avoid -Wpedantic object->function-pointer warning */
+    *(void **)(&encoder_create)     = dlsym(lib_handle, "sstv_encoder_create");
+    *(void **)(&encoder_free)        = dlsym(lib_handle, "sstv_encoder_free");
+    *(void **)(&set_image)           = dlsym(lib_handle, "sstv_encoder_set_image");
+    *(void **)(&encoder_generate)    = dlsym(lib_handle, "sstv_encoder_generate");
+    *(void **)(&encoder_set_vis)     = dlsym(lib_handle, "sstv_encoder_set_vis_enabled");
+    *(void **)(&encoder_is_complete) = dlsym(lib_handle, "sstv_encoder_is_complete");
+    *(void **)(&image_from_rgb)      = dlsym(lib_handle, "sstv_image_from_rgb");
+    *(void **)(&image_from_gray)     = dlsym(lib_handle, "sstv_image_from_gray");
     
     if (!encoder_create || !encoder_free || !set_image || !encoder_generate ||
         !encoder_is_complete || !image_from_rgb) {

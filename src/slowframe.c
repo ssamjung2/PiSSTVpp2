@@ -99,6 +99,7 @@
 #include "slowframe_audio_encoder.h"
 #include "slowframe_config.h"
 #include "slowframe_context.h"
+#include "recovery_strategies.h"
 #include "sstv/mode_registry.h"
 #include "sstv/modes_martin.h"
 #include "sstv/modes_scottie.h"
@@ -304,9 +305,16 @@ static void show_help(void) {
     printf("DEBUGGING & ANALYSIS:\n");
     printf("  -v                        Verbose output with processing details\n");
     printf("  -Z                        Add timestamps to verbose logging (implies -v)\n");
-    printf("  -K                        Keep intermediate processed images\n");
+    printf("  -K[file]                  Keep intermediate processed image\n");
+    printf("                            No arg: auto-name as <input_base>-<mode>.<ext>\n");
+    printf("                            With arg (adjacent, no space): save to that file\n");
+    printf("                              e.g.  -Kmy_preview.jpg\n");
     printf("  -N                        Skip audio encoding (test mode)\n");
     printf("  -O                        Text-only overlay (no resizing, requires -N)\n\n");
+
+    printf("IMAGE OPTIONS:\n");
+    printf("  -D <degrees>              Rotate input image before encoding (+/- 0-360)\n");
+    printf("                            Positive = clockwise, negative = counterclockwise\n\n");
 
     printf("HELP:\n");
     printf("  -h                        Show detailed help with all options and examples\n");
@@ -491,7 +499,13 @@ static void show_mmsstv_status(void) {
     } else {
         printf("Library Status:      ✗ NOT DETECTED\n");
         printf("MMSSTV Modes:        0\n");
-        
+
+        /* Show the specific reason from the loader (e.g. bad MMSSTV_LIB_PATH) */
+        char status_buf[512];
+        if (mmsstv_adapter_get_status(adapter, status_buf, (int)sizeof(status_buf)) > 0) {
+            printf("Reason:              %s\n", status_buf);
+        }
+
         printf("\n");
         printf("The MMSSTV library was not found on this system.\n");
         printf("SlowFrame will work with %d built-in modes only.\n", 7);
@@ -499,12 +513,16 @@ static void show_mmsstv_status(void) {
         printf("To enable additional MMSSTV modes:\n");
         printf("  1. Install the mmsstv-portable library package\n");
         printf("  2. Or set the MMSSTV_LIB_PATH environment variable:\n");
-        printf("     export MMSSTV_LIB_PATH=/path/to/libmmsstv.dylib\n");
+#ifdef __APPLE__
+        printf("     export MMSSTV_LIB_PATH=/path/to/libsstv_encoder.1.0.0.dylib\n");
+#else
+        printf("     export MMSSTV_LIB_PATH=/path/to/libsstv_encoder.so.1.0.0\n");
+#endif
         printf("\n");
         printf("Detection attempted:\n");
         printf("  • $MMSSTV_LIB_PATH environment variable\n");
         printf("  • pkg-config --variable=libdir mmsstv-portable\n");
-        printf("  • Standard library paths: /usr/local/lib, /usr/lib, /opt/homebrew/lib\n");
+        printf("  • Standard library paths: /usr/local/lib, /usr/lib, /opt/mmsstv/lib\n");
     }
     
     printf("\n");
@@ -725,7 +743,12 @@ int main(int argc, char *argv[]) {
             if (dot_input && dot_input != config.input_file) {
                 input_ext = dot_input;
             }
-            snprintf(overlay_image, sizeof(overlay_image), "%s/%s_overlay%s", out_dir, out_base, input_ext);
+            if (config.keep_intermediate_explicit && strlen(config.intermediate_file) > 0) {
+                strncpy(overlay_image, config.intermediate_file, sizeof(overlay_image) - 1);
+                overlay_image[sizeof(overlay_image) - 1] = '\0';
+            } else {
+                snprintf(overlay_image, sizeof(overlay_image), "%s/%s_overlay%s", out_dir, out_base, input_ext);
+            }
             verbose_print(config.verbose, config.timestamp_logging, "  Output image:     %s (test mode - overlay only)\n", overlay_image);
             verbose_print(config.verbose, config.timestamp_logging, "  MODE:             TEST/DEBUG (audio encoding disabled)\n");
         } else {
@@ -781,7 +804,12 @@ int main(int argc, char *argv[]) {
             if (dot_input && dot_input != config.input_file) {
                 input_ext = dot_input;
             }
-            snprintf(overlay_image, sizeof(overlay_image), "%s/%s_overlay%s", out_dir, out_base, input_ext);
+            if (config.keep_intermediate_explicit && strlen(config.intermediate_file) > 0) {
+                strncpy(overlay_image, config.intermediate_file, sizeof(overlay_image) - 1);
+                overlay_image[sizeof(overlay_image) - 1] = '\0';
+            } else {
+                snprintf(overlay_image, sizeof(overlay_image), "%s/%s_overlay%s", out_dir, out_base, input_ext);
+            }
             printf("  Output image:     %s (test mode - overlay only)\n", overlay_image);
             printf("  MODE:             TEST/DEBUG (audio encoding disabled)\n");
         } else {
@@ -802,6 +830,444 @@ int main(int argc, char *argv[]) {
         printf("--------------------------------------------------------------\n");
     }
 
+    // ======================================================================
+    // TILING MODE (if -X flag provided)
+    // ======================================================================
+    // When a tile grid is requested, the entire single-image pipeline is
+    // replaced by a loop that: loads the original, crops one tile per iteration,
+    // applies the 4-row structured header (Layer 1), aspect-corrects, encodes
+    // SSTV audio, and writes a numbered audio file per tile.
+    // ======================================================================
+    if (config.tile_cols > 0) {
+
+        int required_width  = (int)selected_mode->width;
+        int required_height = (int)selected_mode->height;
+        int tile_total      = config.tile_cols * config.tile_rows;
+
+        /* Auto-enable keep_intermediate for tiling (saves pre-header tile PNGs) */
+        if (tile_total > 1) {
+            config.keep_intermediate = 1;
+        }
+
+        // ----------------------------------------------------------------
+        // Derive audio output base: strip extension from config.output_file
+        // Tile audio:  <base>-tile-NN-rRcC.<audio_ext>
+        // ----------------------------------------------------------------
+        char tile_audio_base[CONFIG_MAX_FILENAME + 1];
+        const char *audio_ext_str;
+        {
+            const char *odot = strrchr(config.output_file, '.');
+            if (odot) {
+                size_t blen = (size_t)(odot - config.output_file);
+                if (blen >= sizeof(tile_audio_base)) blen = sizeof(tile_audio_base) - 1;
+                strncpy(tile_audio_base, config.output_file, blen);
+                tile_audio_base[blen] = '\0';
+                audio_ext_str = odot;          /* includes the dot, e.g. ".wav" */
+            } else {
+                strncpy(tile_audio_base, config.output_file, sizeof(tile_audio_base) - 1);
+                tile_audio_base[sizeof(tile_audio_base) - 1] = '\0';
+                audio_ext_str = ".wav";
+            }
+        }
+
+        // ----------------------------------------------------------------
+        // Derive intermediate image base (used when -K is active)
+        // Tile intermediate:  <inter_base>-tile-NN-rRcC.png
+        // Always PNG — the structured header rows require lossless storage;
+        // JPEG compression would corrupt the CRC-protected pixel values.
+        // ----------------------------------------------------------------
+        char tile_inter_base[1024] = {0};
+        // Always build the base name from input file stem + protocol
+        // (used for pre-image and tile files, regardless of -K flag)
+        {
+            const char *inp = config.input_file;
+            const char *base_start = strrchr(inp, '/');
+            base_start = base_start ? base_start + 1 : inp;
+            const char *idot = strrchr(base_start, '.');
+            int stem_len = idot ? (int)(idot - base_start) : (int)strlen(base_start);
+            snprintf(tile_inter_base, sizeof(tile_inter_base),
+                     "%.*s-%s", stem_len, base_start, config.protocol);
+        }
+
+        // ----------------------------------------------------------------
+        // Load image once to determine original (post-rotation) dimensions
+        // ----------------------------------------------------------------
+        verbose_print(config.verbose, config.timestamp_logging,
+                     "[1/4] Loading image to determine original dimensions...\n");
+        {
+            int lr = image_load_from_file(config.input_file,
+                                          config.verbose, config.timestamp_logging, NULL);
+            if (lr != SLOWFRAME_OK) { error_code = lr; goto cleanup; }
+        }
+        if (config.rotation_degrees != 0) {
+            int rr = image_rotate(config.rotation_degrees,
+                                  config.verbose, config.timestamp_logging);
+            if (rr != SLOWFRAME_OK) { error_code = rr; goto cleanup; }
+        }
+        int orig_w = 0, orig_h = 0;
+        image_get_dimensions(&orig_w, &orig_h);
+
+        if (config.verbose) {
+            verbose_print(config.verbose, config.timestamp_logging,
+                         "   --> Original dimensions: %dx%d\n", orig_w, orig_h);
+            verbose_print(config.verbose, config.timestamp_logging,
+                         "   --> Grid: %dx%d (%d tiles)\n",
+                         config.tile_cols, config.tile_rows, tile_total);
+            if (config.tile_overlap > 0)
+                verbose_print(config.verbose, config.timestamp_logging,
+                             "   --> Overlap: %d px per shared edge\n", config.tile_overlap);
+        }
+
+        // Session ID: timestamp XOR PID — unique per run, no extra deps
+        uint32_t session_id = (uint32_t)(time(NULL)) ^ (uint32_t)(getpid());
+
+        /* Aspect ratio check — warn if tile crop shape doesn't match mode.
+         * For a CxR grid, each tile covers (orig_w/C) x (orig_h/R) of the
+         * source.  If that ratio doesn't match required_width/required_height
+         * the image_correct_aspect_and_resize step will stretch or letterbox.
+         * Formula: distortion % = |tile_ar - mode_ar| / mode_ar * 100        */
+        {
+            double tile_ar = (double)orig_w / config.tile_cols
+                           / ((double)orig_h / config.tile_rows);
+            double mode_ar = (double)required_width / required_height;
+            double distortion_pct = fabs(tile_ar - mode_ar) / mode_ar * 100.0;
+            if (distortion_pct > 1.0) {
+                /* Compute a suggestion: square grid that would be undistorted */
+                fprintf(stderr,
+                    "\n[WARNING] Tile aspect ratio mismatch!\n"
+                    "  Grid %dx%d creates %dx%d tile crops (aspect %.4f)\n"
+                    "  Mode %-5s needs aspect %.4f  →  %.1f%% distortion\n"
+                    "  Undistorted grids for this source+mode: ",
+                    config.tile_cols, config.tile_rows,
+                    orig_w / config.tile_cols, orig_h / config.tile_rows,
+                    tile_ar,
+                    config.protocol, mode_ar,
+                    distortion_pct);
+                /* Print valid grid suggestions (distortion < 1%) */
+                int found = 0;
+                for (int c = 1; c <= 16; c++) {
+                    for (int r = 1; r <= 16; r++) {
+                        if (c == 1 && r == 1) continue; /* skip trivial */
+                        double ta = (double)orig_w / c / ((double)orig_h / r);
+                        if (fabs(ta - mode_ar) / mode_ar * 100.0 < 1.0) {
+                            fprintf(stderr, "%dx%d ", c, r);
+                            if (++found >= 6) { fprintf(stderr, "..."); goto done_suggest; }
+                        }
+                    }
+                }
+                done_suggest:
+                fprintf(stderr, "\n\n");
+            }
+        }
+
+        // ----------------------------------------------------------------
+        // Scale source ONCE to the full SSTV grid content resolution.
+        //
+        // All tiles are then cropped from this single pre-scaled image.
+        // This guarantees that every tile's content comes from one
+        // consistent resize operation — eliminating per-tile scaling
+        // discrepancies and seam discontinuities.
+        //
+        // Grid content size:
+        //   grid_w = required_width  * tile_cols
+        //   grid_h = content_h       * tile_rows   (content_h = mode_h - 8)
+        //
+        // The pre-image is always written to disk (the tile loop loads it).
+        // It is deleted after encoding if -K was not requested.
+        // ----------------------------------------------------------------
+        int content_h = required_height - (int)SF_TILE_HEADER_ROWS;
+        int grid_w    = required_width  * config.tile_cols;
+        int grid_h    = content_h       * config.tile_rows;
+
+        char pre_path[1024];
+        snprintf(pre_path, sizeof(pre_path), "%s-tile-pre.png", tile_inter_base);
+
+        printf("[PRE] Scaling source to grid resolution %dx%d...\n", grid_w, grid_h);
+        {
+            int lp = image_load_from_file(config.input_file,
+                                          config.verbose,
+                                          config.timestamp_logging, NULL);
+            if (lp != SLOWFRAME_OK) { error_code = lp; goto cleanup; }
+        }
+        if (config.rotation_degrees != 0) {
+            int rp = image_rotate(config.rotation_degrees,
+                                  config.verbose, config.timestamp_logging);
+            if (rp != SLOWFRAME_OK) { error_code = rp; goto cleanup; }
+        }
+        {
+            int ap = image_correct_aspect_and_resize(
+                         grid_w, grid_h,
+                         config.aspect_mode,
+                         config.verbose, config.timestamp_logging, NULL);
+            if (ap != SLOWFRAME_OK) { error_code = ap; goto cleanup; }
+        }
+        {
+            int sp = image_save_to_file(pre_path, config.verbose);
+            if (sp != SLOWFRAME_OK) { error_code = sp; goto cleanup; }
+        }
+        printf("[PRE] Saved: %s\n", pre_path);
+
+        int seq = 1;
+        for (int tile_row = 0; tile_row < config.tile_rows; tile_row++) {
+            for (int tile_col = 0; tile_col < config.tile_cols; tile_col++) {
+
+                printf("--------------------------------------------------------------\n");
+                printf("[TILE %d/%d]  row=%d  col=%d\n",
+                       seq, tile_total, tile_row, tile_col);
+                printf("--------------------------------------------------------------\n");
+
+                // ---- Crop tile from the globally-scaled pre-image ----
+                //
+                // Pre-image coordinates (all in SSTV pixels):
+                //   x = tile_col * required_width
+                //   y = tile_row * content_h
+                //
+                // For tile_row == 0: crop content_h rows; pad_top adds the
+                //   8 header rows as black, which the header overwrites.
+                //
+                // For tile_row > 0: start the crop SF_TILE_HEADER_ROWS rows
+                //   above the tier boundary — those rows are a duplicate of
+                //   the preceding tier's bottom, which the header overwrites.
+                //   This gives exactly required_height rows with no pad needed.
+                //
+                // User tile_overlap extends the crop on all sides (left, right, top, bottom)
+                // in pre-image pixel coordinates so the stitcher can trim them as usual.
+                // This preserves recovery marker data in corners.
+                int px_x = tile_col * required_width;
+                int px_y = tile_row * content_h;
+
+                int olap_left   = (tile_col > 0)                  ? config.tile_overlap : 0;
+                int olap_right  = (tile_col < config.tile_cols-1) ? config.tile_overlap : 0;
+                int olap_top    = (tile_row > 0)                  ? config.tile_overlap : 0;
+                int olap_bottom = (tile_row < config.tile_rows-1) ? config.tile_overlap : 0;
+
+                // For interior rows: borrow SF_TILE_HEADER_ROWS rows upward
+                int top_borrow = (tile_row > 0) ? (int)SF_TILE_HEADER_ROWS : 0;
+
+                int crop_x      = px_x - olap_left;
+                int crop_y      = px_y - top_borrow - olap_top;
+                int crop_w_tile = required_width  + olap_left + olap_right;
+                int crop_h_tile = content_h + top_borrow + olap_bottom;  /* required_height when row>0 */
+
+                /* Clamp to pre-image bounds */
+                if (crop_x < 0) { crop_w_tile += crop_x; crop_x = 0; }
+                if (crop_y < 0) { crop_h_tile += crop_y; crop_y = 0; }
+                if (crop_x + crop_w_tile > grid_w) crop_w_tile = grid_w - crop_x;
+                if (crop_y + crop_h_tile > grid_h) crop_h_tile = grid_h - crop_y;
+
+                verbose_print(config.verbose, config.timestamp_logging,
+                             "   --> Pre-image crop: (%d,%d) %dx%d\n",
+                             crop_x, crop_y, crop_w_tile, crop_h_tile);
+
+                // ---- Load pre-image and crop tile region ----
+                {
+                    int lr2 = image_load_from_file(pre_path,
+                                                   config.verbose,
+                                                   config.timestamp_logging, NULL);
+                    if (lr2 != SLOWFRAME_OK) { error_code = lr2; goto cleanup; }
+                }
+                {
+                    int cr = image_crop_region(crop_x, crop_y,
+                                               crop_w_tile, crop_h_tile,
+                                               config.verbose, config.timestamp_logging);
+                    if (cr != SLOWFRAME_OK) { error_code = cr; goto cleanup; }
+                }
+
+                // ---- Pad/position header rows ----
+                if (tile_row == 0) {
+                    // No preceding tier: prepend SF_TILE_HEADER_ROWS black rows.
+                    int pr = image_pad_top((int)SF_TILE_HEADER_ROWS,
+                                          config.verbose, config.timestamp_logging);
+                    if (pr != SLOWFRAME_OK) { error_code = pr; goto cleanup; }
+                }
+                // For tile_row > 0: the top SF_TILE_HEADER_ROWS rows are real
+                // content borrowed from the previous tier's bottom. The header
+                // will overwrite them — no pad_top needed.
+
+                // ---- Apply text overlays (if any) ----
+                if (overlay_spec_list_count(&config.overlay_specs) > 0) {
+                    int ovr = image_apply_overlay_list(&config.overlay_specs,
+                                                       config.verbose,
+                                                       config.timestamp_logging);
+                    if (ovr != SLOWFRAME_OK) { error_code = ovr; goto cleanup; }
+                }
+
+                // ---- Apply Layer 1: structured color-bar header rows ----
+                {
+                    ExifMetadata exif_data;
+                    if (image_get_exif_data(&exif_data) != SLOWFRAME_OK) {
+                        // Use defaults if EXIF extraction failed
+                        memset(&exif_data, 0, sizeof(ExifMetadata));
+                        exif_data.f_stop = 28;
+                        exif_data.metering_mode = 1;
+                        exif_data.exposure_program = 2;
+                        exif_data.exposure_time_log = 0;
+                        exif_data.focal_length = 50;
+                        exif_data.brightness_ev = 10;
+                        exif_data.iso_speed = 400;
+                        exif_data.white_balance = 0;
+                        exif_data.color_space = 0;
+                        exif_data.color_profile_id = 0;
+                        exif_data.device_make_id = 0;
+                        exif_data.device_model_id = 0;
+                    }
+
+                    SFTileInfo ti = {
+                        .version        = 2,  /* Version 2: 16-block EXIF format */
+                        .grid_cols      = (uint8_t)config.tile_cols,
+                        .grid_rows      = (uint8_t)config.tile_rows,
+                        .tile_col       = (uint8_t)tile_col,
+                        .tile_row       = (uint8_t)tile_row,
+                        .total_tiles    = (uint8_t)tile_total,
+                        .seq_num        = (uint8_t)seq,
+                        .orig_width     = (uint16_t)orig_w,
+                        .orig_height    = (uint16_t)orig_h,
+                        .overlap_px     = (uint8_t)config.tile_overlap,
+                        .session_id     = session_id,
+                        /* Use extracted EXIF data from source image */
+                        .exif_version   = 0x23,  /* EXIF 2.3 */
+                        .f_stop         = exif_data.f_stop,
+                        .metering_mode  = exif_data.metering_mode,
+                        .exposure_program = exif_data.exposure_program,
+                        .exposure_time_log = exif_data.exposure_time_log,
+                        .focal_length   = exif_data.focal_length,
+                        .brightness_ev  = exif_data.brightness_ev,
+                        .iso_speed      = exif_data.iso_speed,
+                        .white_balance  = exif_data.white_balance,
+                        .color_space    = exif_data.color_space,
+                        .color_profile_id = exif_data.color_profile_id,
+                        .device_make_id = exif_data.device_make_id,
+                        .device_model_id = exif_data.device_model_id,
+                        .date_year      = exif_data.date_year,
+                        .date_month     = exif_data.date_month,
+                        .date_day       = exif_data.date_day,
+                        .date_hour      = exif_data.date_hour,
+                        .date_minute    = exif_data.date_minute,
+                        .date_second    = exif_data.date_second,
+                    };
+                    int hr = image_apply_tile_header(&ti,
+                                                     config.verbose,
+                                                     config.timestamp_logging);
+                    if (hr != SLOWFRAME_OK) { error_code = hr; goto cleanup; }
+                }
+
+                // ---- Embed recovery markers (for QRM resilience) ----
+                // Only embed markers when we have overlap, since markers overwrite image data
+                // With 0 overlap, markers just create stitching artifacts without providing recovery benefit
+                if (config.recovery_enabled && config.recovery_embed_markers && config.tile_overlap > 0) {
+                    int mr = image_embed_recovery_markers(tile_row, tile_col);
+                    if (mr == SLOWFRAME_OK && config.verbose) {
+                        verbose_print(config.verbose, config.timestamp_logging,
+                                    "   --> Embedded recovery markers at (%d, %d)\n",
+                                    tile_row, tile_col);
+                    }
+                }
+
+                // ---- Save intermediate tile image (if -K) ----
+                if (config.keep_intermediate) {
+                    char tile_inter[1024];
+                    snprintf(tile_inter, sizeof(tile_inter),
+                             "%s-tile-%02d-r%dc%d.png",
+                             tile_inter_base, seq, tile_row, tile_col);
+                    int sr = image_save_to_file(tile_inter, config.verbose);
+                    if (sr != SLOWFRAME_OK) { error_code = sr; goto cleanup; }
+                    verbose_print(config.verbose, config.timestamp_logging,
+                                 "   --> Saved tile intermediate: %s\n", tile_inter);
+                }
+
+                // ---- SSTV encode ----
+                verbose_print(config.verbose, config.timestamp_logging,
+                             "[2/4] Encoding tile %d/%d as SSTV audio...\n",
+                             seq, tile_total);
+                {
+                    int enc = sstv_encode_frame_with_mode(selected_mode,
+                                                          config.verbose,
+                                                          config.timestamp_logging);
+                    if (enc != SLOWFRAME_OK) { error_code = enc; goto cleanup; }
+                }
+
+                // ---- Write audio ----
+                char tile_audio_path[CONFIG_MAX_FILENAME + 64];
+                snprintf(tile_audio_path, sizeof(tile_audio_path),
+                         "%s-tile-%02d-r%dc%d%s",
+                         tile_audio_base, seq, tile_row, tile_col,
+                         audio_ext_str);
+
+                verbose_print(config.verbose, config.timestamp_logging,
+                             "[3/4] Writing tile audio: %s\n", tile_audio_path);
+
+                {
+                    uint32_t sc = 0;
+                    const uint16_t *samp = sstv_get_samples(&sc);
+                    if (sc == 0) {
+                        error_log(SLOWFRAME_ERR_SSTV_ENCODE, "No audio samples for tile %d", seq);
+                        error_code = SLOWFRAME_ERR_SSTV_ENCODE;
+                        goto cleanup;
+                    }
+
+                    AudioEncoder *enc2 = audio_encoder_create(config.format);
+                    if (!enc2) {
+                        error_code = SLOWFRAME_ERR_ARG_INVALID_FORMAT;
+                        goto cleanup;
+                    }
+                    int ir = audio_encoder_init(enc2, config.sample_rate, BITS, CHANS,
+                                               tile_audio_path);
+                    if (ir != SLOWFRAME_OK) {
+                        audio_encoder_destroy(enc2);
+                        error_code = ir;
+                        goto cleanup;
+                    }
+                    int er2 = audio_encoder_encode(enc2, samp, sc);
+                    if (er2 != SLOWFRAME_OK) {
+                        audio_encoder_destroy(enc2);
+                        error_code = er2;
+                        goto cleanup;
+                    }
+                    int fr = audio_encoder_finish(enc2);
+                    audio_encoder_destroy(enc2);
+                    if (fr != SLOWFRAME_OK) { error_code = fr; goto cleanup; }
+
+                    printf("   [OK] %s  (%.2f s at %d Hz)\n",
+                           tile_audio_path,
+                           sc / (double)config.sample_rate,
+                           config.sample_rate);
+                }
+
+                /* Reset SSTV audio buffer so next tile starts clean */
+                sstv_reset_buffer();
+
+                seq++;
+            } /* tile_col */
+        } /* tile_row */
+
+        /* Remove the pre-image temp file if -K was not requested */
+        if (!config.keep_intermediate) {
+            remove(pre_path);
+        }
+
+        /* Final summary */
+        gettimeofday(&end_tv, NULL);
+        uint32_t elapsed_tile_ms = (uint32_t)(
+            (end_tv.tv_sec  - start_tv.tv_sec)  * 1000 +
+            (end_tv.tv_usec - start_tv.tv_usec) / 1000);
+
+        printf("--------------------------------------------------------------\n");
+        printf("[COMPLETE] TILING COMPLETE\n");
+        printf("--------------------------------------------------------------\n");
+        printf("Tiles encoded: %d  (%dx%d grid)\n",
+               tile_total, config.tile_cols, config.tile_rows);
+        printf("Session ID:    0x%08X\n", (unsigned int)session_id);
+        printf("Encoding time: %u ms\n", elapsed_tile_ms);
+
+        image_free();
+        sstv_cleanup();
+        vips_shutdown();
+        slowframe_context_cleanup(&ctx);
+        slowframe_config_cleanup(&config);
+        return SLOWFRAME_OK;
+    }
+    /* ---- end tiling-mode block ---- */
+
     // Load image using new image module (auto-detects format)
     verbose_print(config.verbose, config.timestamp_logging, "[1/4] Loading image...\n");
     int image_result = image_load_from_file(config.input_file, config.verbose, config.timestamp_logging, NULL);
@@ -809,6 +1275,23 @@ int main(int argc, char *argv[]) {
         // Error already logged by image_load_from_file(), propagate error code
         error_code = image_result;
         goto cleanup;
+    }
+
+    // ======================================================================
+    // IMAGE ROTATION (if requested via -D flag)
+    // ======================================================================
+    if (config.rotation_degrees != 0) {
+        verbose_print(config.verbose, config.timestamp_logging,
+                     "[1a/4] Rotating image %+d degrees...\n", config.rotation_degrees);
+        int rotate_result = image_rotate(config.rotation_degrees,
+                                         config.verbose, config.timestamp_logging);
+        if (rotate_result != SLOWFRAME_OK) {
+            error_log(rotate_result, "Image rotation failed");
+            error_code = rotate_result;
+            goto cleanup;
+        }
+        verbose_print(config.verbose, config.timestamp_logging,
+                     "   [OK] Image rotation complete\n");
     }
 
     // ======================================================================
@@ -824,46 +1307,47 @@ int main(int argc, char *argv[]) {
     // When -N (skip audio), add "_overlay" suffix to prevent collision with source
     char intermediate_image[1024];
     {
-        // Extract directory component from output path
-        char out_dir[1024] = {0};
-        const char *last_slash = strrchr(config.output_file, '/');
-        if (last_slash) {
-            int dir_len = last_slash - config.output_file;
-            strncpy(out_dir, config.output_file, dir_len);
-            out_dir[dir_len] = '\0';
+
+        if (config.keep_intermediate_explicit && strlen(config.intermediate_file) > 0) {
+            // User explicitly requested -K with a filename (or auto-generated from input+protocol)
+            strncpy(intermediate_image, config.intermediate_file, sizeof(intermediate_image) - 1);
+            intermediate_image[sizeof(intermediate_image) - 1] = '\0';
         } else {
-            strcpy(out_dir, ".");
-        }
-        
-        // Get base name without extension
-        char out_base[256];
-        const char *base_start = last_slash ? last_slash + 1 : config.output_file;
-        const char *dot = strrchr(base_start, '.');
-        if (dot) {
-            int base_len = dot - base_start;
-            strncpy(out_base, base_start, base_len);
-            out_base[base_len] = '\0';
-        } else {
-            strcpy(out_base, base_start);
-        }
-        
-        // Get original image extension
-        const char *orig_ext = image_get_original_extension();
-        
-        // Build intermediate path: {dir}/{base}{suffix}{original_ext}
-        // Suffix based on operation mode
-        if (config.text_only) {
-            // Text-only mode: preserve original dimensions
-            snprintf(intermediate_image, sizeof(intermediate_image), "%s/%s_textonly%s", 
-                     out_dir, out_base, orig_ext);
-        } else if (config.skip_audio_encoding) {
-            // Standard overlay (with aspect correction)
-            snprintf(intermediate_image, sizeof(intermediate_image), "%s/%s_overlay%s", 
-                     out_dir, out_base, orig_ext);
-        } else {
-            // SSTV encoding mode
-            snprintf(intermediate_image, sizeof(intermediate_image), "%s/%s%s", 
-                     out_dir, out_base, orig_ext);
+            // Legacy: build from output audio filename (auto-enable cases: verbose, overlays, -N)
+            char out_dir[1024] = {0};
+            const char *last_slash = strrchr(config.output_file, '/');
+            if (last_slash) {
+                int dir_len = last_slash - config.output_file;
+                strncpy(out_dir, config.output_file, dir_len);
+                out_dir[dir_len] = '\0';
+            } else {
+                strcpy(out_dir, ".");
+            }
+
+            char out_base[256];
+            const char *base_start = last_slash ? last_slash + 1 : config.output_file;
+            const char *dot = strrchr(base_start, '.');
+            if (dot) {
+                int base_len = dot - base_start;
+                strncpy(out_base, base_start, base_len);
+                out_base[base_len] = '\0';
+            } else {
+                strcpy(out_base, base_start);
+            }
+
+            const char *orig_ext = image_get_original_extension();
+
+            if (config.text_only) {
+                snprintf(intermediate_image, sizeof(intermediate_image), "%s/%s_textonly%s",
+                         out_dir, out_base, orig_ext);
+            } else if (config.skip_audio_encoding) {
+                snprintf(intermediate_image, sizeof(intermediate_image), "%s/%s_overlay%s",
+                         out_dir, out_base, orig_ext);
+            } else {
+                // Append _processed suffix to avoid accidentally overwriting input
+                snprintf(intermediate_image, sizeof(intermediate_image), "%s/%s_processed%s",
+                         out_dir, out_base, orig_ext);
+            }
         }
     }
     

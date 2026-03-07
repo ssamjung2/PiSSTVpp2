@@ -91,10 +91,29 @@ int slowframe_config_init(SlowframeConfig *config) {
     // Audio encoding enabled by default
     config->skip_audio_encoding = 0;
 
+    // Image rotation
+    config->rotation_degrees = 0;
+
+    // Tiling options
+    config->tile_cols = 0;
+    config->tile_rows = 0;
+    config->tile_overlap = 0;  // Default: 0 pixels (no overlap); use -V to enable for marker preservation
+
+    // Recovery strategy options (all enabled by default for maximum robustness)
+    config->recovery_enabled = 1;
+    config->recovery_embed_markers = 1;
+    config->recovery_use_header_pattern = 1;
+    config->recovery_use_markers = 1;
+    config->recovery_use_spatial = 1;
+    config->recovery_verbose = 0;
+
     // Debug and logging defaults
     config->verbose = 0;
     config->timestamp_logging = 0;
     config->keep_intermediate = 0;
+    config->keep_intermediate_explicit = 0;
+    memset(config->intermediate_file, 0, sizeof(config->intermediate_file));
+    config->skip_audio_encoding = 0;
     config->text_only = 0;
     config->list_modes = 0;
     config->mmsstv_status = 0;
@@ -127,7 +146,7 @@ int slowframe_config_parse(SlowframeConfig *config, int argc, char *argv[]) {
     // CW: -Q (CW tone frequency)
     // Text overlays: -T (unified text overlay specification)
     // Testing: -N (skip audio encoding for overlay testing)
-    while ((option = getopt(argc, argv, "i:o:p:f:r:vC:W:Q:a:KZhNOR:T:LM")) != -1) {
+    while ((option = getopt(argc, argv, "i:o:p:f:r:vC:W:Q:a:K::D:X:V:ZhNOR:T:LM")) != -1) {
         switch (option) {
             // Input file (REQUIRED)
             case 'i':
@@ -338,10 +357,78 @@ int slowframe_config_parse(SlowframeConfig *config, int argc, char *argv[]) {
                 config->verbose = 1;  // Auto-enable verbose
                 break;
 
-            // Keep Intermediate Files
+            // Keep Intermediate Files (-K or -K<filename>)
+            // Optional argument: if filename given (must be adjacent, no space), use it.
+            // If no argument, auto-name will be generated in derived settings.
+            // Note: due to getopt optional-argument rules, filename must be adjacent:
+            //   -Koutput.jpg  (works)    -K output.jpg  (does NOT work)
             case 'K':
                 config->keep_intermediate = 1;
+                config->keep_intermediate_explicit = 1;
+                if (optarg && strlen(optarg) > 0) {
+                    if (strlen(optarg) >= sizeof(config->intermediate_file)) {
+                        error_log(SLOWFRAME_ERR_ARG_FILENAME_TOO_LONG,
+                                "Intermediate filename too long (max %d chars)", CONFIG_MAX_FILENAME);
+                        return SLOWFRAME_ERR_ARG_FILENAME_TOO_LONG;
+                    }
+                    strncpy(config->intermediate_file, optarg,
+                            sizeof(config->intermediate_file) - 1);
+                }
                 break;
+
+            // Image Rotation (-D <degrees>)
+            // Rotate input image before encoding. Positive = clockwise.
+            // Range: -360 to 360. Non-90-degree angles expand canvas (filled black).
+            case 'D': {
+                char *endptr = NULL;
+                errno = 0;
+                long tmp = strtol(optarg, &endptr, 10);
+                if (errno != 0 || endptr == optarg || *endptr != '\0') {
+                    error_log(SLOWFRAME_ERR_ARG_INVALID_PROTOCOL,
+                            "Invalid rotation degrees: '%s' (must be an integer)", optarg);
+                    return SLOWFRAME_ERR_ARG_INVALID_PROTOCOL;
+                }
+                if (tmp < -360 || tmp > 360) {
+                    error_log(SLOWFRAME_ERR_ARG_INVALID_PROTOCOL,
+                            "Rotation degrees must be -360 to 360, got %ld", tmp);
+                    return SLOWFRAME_ERR_ARG_INVALID_PROTOCOL;
+                }
+                config->rotation_degrees = (int)tmp;
+                break;
+            }
+
+            // Tile Grid (-X <cols>x<rows>)
+            // Split image into a cols-by-rows grid. Each tile gets its own audio file.
+            // Example: -X 3x3  (nine tiles), -X 2x1  (two horizontal strips)
+            case 'X': {
+                int cols = 0, rows = 0;
+                if (sscanf(optarg, "%dx%d", &cols, &rows) != 2 ||
+                    cols < 1 || cols > 16 || rows < 1 || rows > 16) {
+                    error_log(SLOWFRAME_ERR_ARG_INVALID_PROTOCOL,
+                            "Tile spec must be <cols>x<rows> (1-16 each), e.g. '3x3' or '2x1'");
+                    return SLOWFRAME_ERR_ARG_INVALID_PROTOCOL;
+                }
+                config->tile_cols = cols;
+                config->tile_rows = rows;
+                break;
+            }
+
+            // Tile Overlap (-V <pixels>)
+            // Additional pixels added to each shared tile edge (0 = no overlap).
+            // Requires -X to be set. Valid range: 0-200.
+            case 'V': {
+                char *endptr_v = NULL;
+                errno = 0;
+                long tmp_v = strtol(optarg, &endptr_v, 10);
+                if (errno != 0 || endptr_v == optarg || *endptr_v != '\0' ||
+                    tmp_v < 0 || tmp_v > 200) {
+                    error_log(SLOWFRAME_ERR_ARG_INVALID_PROTOCOL,
+                            "Tile overlap must be 0-200 pixels");
+                    return SLOWFRAME_ERR_ARG_INVALID_PROTOCOL;
+                }
+                config->tile_overlap = (int)tmp_v;
+                break;
+            }
 
             // Color Bars (-R <position>:<color1>,<color2>,...)
             // Adds colored bands/stripes to image for visual separation of overlay areas
@@ -551,6 +638,40 @@ int slowframe_config_parse(SlowframeConfig *config, int argc, char *argv[]) {
         config->keep_intermediate = 1;
     }
 
+    // Auto-generate intermediate filename when -K was explicitly requested and no
+    // filename was provided.  Format: {input_base}-{protocol}{original_ext}
+    // e.g.  -i test.jpg -p r36  →  test-r36.jpg
+    if (config->keep_intermediate_explicit && strlen(config->intermediate_file) == 0) {
+        const char *input = config->input_file;
+
+        // Get base filename (strip directory)
+        const char *base_start = strrchr(input, '/');
+        base_start = base_start ? base_start + 1 : input;
+
+        // Split into stem and extension
+        const char *ext_start = strrchr(base_start, '.');
+        int stem_len = ext_start ? (int)(ext_start - base_start) : (int)strlen(base_start);
+        const char *ext = ext_start ? ext_start : "";
+
+        // Build: {stem}-{protocol}{ext}
+        int needed = snprintf(config->intermediate_file,
+                              sizeof(config->intermediate_file),
+                              "%.*s-%s%s", stem_len, base_start, config->protocol, ext);
+        if (needed >= (int)sizeof(config->intermediate_file)) {
+            error_log(SLOWFRAME_ERR_ARG_FILENAME_TOO_LONG,
+                    "Auto-generated intermediate filename would be too long");
+            return SLOWFRAME_ERR_ARG_FILENAME_TOO_LONG;
+        }
+
+        // Safety: if auto-name still matches input exactly (very rare edge case
+        // like an input named "test-.jpg"), append "_intermediate"
+        if (strcmp(config->intermediate_file, input) == 0 ||
+            strcmp(config->intermediate_file, base_start) == 0) {
+            snprintf(config->intermediate_file, sizeof(config->intermediate_file),
+                     "%.*s-%s_intermediate%s", stem_len, base_start, config->protocol, ext);
+        }
+    }
+
     // Auto-generate output filename if not specified
     if (strlen(config->output_file) == 0) {
         result = slowframe_config_autogen_output_filename(config);
@@ -749,6 +870,20 @@ void slowframe_config_print(const SlowframeConfig *config) {
     printf("Verbose:         %s\n", config->verbose ? "Yes" : "No");
     printf("Timestamps:      %s\n", config->timestamp_logging ? "Yes" : "No");
     printf("Keep Intermed:   %s\n", config->keep_intermediate ? "Yes" : "No");
+    if (config->keep_intermediate && strlen(config->intermediate_file) > 0) {
+        printf("Intermed File:   %s\n", config->intermediate_file);
+    }
+    if (config->rotation_degrees != 0) {
+        printf("Rotation:        %+d degrees\n", config->rotation_degrees);
+    }
+    if (config->tile_cols > 0) {
+        printf("Tiling:          %dx%d grid (%d tiles)",
+               config->tile_cols, config->tile_rows,
+               config->tile_cols * config->tile_rows);
+        if (config->tile_overlap > 0)
+            printf(", %d px overlap per edge", config->tile_overlap);
+        printf("\n");
+    }
     printf("=============================\n");
 }
 
@@ -1025,12 +1160,45 @@ static void show_detailed_help(const char *program_name) {
     printf("  -v               Verbose output: show processing details and timings\n");
     printf("  -Z               Add timestamps to verbose output for performance analysis\n");
     printf("                   (implies -v)\n");
-    printf("  -K               Keep intermediate processed images for inspection\n");
-    printf("                   Useful for diagnosing image processing issues\n");
+    printf("  -K[file]         Keep intermediate processed image for inspection\n");
+    printf("                   No argument : auto-name as <input_base>-<mode>.<ext>\n");
+    printf("                                 e.g.  -i test.jpg -p r36  →  test-r36.jpg\n");
+    printf("                   With filename (no space): save to exact path\n");
+    printf("                                 e.g.  -Kmy_preview.jpg\n");
     printf("  -N               Skip audio encoding (test mode)\n");
     printf("                   Useful for testing overlays without audio generation\n");
     printf("  -L               List all available SSTV modes and exit\n");
     printf("  -M               Show MMSSTV library detection status and exit\n\n");
+
+    printf("TILING:\n");
+    printf("─────────────────────────────────────────────────────────────────\n");
+    printf("  -X <cols>x<rows> Split image into a tile grid and encode each tile\n");
+    printf("                   separately. Each tile produces its own audio file.\n");
+    printf("                   Grid size: 1x1 to 16x16. Examples:\n");
+    printf("                     -X 2x2  - four tiles (2 columns, 2 rows)\n");
+    printf("                     -X 3x3  - nine tiles\n");
+    printf("                     -X 2x1  - two horizontal strips\n");
+    printf("                   Output files: <base>-tile-NN-rRcC.<ext>\n");
+    printf("                   Each tile includes a 4-row structured header:\n");
+    printf("                     Row 0: Sync pattern (R/G/B/Y/C/M/W/K color blocks)\n");
+    printf("                     Row 1: Version, grid size, tile position, CRC\n");
+    printf("                     Row 2: Original image dimensions, session ID\n");
+    printf("                     Row 3: Overlap, reserved, CRC\n");
+    printf("  -V <pixels>      Edge overlap in pixels added to each shared tile edge\n");
+    printf("                   (requires -X). Range: 0-200. Default: 0\n");
+    printf("                   Overlap pixels appear in adjacent tiles, enabling\n");
+    printf("                   seamless stitching after reception.\n\n");
+
+    printf("IMAGE OPTIONS:\n");
+    printf("─────────────────────────────────────────────────────────────────\n");
+    printf("  -D <degrees>     Rotate input image before processing (+/- 0-360)\n");
+    printf("                   Positive values rotate clockwise; negative counterclockwise.\n");
+    printf("                   For non-orthogonal angles the canvas is expanded (black fill)\n");
+    printf("                   and then aspect-corrected to the target SSTV resolution.\n");
+    printf("                   Examples:\n");
+    printf("                     -D 90   - rotate 90 degrees clockwise\n");
+    printf("                     -D -90  - rotate 90 degrees counterclockwise\n");
+    printf("                     -D 15   - rotate 15 degrees clockwise (arbitrary)\n\n");
 
     printf("COMPLETE EXAMPLES:\n");
     printf("───────────────────────────────────────────────────────────────────\n");

@@ -168,10 +168,28 @@ typedef struct {
     // Color bar specifications (visual separation of overlay areas)
     ColorBarList colorbar_specs;                    /**< List of color bars to apply */
 
+    // Image rotation
+    int rotation_degrees;                           /**< Rotation to apply before encoding (-360 to 360, positive = clockwise) */
+
+    // Tiling options (Layer 1: color-bar header rows)
+    int tile_cols;                                  /**< Columns in tile grid (0 = tiling disabled) */
+    int tile_rows;                                  /**< Rows in tile grid */
+    int tile_overlap;                               /**< Overlap pixels added to each shared edge (default 0) */
+
+    // Recovery strategy options (for heavy QRM resilience)
+    int recovery_enabled;                           /**< 1 to enable recovery strategies, 0 to disable */
+    int recovery_embed_markers;                     /**< 1 to embed position markers during encoding */
+    int recovery_use_header_pattern;                /**< 1 to enable Tier 1 header pattern recognition */
+    int recovery_use_markers;                       /**< 1 to enable Tier 2 position marker detection */
+    int recovery_use_spatial;                       /**< 1 to enable Tier 3 spatial coherence validation */
+    int recovery_verbose;                           /**< 1 to enable recovery diagnostic output */
+
     // Debug and logging options
     int verbose;                                    /**< Enable verbose output */
     int timestamp_logging;                          /**< Add timestamps to verbose output */
     int keep_intermediate;                          /**< Keep intermediate processed images */
+    int keep_intermediate_explicit;                 /**< 1 if -K was explicitly requested by user (vs auto-enabled) */
+    char intermediate_file[CONFIG_MAX_FILENAME + 1];/**< Path for intermediate image (-K optional arg; auto if empty) */
     int skip_audio_encoding;                        /**< 1 to skip SSTV audio encoding (overlay testing only) */
     int text_only;                                  /**< 1 to skip aspect ratio and resizing (only applies with -N) */
     int list_modes;                                 /**< 1 to list available SSTV modes and exit */
